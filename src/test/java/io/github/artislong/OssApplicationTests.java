@@ -1,4 +1,4 @@
-package com.github;
+package io.github.artislong;
 
 import cn.hutool.system.SystemUtil;
 import cn.hutool.system.UserInfo;
