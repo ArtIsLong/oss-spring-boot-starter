@@ -17,5 +17,6 @@ public class QiNiuOssProperties {
     private String accessKey;
     private String secretKey;
     private QiNiuRegion region = QiNiuRegion.AUTOREGION;
+    private String bucketName;
 
 }

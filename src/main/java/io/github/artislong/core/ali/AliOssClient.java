@@ -3,14 +3,12 @@ package io.github.artislong.core.ali;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.system.SystemUtil;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.common.utils.HttpHeaders;
 import com.aliyun.oss.model.*;
@@ -24,7 +22,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -67,11 +64,7 @@ public class AliOssClient implements StandardOssClient {
         String key = getKey(targetName, false);
         OSSObject ossObject = oss.getObject(bucketName, key);
         IoUtil.copy(ossObject.getObjectContent(), os);
-        try {
-            ossObject.close();
-        } catch (IOException e) {
-            log.error("{}对象关闭失败", key, e);
-        }
+        IoUtil.close(ossObject);
     }
 
     @Override
@@ -86,22 +79,6 @@ public class AliOssClient implements StandardOssClient {
         if (isOverride || !oss.doesObjectExist(bucketName, targetKey)) {
             oss.copyObject(bucketName, getKey(sourceName, false), bucketName, targetKey);
         }
-    }
-
-    @Override
-    public void move(String sourceName, String targetName, Boolean isOverride) {
-        String bucketName = getBucketName();
-        String targetKey = getKey(targetName, false);
-        String sourceKey = getKey(sourceName, false);
-        if (isOverride || !oss.doesObjectExist(bucketName, targetKey)) {
-            oss.copyObject(bucketName, sourceKey, bucketName, targetKey);
-            oss.deleteObject(bucketName, sourceKey);
-        }
-    }
-
-    @Override
-    public void rename(String sourceName, String targetName, Boolean isOverride) {
-        move(sourceName, targetName, isOverride);
     }
 
     @Override
@@ -124,14 +101,11 @@ public class AliOssClient implements StandardOssClient {
             List<OssInfo> directoryInfos = new ArrayList<>();
             for (OSSObjectSummary ossObjectSummary : listing.getObjectSummaries()) {
                 if (FileNameUtil.getName(ossObjectSummary.getKey()).equals(FileNameUtil.getName(key))) {
-                    ossInfo.setCreater(ossObjectSummary.getOwner().getDisplayName());
                     ossInfo.setLastUpdateTime(DateUtil.date(ossObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setCreateTime(DateUtil.date(ossObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setSize(Convert.toStr(ossObjectSummary.getSize()));
                 } else {
-                    OssInfo info = getInfo(replaceKey(ossObjectSummary.getKey(), getBasePath(), false), false);
-                    info.setCreater(ossObjectSummary.getOwner().getDisplayName());
-                    fileOssInfos.add(info);
+                    fileOssInfos.add(getInfo(replaceKey(ossObjectSummary.getKey(), getBasePath(), false), false));
                 }
             }
 
@@ -157,21 +131,6 @@ public class AliOssClient implements StandardOssClient {
     @Override
     public Boolean isExist(String targetName) {
         return oss.doesObjectExist(getBucketName(), getKey(targetName, false));
-    }
-
-    @Override
-    public OssInfo createFile(String targetName) {
-        String tempDir = SystemUtil.getUserInfo().getTempDir();
-        String localTmpTargetName = getKey(tempDir + targetName, true);
-        FileUtil.touch(localTmpTargetName);
-        upLoad(FileUtil.getInputStream(localTmpTargetName), targetName);
-        FileUtil.del(localTmpTargetName);
-
-        OssInfo ossInfo = getBaseInfo(getBucketName(), getKey(targetName, false));
-        ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
-        ossInfo.setPath(replaceKey(targetName, ossInfo.getName(), true));
-
-        return ossInfo;
     }
 
     /**
@@ -227,7 +186,6 @@ public class AliOssClient implements StandardOssClient {
         OssInfo ossInfo = new DirectoryOssInfo();
         for (OSSObjectSummary ossObjectSummary : listing.getObjectSummaries()) {
             if (FileNameUtil.getName(ossObjectSummary.getKey()).equals(FileNameUtil.getName(key))) {
-                ossInfo.setCreater(ossObjectSummary.getOwner().getDisplayName());
                 ossInfo.setLastUpdateTime(DateUtil.date(ossObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.date(ossObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setSize(Convert.toStr(ossObjectSummary.getSize()));

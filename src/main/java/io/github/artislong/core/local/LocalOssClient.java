@@ -129,15 +129,6 @@ public class LocalOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo createFile(String targetName) {
-        File file = FileUtil.touch(getKey(targetName, true));
-        OssInfo ossInfo = getBaseInfo(file.getPath());
-        ossInfo.setName(file.getName());
-        ossInfo.setPath(replaceKey(targetName, file.getName(), true));
-        return ossInfo;
-    }
-
-    @Override
     public OssInfo createDirectory(String targetName) {
         File file = FileUtil.mkdir(getKey(targetName, true));
         OssInfo ossInfo = getBaseInfo(file.getPath());
@@ -165,8 +156,6 @@ public class LocalOssClient implements StandardOssClient {
             ossInfo.setLastUpdateTime(DateUtil.date(lastModifiedTime.toMillis()).toString(DatePattern.NORM_DATETIME_PATTERN));
             ossInfo.setCreateTime(DateUtil.date(creationTime.toMillis()).toString(DatePattern.NORM_DATETIME_PATTERN));
             ossInfo.setSize(Convert.toStr(size));
-            ossInfo.setCreater(owner.getName());
-
         } catch (Exception e) {
             log.error("获取{}文件属性失败", targetName, e);
         }

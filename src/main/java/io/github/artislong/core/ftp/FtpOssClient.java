@@ -3,14 +3,12 @@ package io.github.artislong.core.ftp;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.ftp.Ftp;
-import cn.hutool.system.SystemUtil;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.model.DirectoryOssInfo;
@@ -134,16 +132,6 @@ public class FtpOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo createFile(String targetName) {
-        String tempDir = SystemUtil.getUserInfo().getTempDir();
-        String localTmpTargetName = convertPath(tempDir + targetName, true);
-        FileUtil.touch(localTmpTargetName);
-        upLoad(FileUtil.getInputStream(localTmpTargetName), targetName);
-        FileUtil.del(localTmpTargetName);
-        return getInfo(targetName);
-    }
-
-    @Override
     public OssInfo createDirectory(String targetName) {
         ftp.mkDirs(getKey(targetName, true));
         return getInfo(targetName);
@@ -179,7 +167,6 @@ public class FtpOssClient implements StandardOssClient {
             ossInfo.setSize(Convert.toStr(targetFtpFile.getSize()));
             ossInfo.setCreateTime(DateUtil.date(targetFtpFile.getTimestamp()).toString(DatePattern.NORM_DATETIME_PATTERN));
             ossInfo.setLastUpdateTime(DateUtil.date(targetFtpFile.getTimestamp()).toString(DatePattern.NORM_DATETIME_PATTERN));
-            ossInfo.setCreater(targetFtpFile.getUser());
         }
         return ossInfo;
     }

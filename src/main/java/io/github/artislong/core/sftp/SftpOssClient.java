@@ -3,21 +3,19 @@ package io.github.artislong.core.sftp;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.ssh.Sftp;
-import cn.hutool.system.SystemUtil;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.model.DirectoryOssInfo;
 import io.github.artislong.core.model.FileOssInfo;
 import io.github.artislong.core.model.OssInfo;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.SftpATTRS;
-import com.jcraft.jsch.SftpException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -135,16 +133,6 @@ public class SftpOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo createFile(String targetName) {
-        String tempDir = SystemUtil.getUserInfo().getTempDir();
-        String localTmpTargetName = convertPath(tempDir + targetName, true);
-        FileUtil.touch(localTmpTargetName);
-        upLoad(FileUtil.getInputStream(localTmpTargetName), targetName);
-        FileUtil.del(localTmpTargetName);
-        return getInfo(targetName);
-    }
-
-    @Override
     public OssInfo createDirectory(String targetName) {
         sftp.mkDirs(getKey(targetName, true));
         return getInfo(targetName);
@@ -181,7 +169,6 @@ public class SftpOssClient implements StandardOssClient {
             ossInfo.setSize(Convert.toStr(sftpattrs.getSize()));
             ossInfo.setCreateTime(DateUtil.date(sftpattrs.getMTime() * 1000L).toString(DatePattern.NORM_DATETIME_PATTERN));
             ossInfo.setLastUpdateTime(DateUtil.date(sftpattrs.getATime() * 1000L).toString(DatePattern.NORM_DATETIME_PATTERN));
-            ossInfo.setCreater(targetLsEntry.getLongname().split(" ")[5]);
         }
         return ossInfo;
     }

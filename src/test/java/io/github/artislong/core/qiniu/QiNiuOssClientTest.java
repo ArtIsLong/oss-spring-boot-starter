@@ -1,6 +1,8 @@
 package io.github.artislong.core.qiniu;
 
+import cn.hutool.core.io.FileUtil;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.model.OssInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +20,8 @@ public class QiNiuOssClientTest {
 
     @Test
     void upLoad() {
+        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("C:\\Users\\15221\\Desktop\\vim.png"), "/test/test2/vim1.png");
+        System.out.println(ossInfo);
     }
 
     @Test
@@ -42,6 +46,8 @@ public class QiNiuOssClientTest {
 
     @Test
     void getInfo() {
+        OssInfo info = ossClient.getInfo("/", true);
+        System.out.println(info);
     }
 
     @Test

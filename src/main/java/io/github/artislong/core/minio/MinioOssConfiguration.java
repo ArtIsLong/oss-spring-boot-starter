@@ -29,7 +29,7 @@ public class MinioOssConfiguration {
 
     @Bean
     public StandardOssClient minioOssClient(MinioClient minioClient) {
-        return new MinioOssClient(minioClient, ossProperties);
+        return new MinioOssClient(minioClient, ossProperties, minioOssProperties);
     }
 
     @Bean

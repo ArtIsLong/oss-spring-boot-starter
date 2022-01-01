@@ -3,25 +3,23 @@ package io.github.artislong.core.huawei;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.system.SystemUtil;
+import com.obs.services.ObsClient;
+import com.obs.services.model.ListObjectsRequest;
+import com.obs.services.model.ObjectListing;
+import com.obs.services.model.ObjectMetadata;
+import com.obs.services.model.ObsObject;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.model.DirectoryOssInfo;
 import io.github.artislong.core.model.FileOssInfo;
 import io.github.artislong.core.model.OssInfo;
 import io.github.artislong.exception.NotSupportException;
-import com.obs.services.ObsClient;
-import com.obs.services.model.ListObjectsRequest;
-import com.obs.services.model.ObjectListing;
-import com.obs.services.model.ObjectMetadata;
-import com.obs.services.model.ObsObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -78,21 +76,6 @@ public class HuaWeiOssClient implements StandardOssClient {
     }
 
     @Override
-    public void move(String sourceName, String targetName, Boolean isOverride) {
-        String newTargetName = getKey(targetName, false);
-        String bucket = getBucket();
-        if (isOverride || !obsClient.doesObjectExist(bucket, newTargetName)) {
-            obsClient.copyObject(bucket, getKey(sourceName, false), bucket, newTargetName);
-            obsClient.deleteObject(bucket, newTargetName);
-        }
-    }
-
-    @Override
-    public void rename(String sourceName, String targetName, Boolean isOverride) {
-        move(sourceName, targetName, isOverride);
-    }
-
-    @Override
     public OssInfo getInfo(String targetName, Boolean isRecursion) {
         String key = getKey(targetName, false);
 
@@ -112,14 +95,11 @@ public class HuaWeiOssClient implements StandardOssClient {
             List<OssInfo> directoryInfos = new ArrayList<>();
             for (ObsObject obsObject : listObjects.getObjects()) {
                 if (FileNameUtil.getName(obsObject.getObjectKey()).equals(FileNameUtil.getName(key))) {
-                    ossInfo.setCreater(obsObject.getOwner().getDisplayName());
                     ossInfo.setLastUpdateTime(DateUtil.date(obsObject.getMetadata().getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setCreateTime(DateUtil.date(obsObject.getMetadata().getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setSize(Convert.toStr(obsObject.getMetadata().getContentLength()));
                 } else {
-                    OssInfo info = getInfo(replaceKey(obsObject.getObjectKey(), getBasePath(), false), false);
-                    info.setCreater(obsObject.getOwner().getDisplayName());
-                    fileOssInfos.add(info);
+                    fileOssInfos.add(getInfo(replaceKey(obsObject.getObjectKey(), getBasePath(), false), false));
                 }
             }
 
@@ -145,17 +125,6 @@ public class HuaWeiOssClient implements StandardOssClient {
     @Override
     public Boolean isExist(String targetName) {
         return obsClient.doesObjectExist(getBucket(), getKey(targetName, false));
-    }
-
-    @Override
-    public OssInfo createFile(String targetName) {
-        String tempDir = SystemUtil.getUserInfo().getTempDir();
-        String localTmpTargetName = getKey(tempDir + targetName, true);
-        FileUtil.touch(localTmpTargetName);
-        upLoad(FileUtil.getInputStream(localTmpTargetName), targetName);
-        FileUtil.del(localTmpTargetName);
-
-        return getInfo(targetName);
     }
 
     @Override

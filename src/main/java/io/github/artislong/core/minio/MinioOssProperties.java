@@ -17,5 +17,6 @@ public class MinioOssProperties {
     private String endpoint;
     private String accessKey;
     private String secretKey;
+    private String bucketName;
 
 }

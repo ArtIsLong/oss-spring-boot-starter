@@ -3,14 +3,12 @@ package io.github.artislong.core.baidu;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.system.SystemUtil;
 import com.baidubce.services.bos.BosClient;
 import com.baidubce.services.bos.model.BosObject;
 import com.baidubce.services.bos.model.BosObjectSummary;
@@ -78,21 +76,6 @@ public class BaiduOssClient implements StandardOssClient {
     }
 
     @Override
-    public void move(String sourceName, String targetName, Boolean isOverride) {
-        String newTargetName = getKey(targetName, false);
-        String bucket = getBucket();
-        if (isOverride || !bosClient.doesObjectExist(bucket, newTargetName)) {
-            bosClient.copyObject(bucket, getKey(sourceName, false), bucket, newTargetName);
-            bosClient.deleteObject(bucket, newTargetName);
-        }
-    }
-
-    @Override
-    public void rename(String sourceName, String targetName, Boolean isOverride) {
-        move(sourceName, targetName, isOverride);
-    }
-
-    @Override
     public OssInfo getInfo(String targetName, Boolean isRecursion) {
         String key = getKey(targetName, false);
 
@@ -108,14 +91,11 @@ public class BaiduOssClient implements StandardOssClient {
             List<OssInfo> directoryInfos = new ArrayList<>();
             for (BosObjectSummary bosObjectSummary : listObjects.getContents()) {
                 if (FileNameUtil.getName(bosObjectSummary.getKey()).equals(FileNameUtil.getName(key))) {
-                    ossInfo.setCreater(bosObjectSummary.getOwner().getDisplayName());
                     ossInfo.setLastUpdateTime(DateUtil.date(bosObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setCreateTime(DateUtil.date(bosObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setSize(Convert.toStr(bosObjectSummary.getSize()));
                 } else {
-                    OssInfo info = getInfo(replaceKey(bosObjectSummary.getKey(), getBasePath(), false), false);
-                    info.setCreater(bosObjectSummary.getOwner().getDisplayName());
-                    fileOssInfos.add(info);
+                    fileOssInfos.add(getInfo(replaceKey(bosObjectSummary.getKey(), getBasePath(), false), false));
                 }
             }
 
@@ -141,17 +121,6 @@ public class BaiduOssClient implements StandardOssClient {
     @Override
     public Boolean isExist(String targetName) {
         return bosClient.doesObjectExist(getBucket(), getKey(targetName, false));
-    }
-
-    @Override
-    public OssInfo createFile(String targetName) {
-        String tempDir = SystemUtil.getUserInfo().getTempDir();
-        String localTmpTargetName = getKey(tempDir + targetName, true);
-        FileUtil.touch(localTmpTargetName);
-        upLoad(FileUtil.getInputStream(localTmpTargetName), targetName);
-        FileUtil.del(localTmpTargetName);
-
-        return getInfo(targetName);
     }
 
     @Override

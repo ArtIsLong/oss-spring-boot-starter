@@ -3,25 +3,23 @@ package io.github.artislong.core.tencent;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.system.SystemUtil;
+import com.qcloud.cos.COSClient;
+import com.qcloud.cos.model.COSObject;
+import com.qcloud.cos.model.COSObjectSummary;
+import com.qcloud.cos.model.ObjectListing;
+import com.qcloud.cos.model.ObjectMetadata;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.model.DirectoryOssInfo;
 import io.github.artislong.core.model.FileOssInfo;
 import io.github.artislong.core.model.OssInfo;
 import io.github.artislong.exception.NotSupportException;
-import com.qcloud.cos.COSClient;
-import com.qcloud.cos.model.COSObject;
-import com.qcloud.cos.model.COSObjectSummary;
-import com.qcloud.cos.model.ObjectListing;
-import com.qcloud.cos.model.ObjectMetadata;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -79,22 +77,6 @@ public class TencentOssClient implements StandardOssClient {
     }
 
     @Override
-    public void move(String sourceName, String targetName, Boolean isOverride) {
-        String bucketName = getBucket();
-        String targetKey = getKey(targetName, false);
-        String sourceKey = getKey(sourceName, false);
-        if (isOverride || !cosClient.doesObjectExist(bucketName, targetKey)) {
-            cosClient.copyObject(getBucket(), sourceKey, getBucket(), targetKey);
-            cosClient.deleteObject(getBucket(), sourceKey);
-        }
-    }
-
-    @Override
-    public void rename(String sourceName, String targetName, Boolean isOverride) {
-         move(sourceName, targetName, isOverride);
-    }
-
-    @Override
     public OssInfo getInfo(String targetName, Boolean isRecursion) {
         String key = getKey(targetName, false);
 
@@ -110,14 +92,11 @@ public class TencentOssClient implements StandardOssClient {
             List<OssInfo> directoryInfos = new ArrayList<>();
             for (COSObjectSummary cosObjectSummary : listObjects.getObjectSummaries()) {
                 if (FileNameUtil.getName(cosObjectSummary.getKey()).equals(FileNameUtil.getName(key))) {
-                    ossInfo.setCreater(cosObjectSummary.getOwner().getDisplayName());
                     ossInfo.setLastUpdateTime(DateUtil.date(cosObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setCreateTime(DateUtil.date(cosObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setSize(Convert.toStr(cosObjectSummary.getSize()));
                 } else {
-                    OssInfo info = getInfo(replaceKey(cosObjectSummary.getKey(), getBasePath(), false), false);
-                    info.setCreater(cosObjectSummary.getOwner().getDisplayName());
-                    fileOssInfos.add(info);
+                    fileOssInfos.add(getInfo(replaceKey(cosObjectSummary.getKey(), getBasePath(), false), false));
                 }
             }
 
@@ -143,17 +122,6 @@ public class TencentOssClient implements StandardOssClient {
     @Override
     public Boolean isExist(String targetName) {
         return cosClient.doesObjectExist(getBucket(), getKey(targetName, false));
-    }
-
-    @Override
-    public OssInfo createFile(String targetName) {
-        String tempDir = SystemUtil.getUserInfo().getTempDir();
-        String localTmpTargetName = getKey(tempDir + targetName, true);
-        FileUtil.touch(localTmpTargetName);
-        upLoad(FileUtil.getInputStream(localTmpTargetName), targetName);
-        FileUtil.del(localTmpTargetName);
-
-        return getInfo(targetName);
     }
 
     @Override

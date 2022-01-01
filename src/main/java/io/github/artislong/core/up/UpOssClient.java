@@ -3,14 +3,14 @@ package io.github.artislong.core.up;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.LineHandler;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.system.SystemUtil;
+import com.upyun.RestManager;
+import com.upyun.UpException;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.model.DirectoryOssInfo;
@@ -18,8 +18,6 @@ import io.github.artislong.core.model.FileOssInfo;
 import io.github.artislong.core.model.OssInfo;
 import io.github.artislong.core.up.constant.UpConstant;
 import io.github.artislong.exception.OssException;
-import com.upyun.RestManager;
-import com.upyun.UpException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -56,7 +54,7 @@ public class UpOssClient implements StandardOssClient {
             log.error("{}上传失败", targetName, e);
             throw new OssException(e);
         }
-        return null;
+        return getInfo(targetName, false);
     }
 
     @Override
@@ -104,11 +102,6 @@ public class UpOssClient implements StandardOssClient {
             log.error("{}移动到{}失败", sourceName, targetName, e);
             throw new OssException(e);
         }
-    }
-
-    @Override
-    public void rename(String sourceName, String targetName, Boolean isOverride) {
-        move(sourceName, targetName, isOverride);
     }
 
     @Override
@@ -163,17 +156,6 @@ public class UpOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo createFile(String targetName) {
-        String tempDir = SystemUtil.getUserInfo().getTempDir();
-        String localTmpTargetName = getKey(tempDir + targetName, true);
-        FileUtil.touch(localTmpTargetName);
-        upLoad(FileUtil.getInputStream(localTmpTargetName), targetName);
-        FileUtil.del(localTmpTargetName);
-
-        return getInfo(targetName);
-    }
-
-    @Override
     public OssInfo createDirectory(String targetName) {
         try {
             restManager.mkDir(getKey(targetName, true));
@@ -193,7 +175,6 @@ public class UpOssClient implements StandardOssClient {
             ossInfo.setSize(headers.get(RestManager.PARAMS.X_UPYUN_FILE_SIZE.getValue()));
             ossInfo.setCreateTime(DateUtil.date(headers.getDate(RestManager.PARAMS.X_UPYUN_FILE_DATE.getValue())).toString(DatePattern.NORM_DATETIME_PATTERN));
             ossInfo.setLastUpdateTime(DateUtil.date(headers.getDate(RestManager.PARAMS.X_UPYUN_FILE_DATE.getValue())).toString(DatePattern.NORM_DATETIME_PATTERN));
-            ossInfo.setCreater("");
         } else {
             ossInfo = getDirectoryOssInfo(key);
         }

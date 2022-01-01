@@ -1,9 +1,13 @@
 package io.github.artislong.core;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileNameUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.system.SystemUtil;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.model.OssInfo;
+import io.github.artislong.exception.NotSupportException;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -79,7 +83,10 @@ public interface StandardOssClient {
      * @param targetName 目标路径
      * @param isOverride 是否覆盖
      */
-    void move(String sourceName, String targetName, Boolean isOverride);
+    default void move(String sourceName, String targetName, Boolean isOverride) {
+        copy(sourceName, targetName, isOverride);
+        delete(sourceName);
+    }
 
     /**
      * 重命名文件
@@ -96,7 +103,9 @@ public interface StandardOssClient {
      * @param targetName 目标路径
      * @param isOverride 是否覆盖
      */
-    void rename(String sourceName, String targetName, Boolean isOverride);
+    default void rename(String sourceName, String targetName, Boolean isOverride) {
+        move(sourceName, targetName, isOverride);
+    }
 
     /**
      * 获取文件信息，默认获取目标文件信息
@@ -122,7 +131,10 @@ public interface StandardOssClient {
      * @param targetName 目标文件路径
      * @return true/false
      */
-    Boolean isExist(String targetName);
+    default Boolean isExist(String targetName) {
+        OssInfo info = getInfo(targetName);
+        return ObjectUtil.isNotEmpty(info) && ObjectUtil.isNotEmpty(info.getName());
+    }
 
     /**
      * 是否为文件
@@ -150,7 +162,14 @@ public interface StandardOssClient {
      * @param targetName 目标文件路径
      * @return 文件基本信息
      */
-    OssInfo createFile(String targetName);
+    default OssInfo createFile(String targetName) {
+        String tempDir = SystemUtil.getUserInfo().getTempDir();
+        String localTmpTargetName = getKey(tempDir + targetName, true);
+        FileUtil.touch(localTmpTargetName);
+        OssInfo ossInfo = upLoad(FileUtil.getInputStream(localTmpTargetName), targetName);
+        FileUtil.del(localTmpTargetName);
+        return ossInfo;
+    }
 
     /**
      * 创建目录
@@ -158,7 +177,9 @@ public interface StandardOssClient {
      * @param targetName 目标路径
      * @return 目录基本信息
      */
-    OssInfo createDirectory(String targetName);
+    default OssInfo createDirectory(String targetName) {
+        throw new NotSupportException("不支持通过SDK创建目录");
+    }
 
     /**
      * 路径转换

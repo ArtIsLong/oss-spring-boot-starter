@@ -30,9 +30,5 @@ public class OssInfo {
      * 最新修改时间
      */
     private String lastUpdateTime;
-    /**
-     * 创建人
-     */
-    private String creater;
 
 }

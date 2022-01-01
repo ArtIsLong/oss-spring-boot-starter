@@ -1,22 +1,36 @@
 package io.github.artislong.core.qiniu;
 
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.file.FileNameUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
-import io.github.artislong.OssProperties;
-import io.github.artislong.core.StandardOssClient;
-import io.github.artislong.core.model.OssInfo;
 import com.qiniu.common.QiniuException;
-import com.qiniu.http.Response;
 import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.DownloadUrl;
 import com.qiniu.storage.UploadManager;
+import com.qiniu.storage.model.FileInfo;
+import com.qiniu.storage.model.FileListing;
 import com.qiniu.util.Auth;
+import io.github.artislong.OssProperties;
+import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.model.DirectoryOssInfo;
+import io.github.artislong.core.model.FileOssInfo;
+import io.github.artislong.core.model.OssInfo;
+import io.github.artislong.exception.OssException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -38,96 +52,137 @@ public class QiNiuOssClient implements StandardOssClient {
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
         try {
-            Response response = uploadManager.put(is, targetName, getUpToken(), null, null);
+            uploadManager.put(is, getKey(targetName, true), getUpToken(), null, null);
         } catch (QiniuException e) {
-            log.error("{}上传失败", targetName, e);
+            String errorMsg = String.format("%s上传失败", targetName);
+            log.error(errorMsg, e);
+            throw new OssException(errorMsg, e);
         }
-        return null;
+        return getInfo(targetName, false);
     }
 
     @Override
     public void downLoad(OutputStream os, String targetName) {
-        DownloadUrl downloadUrl = new DownloadUrl("", false, targetName);
+        DownloadUrl downloadUrl = new DownloadUrl("", false, getKey(targetName, true));
         try {
             String url = downloadUrl.buildURL();
             HttpUtil.download(url, os, false);
         } catch (QiniuException e) {
-            log.error("", e);
+            String errorMsg = String.format("%s下载失败", targetName);
+            log.error(errorMsg, e);
+            throw new OssException(errorMsg, e);
         }
     }
 
     @Override
     public void delete(String targetName) {
         try {
-            bucketManager.delete(getBucket(), targetName);
+            bucketManager.delete(getBucket(), getKey(targetName, true));
         } catch (QiniuException e) {
-            log.error("", e);
+            String errorMsg = String.format("%s删除失败", targetName);
+            log.error(errorMsg, e);
+            throw new OssException(errorMsg, e);
         }
     }
 
     @Override
     public void copy(String sourceName, String targetName, Boolean isOverride) {
         try {
-            bucketManager.copy(getBucket(), sourceName, getBucket(), targetName, isOverride);
+            bucketManager.copy(getBucket(), getKey(sourceName, true), getBucket(), getKey(targetName, true), isOverride);
         } catch (QiniuException e) {
-            log.error("", e);
+            String errorMsg = String.format("%s复制失败", targetName);
+            log.error(errorMsg, e);
+            throw new OssException(errorMsg, e);
         }
     }
 
     @Override
     public void move(String sourceName, String targetName, Boolean isOverride) {
         try {
-            bucketManager.move(getBucket(), sourceName, getBucket(), targetName, isOverride);
+            bucketManager.move(getBucket(), getKey(sourceName, true), getBucket(), getKey(targetName, false), isOverride);
         } catch (QiniuException e) {
-            log.error("", e);
+            String errorMsg = String.format("%s移动到%s失败", sourceName, targetName);
+            log.error(errorMsg, e);
+            throw new OssException(errorMsg, e);
         }
     }
 
     @Override
     public void rename(String sourceName, String targetName, Boolean isOverride) {
         try {
-            bucketManager.rename(getBucket(), sourceName, targetName, isOverride);
+            bucketManager.rename(getBucket(), getKey(sourceName, true), getKey(targetName, true), isOverride);
         } catch (QiniuException e) {
-            log.error("", e);
+            String errorMsg = String.format("%s重命名为%s失败", sourceName, targetName);
+            log.error(errorMsg, e);
+            throw new OssException(errorMsg, e);
         }
     }
 
+    @SneakyThrows
     @Override
     public OssInfo getInfo(String targetName, Boolean isRecursion) {
-        return null;
-    }
+        String key = getKey(targetName, true);
 
-    @Override
-    public Boolean isExist(String targetName) {
-        return null;
-    }
+        OssInfo ossInfo = getBaseInfo(targetName);
+        if (isRecursion && isDirectory(key)) {
+            FileListing listFiles = bucketManager.listFiles(getBucket(), key, "", 1000, "/");
 
-    @Override
-    public Boolean isFile(String targetName) {
-        return null;
-    }
+            System.out.println(listFiles);
+            List<OssInfo> fileOssInfos = new ArrayList<>();
+            List<OssInfo> directoryInfos = new ArrayList<>();
+            if (ObjectUtil.isNotEmpty(listFiles.items)) {
+                for (FileInfo fileInfo : listFiles.items) {
+                    fileOssInfos.add(getInfo(replaceKey(fileInfo.key, getBasePath(), true), false));
+                }
+            }
 
-    @Override
-    public Boolean isDirectory(String targetName) {
-        return null;
-    }
-
-    @Override
-    public OssInfo createFile(String targetName) {
-        return null;
-    }
-
-    @Override
-    public OssInfo createDirectory(String targetName) {
-
-        return null;
+            if (ObjectUtil.isNotEmpty(listFiles.commonPrefixes)) {
+                for (String commonPrefix : listFiles.commonPrefixes) {
+                    String target = replaceKey(commonPrefix, getBasePath(), true);
+                    directoryInfos.add(getInfo(target, true));
+                }
+            }
+            if (ObjectUtil.isNotEmpty(fileOssInfos) && fileOssInfos.get(0) instanceof FileOssInfo) {
+                ReflectUtil.setFieldValue(ossInfo, "fileInfos", fileOssInfos);
+            }
+            if (ObjectUtil.isNotEmpty(directoryInfos) && directoryInfos.get(0) instanceof DirectoryOssInfo) {
+                ReflectUtil.setFieldValue(ossInfo, "directoryInfos", directoryInfos);
+            }
+        }
+        return ossInfo;
     }
 
     private String getUpToken() {
-        return null;
+        return auth.uploadToken(getBucket());
     }
 
     private String getBucket() {
-        return null;
+        return qiNiuOssProperties.getBucketName();
+    }
+
+    private OssInfo getBaseInfo(String targetName) {
+        String key = getKey(targetName, true);
+        OssInfo ossInfo;
+        if (isFile(targetName)) {
+            ossInfo = new FileOssInfo();
+            try {
+                FileInfo fileInfo = bucketManager.stat(getBucket(), key);
+                String putTime = DateUtil.date(fileInfo.putTime/10000).toString(DatePattern.NORM_DATETIME_PATTERN);
+                ossInfo.setSize(Convert.toStr(fileInfo.fsize));
+                ossInfo.setCreateTime(putTime);
+                ossInfo.setLastUpdateTime(putTime);
+            } catch (QiniuException e) {
+                String errorMsg = String.format("获取%s信息失败", targetName);
+                log.error(errorMsg, e);
+                throw new OssException(errorMsg, e);
+            }
+        } else {
+            ossInfo = new DirectoryOssInfo();
+        }
+
+        ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
+        ossInfo.setPath(replaceKey(targetName, ossInfo.getName(), true));
+
+        return ossInfo;
     }
 }

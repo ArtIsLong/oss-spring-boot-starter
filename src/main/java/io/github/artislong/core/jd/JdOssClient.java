@@ -3,14 +3,12 @@ package io.github.artislong.core.jd;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.system.SystemUtil;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -81,22 +79,6 @@ public class JdOssClient implements StandardOssClient {
     }
 
     @Override
-    public void move(String sourceName, String targetName, Boolean isOverride) {
-        String bucketName = getBucket();
-        String targetKey = getKey(targetName, false);
-        String sourceKey = getKey(sourceName, false);
-        if (isOverride || !amazonS3.doesObjectExist(bucketName, targetKey)) {
-            amazonS3.copyObject(getBucket(), sourceKey, getBucket(), targetKey);
-            amazonS3.deleteObject(getBucket(), sourceKey);
-        }
-    }
-
-    @Override
-    public void rename(String sourceName, String targetName, Boolean isOverride) {
-        move(sourceName, targetName, isOverride);
-    }
-
-    @Override
     public OssInfo getInfo(String targetName, Boolean isRecursion) {
         String key = getKey(targetName, false);
 
@@ -112,14 +94,11 @@ public class JdOssClient implements StandardOssClient {
             List<OssInfo> directoryInfos = new ArrayList<>();
             for (S3ObjectSummary s3ObjectSummary : listObjects.getObjectSummaries()) {
                 if (FileNameUtil.getName(s3ObjectSummary.getKey()).equals(FileNameUtil.getName(key))) {
-                    ossInfo.setCreater(s3ObjectSummary.getOwner().getDisplayName());
                     ossInfo.setLastUpdateTime(DateUtil.date(s3ObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setCreateTime(DateUtil.date(s3ObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setSize(Convert.toStr(s3ObjectSummary.getSize()));
                 } else {
-                    OssInfo info = getInfo(replaceKey(s3ObjectSummary.getKey(), getBasePath(), false), false);
-                    info.setCreater(s3ObjectSummary.getOwner().getDisplayName());
-                    fileOssInfos.add(info);
+                    fileOssInfos.add(getInfo(replaceKey(s3ObjectSummary.getKey(), getBasePath(), false), false));
                 }
             }
 
@@ -145,17 +124,6 @@ public class JdOssClient implements StandardOssClient {
     @Override
     public Boolean isExist(String targetName) {
         return amazonS3.doesObjectExist(getBucket(), getKey(targetName, false));
-    }
-
-    @Override
-    public OssInfo createFile(String targetName) {
-        String tempDir = SystemUtil.getUserInfo().getTempDir();
-        String localTmpTargetName = getKey(tempDir + targetName, true);
-        FileUtil.touch(localTmpTargetName);
-        upLoad(FileUtil.getInputStream(localTmpTargetName), targetName);
-        FileUtil.del(localTmpTargetName);
-
-        return getInfo(targetName);
     }
 
     @Override
