@@ -24,6 +24,8 @@
 
 [又拍云](https://help.upyun.com/docs/storage/)
 
+[Minio](http://www.minio.org.cn/)
+
 特别说明：本地存储、SFTP、FTP三种实现方式主要基于[hutool](https://hutool.cn/)提供的`FileUtil`、`FileNameUtil`、`AbstractFtp`相关的工具。
 
 ## 开始使用
@@ -377,6 +379,35 @@ oss:
   up:
     user-name: 用户名
     password: 密码
+    bucket-name: bucketName
+```
+
+### Minio
+
+```xml
+<dependency>
+    <groupId>io.minio</groupId>
+    <artifactId>minio</artifactId>
+    <version>8.3.4</version>
+    <scope>provided</scope>
+</dependency>
+<dependency>
+    <groupId>com.squareup.okhttp3</groupId>
+    <artifactId>okhttp</artifactId>
+    <version>4.9.3</version>
+</dependency>
+```
+
+在application.yml中增加如下配置：
+
+```yaml
+oss:
+  oss-type: minio
+  base-path: Minio存储根路径
+  up:
+    endpoint: 地址
+    access-key: 用户名
+    secret-key: 密码
     bucket-name: bucketName
 ```
 
