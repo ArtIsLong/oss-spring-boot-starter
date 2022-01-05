@@ -1,13 +1,10 @@
 package io.github.artislong.core;
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.system.SystemUtil;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.model.OssInfo;
-import io.github.artislong.exception.NotSupportException;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -155,30 +152,6 @@ public interface StandardOssClient {
      */
     default Boolean isDirectory(String targetName) {
         return !isFile(targetName);
-    }
-
-    /**
-     * 创建文件
-     * @param targetName 目标文件路径
-     * @return 文件基本信息
-     */
-    default OssInfo createFile(String targetName) {
-        String tempDir = SystemUtil.getUserInfo().getTempDir();
-        String localTmpTargetName = getKey(tempDir + targetName, true);
-        FileUtil.touch(localTmpTargetName);
-        OssInfo ossInfo = upLoad(FileUtil.getInputStream(localTmpTargetName), targetName);
-        FileUtil.del(localTmpTargetName);
-        return ossInfo;
-    }
-
-    /**
-     * 创建目录
-     *      存储平台支持通过SDK创建文件，则可以使用此方法，否则会抛出{@link io.github.artislong.exception.NotSupportException}异常
-     * @param targetName 目标路径
-     * @return 目录基本信息
-     */
-    default OssInfo createDirectory(String targetName) {
-        throw new NotSupportException("不支持通过SDK创建目录");
     }
 
     /**

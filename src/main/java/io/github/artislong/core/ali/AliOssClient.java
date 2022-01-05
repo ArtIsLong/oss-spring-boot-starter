@@ -133,26 +133,6 @@ public class AliOssClient implements StandardOssClient {
         return oss.doesObjectExist(getBucketName(), getKey(targetName, false));
     }
 
-    /**
-     * 国内bucket不支持此方法
-     * <strong>目前仅支持在澳大利亚（悉尼）、美国（硅谷）、日本（东京）、印度（孟买）、英国（伦敦）、马来西亚（吉隆坡）地域开启分层命名空间。</strong>
-     * <strong>摘自：https://www.alibabacloud.com/help/zh/doc-detail/209096.htm</strong>
-     *
-     * @param targetName 目标目录
-     * @return 目录信息
-     */
-    @Override
-    public OssInfo createDirectory(String targetName) {
-        String key = getKey(targetName, false);
-        oss.createDirectory(getBucketName(), key);
-
-        OssInfo ossInfo = getDirectoryBaseInfo(getBucketName(), key);
-        ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
-        ossInfo.setPath(replaceKey(targetName, ossInfo.getName(), true));
-
-        return ossInfo;
-    }
-
     public String getBucketName() {
         return aliOssProperties.getBucketName();
     }

@@ -19,7 +19,6 @@ import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.model.DirectoryOssInfo;
 import io.github.artislong.core.model.FileOssInfo;
 import io.github.artislong.core.model.OssInfo;
-import io.github.artislong.exception.NotSupportException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -121,11 +120,6 @@ public class BaiduOssClient implements StandardOssClient {
     @Override
     public Boolean isExist(String targetName) {
         return bosClient.doesObjectExist(getBucket(), getKey(targetName, false));
-    }
-
-    @Override
-    public OssInfo createDirectory(String targetName) {
-        throw new NotSupportException("百度云不支持通过SDK创建目录");
     }
 
     private String getBucket() {

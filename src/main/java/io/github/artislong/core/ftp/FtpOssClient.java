@@ -131,12 +131,6 @@ public class FtpOssClient implements StandardOssClient {
         return ftp.isDir(getKey(targetName, true));
     }
 
-    @Override
-    public OssInfo createDirectory(String targetName) {
-        ftp.mkDirs(getKey(targetName, true));
-        return getInfo(targetName);
-    }
-
     private OssInfo getBaseInfo(String targetName) {
         String name = FileNameUtil.getName(targetName);
         String path = replaceKey(targetName, name, true);

@@ -155,17 +155,6 @@ public class UpOssClient implements StandardOssClient {
         }
     }
 
-    @Override
-    public OssInfo createDirectory(String targetName) {
-        try {
-            restManager.mkDir(getKey(targetName, true));
-        } catch (IOException | UpException e) {
-            log.error("{}创建失败", targetName, e);
-            throw new OssException(e);
-        }
-        return getInfo(targetName);
-    }
-
     private OssInfo getBaseInfo(String key) throws UpException, IOException {
         OssInfo ossInfo;
         if (isFile(key)) {

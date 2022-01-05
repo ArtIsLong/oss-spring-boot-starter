@@ -128,15 +128,6 @@ public class LocalOssClient implements StandardOssClient {
         return FileUtil.isDirectory(getKey(targetName, true));
     }
 
-    @Override
-    public OssInfo createDirectory(String targetName) {
-        File file = FileUtil.mkdir(getKey(targetName, true));
-        OssInfo ossInfo = getBaseInfo(file.getPath());
-        ossInfo.setName(file.getName());
-        ossInfo.setPath(replaceKey(targetName, file.getName(), true));
-        return ossInfo;
-    }
-
     public OssInfo getBaseInfo(String targetName) {
         OssInfo ossInfo = null;
         try {
