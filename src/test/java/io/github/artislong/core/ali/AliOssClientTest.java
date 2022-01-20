@@ -76,13 +76,4 @@ class AliOssClientTest {
         System.out.println(ossClient.isDirectory("/test/test1g"));
     }
 
-    @Test
-    void createFile() {
-        System.out.println(ossClient.createFile("/test/test.txt"));
-    }
-
-    @Test
-    void createDirectory() {
-        System.out.println(ossClient.createDirectory("/test001"));
-    }
 }

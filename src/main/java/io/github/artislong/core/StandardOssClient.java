@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.model.OssInfo;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -20,7 +21,7 @@ public interface StandardOssClient {
      * 上传文件，默认覆盖
      * @param is 输入流
      * @param targetName 目标文件路径
-     * @return 返回文件路径
+     * @return 文件信息
      */
     default OssInfo upLoad(InputStream is, String targetName) {
         return upLoad(is, targetName, true);
@@ -31,9 +32,29 @@ public interface StandardOssClient {
      * @param is 输入流
      * @param targetName 目标文件路径
      * @param isOverride 是否覆盖
-     * @return 返回文件路径
+     * @return 文件信息
      */
     OssInfo upLoad(InputStream is, String targetName, Boolean isOverride);
+
+    /**
+     * 断点续传
+     * @param file 本地文件路径
+     * @param targetName  目标文件路径
+     * @return 文件信息
+     */
+    default OssInfo upLoadCheckPoint(String file, String targetName) {
+        return upLoadCheckPoint(new File(file), targetName);
+    }
+
+    /**
+     * 断点续传
+     * @param file 本地文件
+     * @param targetName 目标文件路径
+     * @return 文件信息
+     */
+    default OssInfo upLoadCheckPoint(File file, String targetName) {
+        return null;
+    }
 
     /**
      * 下载文件

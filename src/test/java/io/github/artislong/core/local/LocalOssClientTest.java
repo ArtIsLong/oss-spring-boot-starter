@@ -75,9 +75,4 @@ public class LocalOssClientTest {
         System.out.println(ossClient.isDirectory("/test/vim1.png"));
     }
 
-    @Test
-    void create() {
-        System.out.println(ossClient.createDirectory("/test2/"));
-        System.out.println(ossClient.createFile("/test4/test.txt"));
-    }
 }

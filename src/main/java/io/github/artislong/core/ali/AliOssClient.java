@@ -20,8 +20,10 @@ import io.github.artislong.core.model.OssInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -56,6 +58,24 @@ public class AliOssClient implements StandardOssClient {
         ossInfo.setPath(replaceKey(targetName, ossInfo.getName(), true));
 
         return ossInfo;
+    }
+
+    @SneakyThrows
+    @Override
+    public OssInfo upLoadCheckPoint(File file, String targetName) {
+        UploadFileRequest fileRequest = new UploadFileRequest(getBucketName(), file.getName());
+        // 填写本地文件的完整路径。如果未指定本地路径，则默认从示例程序所属项目对应本地路径中上传文件。
+        fileRequest.setUploadFile(file.getName());
+        // 指定上传并发线程数，默认值为1。
+        fileRequest.setTaskNum(5);
+        // 指定上传的分片大小。
+        fileRequest.setPartSize(1 * 1024 * 1024);
+        // 开启断点续传，默认关闭。
+        fileRequest.setEnableCheckpoint(true);
+        // 记录本地分片上传结果的文件。上传过程中的进度信息会保存在该文件中。
+        fileRequest.setCheckpointFile("yourCheckpointFile");
+        oss.uploadFile(fileRequest);
+        return getInfo(targetName);
     }
 
     @Override
