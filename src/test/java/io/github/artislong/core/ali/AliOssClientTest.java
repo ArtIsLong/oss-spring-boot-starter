@@ -1,5 +1,6 @@
 package io.github.artislong.core.ali;
 
+import cn.hutool.core.date.StopWatch;
 import cn.hutool.core.io.FileUtil;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.model.OssInfo;
@@ -25,7 +26,21 @@ class AliOssClientTest {
     void upLoad() {
 //        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("C:\\Users\\15221\\Desktop\\vim.png"), "/test/test1/vim.png");
 //        System.out.println(ossInfo);
-        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("C:\\Users\\15221\\Desktop\\vim.png"), "vim1.png");
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("/Users/chenmin/study/data/data.zip"), "vim1.png");
+        stopWatch.stop();
+        System.out.println(stopWatch.getTotalTimeMillis());
+        System.out.println(ossInfo);
+    }
+
+    @Test
+    void upLoadCheckPoint() {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        OssInfo ossInfo = ossClient.upLoadCheckPoint("/Users/chenmin/study/data/data.zip", "data.zip");
+        stopWatch.stop();
+        System.out.println(stopWatch.getTotalTimeMillis());
         System.out.println(ossInfo);
     }
 

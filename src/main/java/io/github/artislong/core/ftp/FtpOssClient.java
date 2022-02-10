@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ftp.FTPFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -51,6 +52,12 @@ public class FtpOssClient implements StandardOssClient {
         if (isOverride || !ftp.exist(key)) {
             ftp.upload(parentPath, FileNameUtil.getName(targetName), is);
         }
+        return getInfo(targetName);
+    }
+
+    @Override
+    public OssInfo upLoadCheckPoint(File file, String targetName) {
+
         return getInfo(targetName);
     }
 

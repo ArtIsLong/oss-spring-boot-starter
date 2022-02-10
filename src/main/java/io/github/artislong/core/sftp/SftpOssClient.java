@@ -21,6 +21,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
@@ -51,6 +52,11 @@ public class SftpOssClient implements StandardOssClient {
         if (isOverride || !sftp.exist(key)) {
             sftp.upload(parentPath, FileNameUtil.getName(targetName), is);
         }
+        return getInfo(targetName);
+    }
+
+    @Override
+    public OssInfo upLoadCheckPoint(File file, String targetName) {
         return getInfo(targetName);
     }
 

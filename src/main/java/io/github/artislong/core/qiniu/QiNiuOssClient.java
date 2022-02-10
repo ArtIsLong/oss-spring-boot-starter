@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -59,6 +60,11 @@ public class QiNiuOssClient implements StandardOssClient {
             throw new OssException(errorMsg, e);
         }
         return getInfo(targetName, false);
+    }
+
+    @Override
+    public OssInfo upLoadCheckPoint(File file, String targetName) {
+        return getInfo(targetName);
     }
 
     @Override

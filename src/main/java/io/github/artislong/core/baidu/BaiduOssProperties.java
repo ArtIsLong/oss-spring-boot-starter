@@ -18,4 +18,22 @@ public class BaiduOssProperties {
     private String endPoint;
     private String accessKeyId;
     private String secretAccessKey;
+
+    /**
+     * 断点续传参数
+     */
+    private Slice slice;
+
+    @Data
+    static class Slice {
+        /**
+         * 分块大小，默认为5MB
+         */
+        private Long partSize = 1024 * 1024 * 5L;
+
+        /**
+         * 分块上传中线程池中线程的数量，默认等于CPU的核数
+         */
+        private Integer taskNum = Runtime.getRuntime().availableProcessors();
+    }
 }

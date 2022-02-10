@@ -10,6 +10,11 @@ public class OssConstant {
     public static final String OSS = "oss";
 
     /**
+     * 最大分片数
+     */
+    public static final int MAX_PARTS = 10000;
+
+    /**
      * OSS存储类型
      */
     public interface OssType {
@@ -25,5 +30,6 @@ public class OssConstant {
         String JD = "jd";
         String UP = "up";
     }
+
 
 }

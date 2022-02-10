@@ -10,10 +10,9 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.qcloud.cos.COSClient;
-import com.qcloud.cos.model.COSObject;
-import com.qcloud.cos.model.COSObjectSummary;
-import com.qcloud.cos.model.ObjectListing;
-import com.qcloud.cos.model.ObjectMetadata;
+import com.qcloud.cos.exception.CosClientException;
+import com.qcloud.cos.exception.CosServiceException;
+import com.qcloud.cos.model.*;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.model.DirectoryOssInfo;
@@ -22,14 +21,16 @@ import io.github.artislong.core.model.OssInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * https://cloud.tencent.com/document/product/436
  * @author 陈敏
  * @version TencentOssClient.java, v 1.1 2021/11/24 15:35 chenmin Exp $
  * Created on 2021/11/24
@@ -52,6 +53,54 @@ public class TencentOssClient implements StandardOssClient {
         if (isOverride || !cosClient.doesObjectExist(bucketName, key)) {
             cosClient.putObject(bucketName, targetName, is, new ObjectMetadata());
         }
+        return getInfo(targetName);
+    }
+
+    @SneakyThrows
+    @Override
+    public OssInfo upLoadCheckPoint(File file, String targetName) {
+        String bucket = getBucket();
+        String key = getKey(targetName, false);
+
+        InitiateMultipartUploadRequest request = new InitiateMultipartUploadRequest(bucket, key);
+
+        // 分块上传的过程中，仅能通过初始化分块指定文件上传之后的metadata
+        // 需要的头部可以在这里指定
+//        ObjectMetadata objectMetadata = new ObjectMetadata();
+//        request.setObjectMetadata(objectMetadata);
+
+        InitiateMultipartUploadResult initResult = cosClient.initiateMultipartUpload(request);
+        // 获取uploadid
+        String uploadId = initResult.getUploadId();
+
+        // 每个分块上传之后都会得到一个返回值 etag，保存起来用于最后合并分块时使用
+        List<PartETag> partETags = new LinkedList<>();
+
+        // 上传数据, 这里上传 10 个 1M 的分块数据
+        for (int i = 1; i <= 10; i++) {
+            // 这里创建一个 ByteArrayInputStream 来作为示例，实际中这里应该是您要上传的 InputStream 类型的流
+            InputStream inputStream = new FileInputStream(file);
+
+            UploadPartRequest uploadPartRequest = new UploadPartRequest();
+            uploadPartRequest.setBucketName(bucket);
+            uploadPartRequest.setKey(key);
+            uploadPartRequest.setUploadId(uploadId);
+            uploadPartRequest.setInputStream(inputStream);
+            // 设置分块的长度
+            uploadPartRequest.setPartSize(1024 * 1024);
+            // 设置要上传的分块编号，从 1 开始
+            uploadPartRequest.setPartNumber(i);
+
+            UploadPartResult uploadPartResult = cosClient.uploadPart(uploadPartRequest);
+            PartETag partETag = uploadPartResult.getPartETag();
+            partETags.add(partETag);
+        }
+
+        // 分片上传结束后，调用complete完成分片上传
+        CompleteMultipartUploadRequest completeMultipartUploadRequest =
+                new CompleteMultipartUploadRequest(bucket, key, uploadId, partETags);
+        cosClient.completeMultipartUpload(completeMultipartUploadRequest);
+
         return getInfo(targetName);
     }
 

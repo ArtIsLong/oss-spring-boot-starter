@@ -25,6 +25,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -55,6 +56,11 @@ public class MinioOssClient implements StandardOssClient {
                 .object(key)
                 .stream(is, is.available(), -1)
                 .build());
+        return getInfo(targetName);
+    }
+
+    @Override
+    public OssInfo upLoadCheckPoint(File file, String targetName) {
         return getInfo(targetName);
     }
 

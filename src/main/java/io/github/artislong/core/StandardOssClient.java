@@ -52,9 +52,7 @@ public interface StandardOssClient {
      * @param targetName 目标文件路径
      * @return 文件信息
      */
-    default OssInfo upLoadCheckPoint(File file, String targetName) {
-        return null;
-    }
+    OssInfo upLoadCheckPoint(File file, String targetName);
 
     /**
      * 下载文件

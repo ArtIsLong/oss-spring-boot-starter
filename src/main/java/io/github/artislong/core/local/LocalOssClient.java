@@ -61,6 +61,11 @@ public class LocalOssClient implements StandardOssClient {
     }
 
     @Override
+    public OssInfo upLoadCheckPoint(File file, String targetName) {
+        return getInfo(targetName);
+    }
+
+    @Override
     public void downLoad(OutputStream os, String targetName) {
         FileUtil.writeToStream(getKey(targetName, true), os);
     }

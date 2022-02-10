@@ -29,4 +29,23 @@ public class AliOssProperties {
      * AccessKey Secret
      */
     private String accessKeySecret;
+
+    /**
+     * 断点续传参数
+     */
+    private Slice slice;
+
+    @Data
+    static class Slice {
+        /**
+         * 分片大小,默认5MB
+         */
+        private Long partSize = 1024 * 1024 * 5L;
+
+        /**
+         * 上传并发线程数,默认等于CPU的核数
+         */
+        private Integer taskNum = Runtime.getRuntime().availableProcessors();
+    }
+
 }

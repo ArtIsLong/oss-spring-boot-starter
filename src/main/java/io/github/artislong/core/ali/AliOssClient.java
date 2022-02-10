@@ -13,6 +13,7 @@ import com.aliyun.oss.OSS;
 import com.aliyun.oss.common.utils.HttpHeaders;
 import com.aliyun.oss.model.*;
 import io.github.artislong.OssProperties;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.model.DirectoryOssInfo;
 import io.github.artislong.core.model.FileOssInfo;
@@ -31,6 +32,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ * https://help.aliyun.com/product/31815.html
+ *
  * @author 陈敏
  * @version AliOssClient.java, v 1.1 2021/11/15 11:12 chenmin Exp $
  * Created on 2021/11/15
@@ -63,18 +66,24 @@ public class AliOssClient implements StandardOssClient {
     @SneakyThrows
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
-        UploadFileRequest fileRequest = new UploadFileRequest(getBucketName(), file.getName());
-        // 填写本地文件的完整路径。如果未指定本地路径，则默认从示例程序所属项目对应本地路径中上传文件。
-        fileRequest.setUploadFile(file.getName());
-        // 指定上传并发线程数，默认值为1。
-        fileRequest.setTaskNum(5);
-        // 指定上传的分片大小。
-        fileRequest.setPartSize(1 * 1024 * 1024);
-        // 开启断点续传，默认关闭。
-        fileRequest.setEnableCheckpoint(true);
-        // 记录本地分片上传结果的文件。上传过程中的进度信息会保存在该文件中。
-        fileRequest.setCheckpointFile("yourCheckpointFile");
-        oss.uploadFile(fileRequest);
+        String bucketName = getBucketName();
+        String key = getKey(targetName, false);
+
+        UploadFileRequest uploadFileRequest = new UploadFileRequest(bucketName,key);
+        uploadFileRequest.setUploadFile(file.getPath());
+
+        AliOssProperties.Slice slice = getAliOssProperties().getSlice();
+        if (ObjectUtil.isNotEmpty(slice)) {
+            uploadFileRequest.setTaskNum(slice.getTaskNum());
+            uploadFileRequest.setPartSize(slice.getPartSize());
+        }
+
+        uploadFileRequest.setEnableCheckpoint(true);
+
+        String checkpointFile = file.getPath() + StrUtil.DOT + OssConstant.OssType.ALI;
+        uploadFileRequest.setCheckpointFile(checkpointFile);
+
+        oss.uploadFile(uploadFileRequest);
         return getInfo(targetName);
     }
 

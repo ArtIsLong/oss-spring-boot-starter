@@ -9,11 +9,10 @@ import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.*;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
@@ -25,12 +24,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * https://docs.jdcloud.com/cn/object-storage-service/product-overview
+ *
  * @author 陈敏
  * @version JdOssClient.java, v 1.1 2021/11/25 10:44 chenmin Exp $
  * Created on 2021/11/25
@@ -54,6 +57,44 @@ public class JdOssClient implements StandardOssClient {
         if (isOverride || !amazonS3.doesObjectExist(bucketName, key)) {
             amazonS3.putObject(bucketName, key, is, new ObjectMetadata());
         }
+        return getInfo(targetName);
+    }
+
+    @Override
+    public OssInfo upLoadCheckPoint(File file, String targetName) {
+        String bucket = getBucket();
+        String key = getKey(targetName, false);
+        long contentLength = file.length();
+        long partSize = 5 * 1024 * 1024; // 设置每个分片大小为5MB.
+
+        // 创建对象的Etag列表，并取回每个分片的Etag。
+        List<PartETag> partETags = new ArrayList<PartETag>();
+        // 初始化分片上传
+        InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(bucket, key);
+        InitiateMultipartUploadResult initResponse = amazonS3.initiateMultipartUpload(initRequest);
+
+        // 上传分片
+        long filePosition = 0;
+        for (int i = 1; filePosition < contentLength; i++) {
+            partSize = Math.min(partSize, (contentLength - filePosition));
+            UploadPartRequest uploadRequest = new UploadPartRequest()
+                    .withBucketName(bucket)
+                    .withKey(key)
+                    .withUploadId(initResponse.getUploadId())
+                    .withPartNumber(i)
+                    .withFileOffset(filePosition)
+                    .withFile(file)
+                    .withPartSize(partSize);
+            // 上传分片并将返回的Etag加入列表中
+            UploadPartResult uploadResult = amazonS3.uploadPart(uploadRequest);
+            partETags.add(uploadResult.getPartETag());
+            filePosition += partSize;
+        }
+
+        // 完成分片上传
+        CompleteMultipartUploadRequest compRequest = new CompleteMultipartUploadRequest(bucket, key,
+                initResponse.getUploadId(), partETags);
+        amazonS3.completeMultipartUpload(compRequest);
         return getInfo(targetName);
     }
 

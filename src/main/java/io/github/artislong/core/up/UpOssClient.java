@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
 import okhttp3.Response;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * https://github.com/upyun/java-sdk
  * @author 陈敏
  * @version UpOssClient.java, v 1.1 2021/11/30 12:03 chenmin Exp $
  * Created on 2021/11/30
@@ -55,6 +57,11 @@ public class UpOssClient implements StandardOssClient {
             throw new OssException(e);
         }
         return getInfo(targetName, false);
+    }
+
+    @Override
+    public OssInfo upLoadCheckPoint(File file, String targetName) {
+        return getInfo(targetName);
     }
 
     @Override

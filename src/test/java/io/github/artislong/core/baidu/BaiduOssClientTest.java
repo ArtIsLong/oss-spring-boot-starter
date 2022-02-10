@@ -1,6 +1,8 @@
 package io.github.artislong.core.baidu;
 
+import cn.hutool.core.date.StopWatch;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.model.OssInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +20,16 @@ public class BaiduOssClientTest {
 
     @Test
     void upLoad() {
+    }
+
+    @Test
+    void upLoadCheckPoint() {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        OssInfo ossInfo = ossClient.upLoadCheckPoint("/Users/chenmin/study/data/data.zip", "data.zip");
+        stopWatch.stop();
+        System.out.println(stopWatch.getTotalTimeMillis());
+        System.out.println(ossInfo);
     }
 
     @Test
