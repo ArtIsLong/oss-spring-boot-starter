@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
+
 /**
  * 分块标签
  * @author 陈敏
@@ -15,7 +17,9 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class PartEntityTag {
+public class PartEntityTag implements Serializable {
+
+    private static final long serialVersionUID = 2471854027355307627L;
 
     /**
      * 分块号

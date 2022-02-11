@@ -9,10 +9,13 @@ import cn.hutool.core.io.file.PathUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.OssProperties;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
+import io.github.artislong.model.slice.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,6 +34,7 @@ import java.nio.file.attribute.UserPrincipal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.*;
 
 /**
  * 本地文件操作客户端
@@ -44,6 +49,7 @@ import java.util.Optional;
 public class LocalOssClient implements StandardOssClient {
 
     private OssProperties ossProperties;
+    private LocalProperties localProperties;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -62,7 +68,151 @@ public class LocalOssClient implements StandardOssClient {
 
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
+        upLoadFile(file, targetName);
         return getInfo(targetName);
+    }
+
+    public void upLoadFile(File upLoadFile, String targetName) {
+        String checkpointFile = upLoadFile.getPath() + StrUtil.DOT + OssConstant.OssType.LOCAL;
+
+        UpLoadCheckPoint upLoadCheckPoint = new UpLoadCheckPoint();
+        try {
+            upLoadCheckPoint.load(checkpointFile);
+        } catch (Exception e) {
+            FileUtil.del(checkpointFile);
+        }
+
+        if (!upLoadCheckPoint.isValid()) {
+            prepare(upLoadCheckPoint, upLoadFile, targetName, checkpointFile);
+            FileUtil.del(checkpointFile);
+        }
+
+        Integer taskNum = getLocalProperties().getSliceConfig().getTaskNum();
+
+        ExecutorService executorService = Executors.newFixedThreadPool(taskNum);
+        List<Future<PartResult>> futures = new ArrayList<>();
+
+        for (int i = 0; i < upLoadCheckPoint.getUploadParts().stream().filter(uploadPart -> !uploadPart.isCompleted()).count(); i++) {
+            futures.add(executorService.submit(new UploadPartTask(upLoadCheckPoint, i)));
+        }
+
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            throw new OssException("关闭线程池失败", e);
+        }
+
+        for (int i = 0; i < futures.size(); i++) {
+            log.info("{}", i);
+            Future<PartResult> future = futures.get(i);
+            try {
+                PartResult partResult = future.get();
+                if (partResult.isFailed()) {
+                    throw partResult.getException();
+                }
+            } catch (Exception e) {
+                throw new OssException(e);
+            }
+        }
+
+    }
+
+    private void prepare(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile) {
+        String key = getKey(targetName, true);
+
+        uploadCheckPoint.setMagic(UpLoadCheckPoint.UPLOAD_MAGIC);
+        uploadCheckPoint.setUploadFile(upLoadFile.getPath());
+        uploadCheckPoint.setKey(key);
+        uploadCheckPoint.setCheckpointFile(checkpointFile);
+        uploadCheckPoint.setUploadFileStat(FileStat.getFileStat(uploadCheckPoint.getUploadFile()));
+
+        long partSize = getLocalProperties().getSliceConfig().getPartSize();
+        long fileLength = upLoadFile.length();
+        int parts = (int) (fileLength / partSize);
+        if (fileLength % partSize > 0) {
+            parts++;
+        }
+
+        uploadCheckPoint.setUploadParts(splitFile(uploadCheckPoint.getUploadFileStat().getSize(), parts));
+        uploadCheckPoint.setOriginPartSize(parts);
+    }
+
+    private ArrayList<UploadPart> splitFile(long fileSize, long partSize) {
+        ArrayList<UploadPart> parts = new ArrayList<>();
+
+        long partNum = fileSize / partSize;
+        if (partNum >= 10000) {
+            partSize = fileSize / (10000 - 1);
+            partNum = fileSize / partSize;
+        }
+
+        for (long i = 0; i < partNum; i++) {
+            UploadPart part = new UploadPart();
+            part.setNumber((int) (i + 1));
+            part.setOffset(i * partSize);
+            part.setSize(partSize);
+            part.setCompleted(false);
+            parts.add(part);
+        }
+
+        if (fileSize % partSize > 0) {
+            UploadPart part = new UploadPart();
+            part.setNumber(parts.size() + 1);
+            part.setOffset(parts.size() * partSize);
+            part.setSize(fileSize % partSize);
+            part.setCompleted(false);
+            parts.add(part);
+        }
+
+        return parts;
+    }
+
+    @Slf4j
+    public static class UploadPartTask implements Callable<PartResult> {
+        UpLoadCheckPoint upLoadCheckPoint;
+        int partNum;
+
+        UploadPartTask(UpLoadCheckPoint upLoadCheckPoint, int partNum) {
+            this.upLoadCheckPoint = upLoadCheckPoint;
+            this.partNum = partNum;
+        }
+
+        @Override
+        public PartResult call() {
+            PartResult partResult = null;
+            try {
+                UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+                long lastOffset = uploadPart.getLastOffset();
+                long size = uploadPart.getSize();
+                Integer partOffset = Convert.toInt(lastOffset);
+                Integer partSize = Convert.toInt(size);
+
+                partResult = new PartResult(partNum + 1, lastOffset, size);
+                partResult.setNumber(partNum);
+
+                RandomAccessFile uploadFile = new RandomAccessFile(upLoadCheckPoint.getUploadFile(), "r");
+                RandomAccessFile targetFile = new RandomAccessFile(upLoadCheckPoint.getKey(), "rw");
+
+                byte[] data = new byte[partSize];
+                uploadFile.seek(lastOffset);
+                targetFile.seek(lastOffset);
+                int len = uploadFile.read(data);
+                log.info("partNum = {}, partOffset = {}, partSize = {}", partNum, partOffset, partSize);
+                targetFile.write(data, 0, len);
+
+
+                upLoadCheckPoint.update(partNum, new PartEntityTag(), true);
+                upLoadCheckPoint.dump();
+            } catch (Exception e) {
+                partResult.setFailed(true);
+                partResult.setException(e);
+            }
+
+            return partResult;
+        }
     }
 
     @Override

@@ -91,15 +91,14 @@ public class BaiduOssClient implements StandardOssClient {
             FileUtil.del(checkpointFile);
         }
 
-        if (!upLoadCheckPoint.isValid(checkpointFile)) {
+        if (!upLoadCheckPoint.isValid()) {
             prepare(upLoadCheckPoint, upLoadFile, targetName, checkpointFile);
             FileUtil.del(checkpointFile);
         }
 
         SliceConfig slice = getBaiduOssProperties().getSliceConfig();
-        Integer taskNum = slice.getTaskNum();
 
-        ExecutorService executorService = Executors.newFixedThreadPool(taskNum);
+        ExecutorService executorService = Executors.newFixedThreadPool(slice.getTaskNum());
         List<Future<PartResult>> futures = new ArrayList<>();
 
         for (int i = 0; i < upLoadCheckPoint.getUploadParts().size(); i++) {
@@ -153,10 +152,10 @@ public class BaiduOssClient implements StandardOssClient {
         uploadCheckPoint.setCheckpointFile(checkpointFile);
         uploadCheckPoint.setUploadFileStat(FileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
-        long chunkSize = getBaiduOssProperties().getSliceConfig().getPartSize();
+        long partSize = getBaiduOssProperties().getSliceConfig().getPartSize();
         long fileLength = upLoadFile.length();
-        int parts = (int) (fileLength / chunkSize);
-        if (fileLength % chunkSize > 0) {
+        int parts = (int) (fileLength / partSize);
+        if (fileLength % partSize > 0) {
             parts++;
         }
 
@@ -241,7 +240,7 @@ public class BaiduOssClient implements StandardOssClient {
 
                 upLoadCheckPoint.update(partNum, new PartEntityTag().setETag(eTag.getETag())
                         .setPartNumber(eTag.getPartNumber()), true);
-                upLoadCheckPoint.dump(upLoadCheckPoint.getCheckpointFile());
+                upLoadCheckPoint.dump();
             } catch (Exception e) {
                 partResult.setFailed(true);
                 partResult.setException(e);

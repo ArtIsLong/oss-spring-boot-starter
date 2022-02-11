@@ -28,6 +28,12 @@ public class LocalOssClientTest {
     }
 
     @Test
+    void upLoadCheckPoint() {
+        OssInfo ossInfo = ossClient.upLoadCheckPoint("F:\\影片\\饥饿站台BD中字.mp4", "饥饿站台BD中字.mp4");
+        System.out.println(ossInfo);
+    }
+
+    @Test
     void downLoad() throws FileNotFoundException {
         FileOutputStream fileOutputStream = new FileOutputStream("C:\\Users\\15221\\Desktop\\vim1.png");
         ossClient.downLoad(fileOutputStream, "/vim.png");

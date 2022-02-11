@@ -1,5 +1,6 @@
 package io.github.artislong.core;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -217,7 +218,13 @@ public interface StandardOssClient {
      * @return 完整路径
      */
     default String getKey(String targetName, Boolean isAbsolute) {
-        return convertPath(getBasePath() + targetName, isAbsolute);
+        String key = convertPath(getBasePath() + targetName, isAbsolute);
+        if (FileUtil.isWindows() && isAbsolute) {
+            if (key.contains(StrUtil.COLON) && key.startsWith(StrUtil.SLASH)) {
+                key = key.substring(1);
+            }
+        }
+        return key;
     }
 
     /**

@@ -1,10 +1,10 @@
 # OSS对象存储
 
-本工具集成了常用的第三方对象存储平台，简化项目中使用对象存储时繁琐的集成过程，让对象存储开箱即用。
+本工具集成了常用的第三方对象存储平台，简化项目中使用对象存储时繁琐的集成过程，并针对实际使用过程中的积累，对常用方法进行封装，提供了一套标准的API，让对象存储开箱即用。
 
 目前已支持：
 
-本地存储
+[本地存储](https://hutool.cn/docs/#/core/IO/%E6%96%87%E4%BB%B6%E5%B7%A5%E5%85%B7%E7%B1%BB-FileUtil)
 
 [FTP](https://commons.apache.org/proper/commons-net/download_net.cgi)
 
@@ -42,137 +42,196 @@
 
 在需要使用的Spring Bean中注入`StandardOssClient`对象即可。
 
-StandardOssClient类提供统一的文件存储入口，提供了如下方法：
+StandardOssClient类提供统一的文件存储API，提供了如下方法：
+
+- 文件上传
 
 ```java
-    /**
+/**
  * 上传文件，默认覆盖
  * @param is 输入流
  * @param targetName 目标文件路径
  * @return 返回文件路径
  */
-default OssInfo upLoad(InputStream is,String targetName){
-        return upLoad(is,targetName,true);
-        }
-        /**
-         * 上传文件
-         * @param is 输入流
-         * @param targetName 目标文件路径
-         * @param isOverride 是否覆盖
-         * @return 返回文件路径
-         */
-        OssInfo upLoad(InputStream is,String targetName,Boolean isOverride);
-        /**
-         * 下载文件
-         * @param os  输出流
-         * @param targetName  目标文件路径
-         */
-        void downLoad(OutputStream os,String targetName);
-        /**
-         * 删除文件
-         * @param targetName 目标文件路径
-         */
-        void delete(String targetName);
+default OssInfo upLoad(InputStream is,String targetName) {
+    return upLoad(is,targetName,true);
+}
+/**
+ * 上传文件
+ * @param is 输入流
+ * @param targetName 目标文件路径
+ * @param isOverride 是否覆盖
+ * @return 返回文件路径
+ */
+OssInfo upLoad(InputStream is,String targetName,Boolean isOverride);
+```
+
+- 断点续传上传
+
+```java
+/**
+ * 断点续传
+ * @param file 本地文件路径
+ * @param targetName  目标文件路径
+ * @return 文件信息
+ */
+default OssInfo upLoadCheckPoint(String file, String targetName) {
+    return upLoadCheckPoint(new File(file), targetName);
+}
+/**
+ * 断点续传
+ * @param file 本地文件
+ * @param targetName 目标文件路径
+ * @return 文件信息
+ */
+OssInfo upLoadCheckPoint(File file, String targetName);
+```
+
+- 文件下载
+
+```java
+/**
+ * 下载文件
+ * @param os  输出流
+ * @param targetName  目标文件路径
+ */
+void downLoad(OutputStream os,String targetName);
+```
+
+- 断点续传下载
+
+待实现
+
+- 删除
+
+```java
+/**
+ * 删除文件
+ * @param targetName 目标文件路径
+ */
+void delete(String targetName);
+```
+
+- 复制
+
+```java
 /**
  * 复制文件，默认覆盖
  * @param sourceName 源文件路径
  * @param targetName 目标文件路径
  */
-default void copy(String sourceName,String targetName){
-        copy(sourceName,targetName,true);
-        }
-        /**
-         * 复制文件
-         * @param sourceName 源文件路径
-         * @param targetName 目标文件路径
-         * @param isOverride 是否覆盖
-         */
-        void copy(String sourceName,String targetName,Boolean isOverride);
+default void copy(String sourceName,String targetName) {
+    copy(sourceName,targetName,true);
+}
+/**
+ * 复制文件
+ * @param sourceName 源文件路径
+ * @param targetName 目标文件路径
+ * @param isOverride 是否覆盖
+ */
+void copy(String sourceName,String targetName,Boolean isOverride);
+```
+
+- 移动
+
+```java
 /**
  * 移动文件，默认覆盖
  * @param sourceName 源文件路径
  * @param targetName 目标路径
  */
-default void move(String sourceName,String targetName){
-        move(sourceName,targetName,true);
-        }
-        /**
-         * 移动文件
-         * @param sourceName 源文件路径
-         * @param targetName 目标路径
-         * @param isOverride 是否覆盖
-         */
-        void move(String sourceName,String targetName,Boolean isOverride);
+default void move(String sourceName,String targetName) {
+    move(sourceName,targetName,true);
+}
+/**
+ * 移动文件
+ * @param sourceName 源文件路径
+ * @param targetName 目标路径
+ * @param isOverride 是否覆盖
+ */
+void move(String sourceName,String targetName,Boolean isOverride);
+```
+
+- 重命名
+
+```java
 /**
  * 重命名文件
  * @param sourceName 源文件路径
  * @param targetName 目标文件路径
  */
-default void rename(String sourceName,String targetName){
-        rename(sourceName,targetName,true);
-        }
-        /**
-         * 重命名文件
-         * @param sourceName 源文件路径
-         * @param targetName 目标路径
-         * @param isOverride 是否覆盖
-         */
-        void rename(String sourceName,String targetName,Boolean isOverride);
+default void rename(String sourceName,String targetName) {
+    rename(sourceName,targetName,true);
+}
+/**
+ * 重命名文件
+ * @param sourceName 源文件路径
+ * @param targetName 目标路径
+ * @param isOverride 是否覆盖
+ */
+void rename(String sourceName,String targetName,Boolean isOverride);
+```
+
+- 获取文件及目录信息
+
+```java
 /**
  * 获取文件信息，默认获取目标文件信息
  * @param targetName 目标文件路径
  * @return 文件基本信息
  */
-default OssInfo getInfo(String targetName){
-        return getInfo(targetName,false);
-        }
-        /**
-         * 获取文件信息
-         *      isRecursion传false，则只获取当前对象信息；
-         *      isRecursion传true，且当前对象为目录时，会递归获取当前路径下所有文件及目录，按层级返回
-         * @param targetName 目标文件路径
-         * @param isRecursion 是否递归
-         * @return 文件基本信息
-         */
-        OssInfo getInfo(String targetName,Boolean isRecursion);
-        /**
-         * 是否存在
-         * @param targetName 目标文件路径
-         * @return true/false
-         */
-        Boolean isExist(String targetName);
+default OssInfo getInfo(String targetName) {
+    return getInfo(targetName,false);
+}
+/**
+ * 获取文件信息
+ *      isRecursion传false，则只获取当前对象信息；
+ *      isRecursion传true，且当前对象为目录时，会递归获取当前路径下所有文件及目录，按层级返回
+ * @param targetName 目标文件路径
+ * @param isRecursion 是否递归
+ * @return 文件基本信息
+ */
+OssInfo getInfo(String targetName,Boolean isRecursion);
+```
+
+- 判断对象是否为文件
+
+```java
 /**
  * 是否为文件
  *      默认根据路径最后一段名称是否有后缀名来判断是否为文件，此方式不准确，当存储平台不提供类似方法时，可使用此方法
  * @param targetName 目标文件路径
  * @return true/false
  */
-default Boolean isFile(String targetName){
-        String name=FileNameUtil.getName(targetName);
-        return StrUtil.indexOf(name,StrUtil.C_DOT)>0;
-        }
+default Boolean isFile(String targetName) {
+    String name=FileNameUtil.getName(targetName);
+    return StrUtil.indexOf(name,StrUtil.C_DOT)>0;
+}
+```
+
+- 判断对象是否为目录
+
+```java
 /**
  * 是否为目录
  *      与判断是否为文件相反
  * @param targetName 目标文件路径
  * @return true/false
  */
-default Boolean isDirectory(String targetName){
-        return!isFile(targetName);
-        }
-        /**
-         * 创建文件
-         * @param targetName 目标文件路径
-         * @return 文件基本信息
-         */
-        OssInfo createFile(String targetName);
-        /**
-         * 创建目录
-         *      存储平台支持通过SDK创建文件，则可以使用此方法，否则会抛出{@link io.github.artislong.exception.NotSupportException}异常
-         * @param targetName 目标路径
-         * @return 目录基本信息
-         */
-        OssInfo createDirectory(String targetName);
+default Boolean isDirectory(String targetName) {
+    return !isFile(targetName);
+}
+```
+
+- 判断对象是否存在
+
+```java
+/**
+ * 是否存在
+ * @param targetName 目标文件路径
+ * @return true/false
+ */
+Boolean isExist(String targetName);
 ```
 
 可根据实际业务需求及所采用的存储平台灵活使用。
@@ -185,9 +244,11 @@ default Boolean isDirectory(String targetName){
 oss:
   oss-type: local
   base-path: 本地文件存储根路径
+  local:
+    slice-config:
+      task-num: 8
+      part-size: 104857600 # 1024*1024*100
 ```
-
-**注意：** 配置的本地文件存储根路径(windows或linux)为绝对路径，且具有权限。
 
 ### FTP
 
@@ -263,6 +324,9 @@ oss:
     access-key-secret: accessKeySecret
     endpoint: endpoint
     bucket-name: bucketName
+    slice-config:
+      task-num: 8
+      part-size: 104857600 # 1024*1024*100
 ```
 
 ### 华为云
@@ -286,6 +350,9 @@ oss:
     access-key: accessKey
     secret-key: secretKey
     bucket-name: backetName
+    slice-config:
+      task-num: 8
+      part-size: 104857600 # 1024*1024*100
 ```
 
 ### 京东云
@@ -309,6 +376,9 @@ oss:
     region: region
     access-key: accessKey
     secret-key: secretKey
+    slice-config:
+      task-num: 8
+      part-size: 104857600 # 1024*1024*100
 ```
 
 ### 七牛云
@@ -336,6 +406,9 @@ oss:
     region: region
     access-key: accessKey
     secret-key: secretKey
+    slice-config:
+      task-num: 8
+      part-size: 104857600 # 1024*1024*100
 ```
 
 ### 腾讯云
@@ -358,6 +431,9 @@ oss:
     region: region
     secret-key: secretKey
     secret-id: secretId
+    slice-config:
+      task-num: 8
+      part-size: 104857600 # 1024*1024*100
 ```
 
 ### 又拍云
@@ -380,6 +456,8 @@ oss:
     user-name: 用户名
     password: 密码
     bucket-name: bucketName
+    slice-config:
+      task-num: 8
 ```
 
 ### Minio
@@ -411,6 +489,7 @@ oss:
     bucket-name: bucketName
 ```
 
-后续会持续接入新的云存储，同时由于本工具目前只提供基本的对象存储功能，并未加入如断点续传上传、断点续传下载等常用功能，所以后续会继续增加新的通用功能进来。
+新功能持续增加中，敬请期待！！！
 
-敬请期待！！！
+
+

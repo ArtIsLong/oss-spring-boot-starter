@@ -24,6 +24,10 @@ public class UploadPart implements Serializable {
      */
     private long offset;
     /**
+     * 最新偏移量
+     */
+    private long lastOffset;
+    /**
      * 分块大小
      */
     private long size;
@@ -35,6 +39,14 @@ public class UploadPart implements Serializable {
      * 分块crc
      */
     private long crc;
+
+    public long getLastOffset() {
+        if (lastOffset < offset) {
+            return offset;
+        } else {
+            return lastOffset;
+        }
+    }
 
     @Override
     public int hashCode() {

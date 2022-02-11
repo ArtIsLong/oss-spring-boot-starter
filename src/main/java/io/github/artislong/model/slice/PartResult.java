@@ -26,7 +26,7 @@ public class PartResult {
     /**
      * 分块失败标识
      */
-    private boolean failed;
+    private boolean failed = false;
     /**
      * 分块上传失败异常
      */

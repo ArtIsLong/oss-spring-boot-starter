@@ -1,6 +1,6 @@
 package io.github.artislong.model.slice;
 
-import cn.hutool.core.io.IoUtil;
+import io.github.artislong.exception.OssException;
 import lombok.Data;
 
 import java.io.*;
@@ -39,27 +39,37 @@ public class UpLoadCheckPoint implements Serializable {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public synchronized void load(String checkpointFile) throws IOException, ClassNotFoundException {
-        FileInputStream inputStream = new FileInputStream(checkpointFile);
-        ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-        UpLoadCheckPoint ucp = (UpLoadCheckPoint) objectInputStream.readObject();
-        assign(ucp);
-        IoUtil.close(objectInputStream);
-        IoUtil.close(inputStream);
+    public synchronized void load(String checkpointFile) {
+        try (FileInputStream inputStream = new FileInputStream(checkpointFile);
+             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
+            UpLoadCheckPoint ucp = (UpLoadCheckPoint) objectInputStream.readObject();
+            assign(ucp);
+        } catch (Exception e) {
+            throw new OssException(e);
+        }
     }
 
     /**
      * 将断点信息写入到断点缓存文件
-     * @param checkpointFile 断点缓存文件
      * @throws IOException
      */
-    public synchronized void dump(String checkpointFile) throws IOException {
+    public synchronized void dump() {
         this.setMd5(hashCode());
-        FileOutputStream fileOutputStream = new FileOutputStream(checkpointFile);
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-        objectOutputStream.writeObject(this);
-        IoUtil.close(objectOutputStream);
-        IoUtil.close(fileOutputStream);
+        try (FileOutputStream fileOutputStream = new FileOutputStream(checkpointFile);
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
+            objectOutputStream.writeObject(this);
+        } catch (Exception e) {
+            throw new OssException(e);
+        }
+    }
+
+    /**
+     * 更新分块状态
+     *
+     * @throws IOException
+     */
+    public synchronized void update(int partIndex, int lastOffset) throws IOException {
+        this.getUploadParts().get(partIndex).setLastOffset(lastOffset);
     }
 
     /**
@@ -75,7 +85,7 @@ public class UpLoadCheckPoint implements Serializable {
     /**
      * 检查断点缓存文件是否与断点一致
      */
-    public synchronized boolean isValid(String checkpointFile) {
+    public synchronized boolean isValid() {
         // 比较checkpoint的magic和md5
         if (this.getMagic() == null || !this.getMagic().equals(UPLOAD_MAGIC) || this.getMd5() != hashCode()) {
             return false;

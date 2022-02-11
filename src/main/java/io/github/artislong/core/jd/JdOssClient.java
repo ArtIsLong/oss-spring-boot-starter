@@ -92,15 +92,14 @@ public class JdOssClient implements StandardOssClient {
             FileUtil.del(checkpointFile);
         }
 
-        if (!upLoadCheckPoint.isValid(checkpointFile)) {
+        if (!upLoadCheckPoint.isValid()) {
             prepare(upLoadCheckPoint, upLoadFile, targetName, checkpointFile);
             FileUtil.del(checkpointFile);
         }
 
         SliceConfig slice = getJdOssProperties().getSliceConfig();
-        Integer taskNum = slice.getTaskNum();
 
-        ExecutorService executorService = Executors.newFixedThreadPool(taskNum);
+        ExecutorService executorService = Executors.newFixedThreadPool(slice.getTaskNum());
         List<Future<PartResult>> futures = new ArrayList<>();
 
         for (int i = 0; i < upLoadCheckPoint.getUploadParts().size(); i++) {
@@ -149,10 +148,10 @@ public class JdOssClient implements StandardOssClient {
         uploadCheckPoint.setCheckpointFile(checkpointFile);
         uploadCheckPoint.setUploadFileStat(FileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
-        long chunkSize = getJdOssProperties().getSliceConfig().getPartSize();
+        long partSize = getJdOssProperties().getSliceConfig().getPartSize();
         long fileLength = upLoadFile.length();
-        int parts = (int) (fileLength / chunkSize);
-        if (fileLength % chunkSize > 0) {
+        int parts = (int) (fileLength / partSize);
+        if (fileLength % partSize > 0) {
             parts++;
         }
 
@@ -235,7 +234,7 @@ public class JdOssClient implements StandardOssClient {
 
                 upLoadCheckPoint.update(partNum, new PartEntityTag().setETag(uploadPartResponse.getETag())
                         .setPartNumber(uploadPartResponse.getPartNumber()), true);
-                upLoadCheckPoint.dump(upLoadCheckPoint.getCheckpointFile());
+                upLoadCheckPoint.dump();
             } catch (Exception e) {
                 partResult.setFailed(true);
                 partResult.setException(e);
