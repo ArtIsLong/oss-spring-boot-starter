@@ -10,17 +10,20 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import com.qiniu.common.QiniuException;
 import com.qiniu.storage.BucketManager;
+import com.qiniu.storage.Configuration;
 import com.qiniu.storage.DownloadUrl;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.storage.model.FileInfo;
 import com.qiniu.storage.model.FileListing;
+import com.qiniu.storage.persistent.FileRecorder;
 import com.qiniu.util.Auth;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
-import io.github.artislong.core.model.DirectoryOssInfo;
-import io.github.artislong.core.model.FileOssInfo;
-import io.github.artislong.core.model.OssInfo;
 import io.github.artislong.exception.OssException;
+import io.github.artislong.model.DirectoryOssInfo;
+import io.github.artislong.model.FileOssInfo;
+import io.github.artislong.model.OssInfo;
+import io.github.artislong.model.SliceConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,10 +33,13 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * https://developer.qiniu.com/kodo
+ *
  * @author 陈敏
  * @version QiNiuOssClient.java, v 1.1 2021/11/15 11:13 chenmin Exp $
  * Created on 2021/11/15
@@ -64,6 +70,28 @@ public class QiNiuOssClient implements StandardOssClient {
 
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
+        String key = getKey(targetName, true);
+        String parentPath = convertPath(Paths.get(key).getParent().toString(), true);
+
+        QiNiuOssProperties qiNiuOssProperties = getQiNiuOssProperties();
+        SliceConfig sliceConfig = qiNiuOssProperties.getSliceConfig();
+
+        Configuration cfg = new Configuration(qiNiuOssProperties.getRegion().buildRegion());
+        // 指定分片上传版本
+        cfg.resumableUploadAPIVersion = Configuration.ResumableUploadAPIVersion.V2;
+        // 设置分片上传并发，1：采用同步上传；大于1：采用并发上传
+        cfg.resumableUploadMaxConcurrentTaskCount = sliceConfig.getTaskNum();
+        cfg.resumableUploadAPIV2BlockSize = sliceConfig.getPartSize().intValue();
+
+        try {
+            FileRecorder fileRecorder = new FileRecorder(parentPath);
+            UploadManager uploadManager = new UploadManager(cfg, fileRecorder);
+            uploadManager.put(file.getPath(), key, getUpToken());
+        } catch (Exception e) {
+            String errorMsg = String.format("%s上传失败", targetName);
+            log.error(errorMsg, e);
+            throw new OssException(errorMsg, e);
+        }
         return getInfo(targetName);
     }
 
@@ -173,7 +201,7 @@ public class QiNiuOssClient implements StandardOssClient {
             ossInfo = new FileOssInfo();
             try {
                 FileInfo fileInfo = bucketManager.stat(getBucket(), key);
-                String putTime = DateUtil.date(fileInfo.putTime/10000).toString(DatePattern.NORM_DATETIME_PATTERN);
+                String putTime = DateUtil.date(fileInfo.putTime / 10000).toString(DatePattern.NORM_DATETIME_PATTERN);
                 ossInfo.setSize(Convert.toStr(fileInfo.fsize));
                 ossInfo.setCreateTime(putTime);
                 ossInfo.setLastUpdateTime(putTime);

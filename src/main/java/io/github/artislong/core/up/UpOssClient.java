@@ -9,18 +9,20 @@ import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.upyun.ParallelUploader;
 import com.upyun.RestManager;
 import com.upyun.UpException;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
-import io.github.artislong.core.model.DirectoryOssInfo;
-import io.github.artislong.core.model.FileOssInfo;
-import io.github.artislong.core.model.OssInfo;
+import io.github.artislong.model.DirectoryOssInfo;
+import io.github.artislong.model.FileOssInfo;
+import io.github.artislong.model.OssInfo;
 import io.github.artislong.core.up.constant.UpConstant;
 import io.github.artislong.exception.OssException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
 import okhttp3.Response;
@@ -45,6 +47,7 @@ import java.util.List;
 public class UpOssClient implements StandardOssClient {
 
     private RestManager restManager;
+    private ParallelUploader parallelUploader;
     private OssProperties ossProperties;
     private UpOssProperties upOssProperties;
 
@@ -59,8 +62,10 @@ public class UpOssClient implements StandardOssClient {
         return getInfo(targetName, false);
     }
 
+    @SneakyThrows
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
+        parallelUploader.upload(file.getPath(), getKey(targetName, true), null);
         return getInfo(targetName);
     }
 

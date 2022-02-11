@@ -1,4 +1,4 @@
-package io.github.artislong.core.model;
+package io.github.artislong.model;
 
 import lombok.Data;
 

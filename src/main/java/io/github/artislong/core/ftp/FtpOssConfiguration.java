@@ -30,12 +30,14 @@ public class FtpOssConfiguration {
 
     @Bean
     public StandardOssClient ftpOssClient(Ftp ftp) {
-        return new FtpOssClient(ftp, ossProperties);
+        return new FtpOssClient(ftp, ossProperties, ftpOssProperties);
     }
 
     @Bean
     public Ftp ftp() {
-        return new Ftp(ftpOssProperties, ftpOssProperties.getMode());
+        Ftp ftp = new Ftp(ftpOssProperties, ftpOssProperties.getMode());
+        ftp.setBackToPwd(ftpOssProperties.isBackToPwd());
+        return ftp;
     }
 
 }

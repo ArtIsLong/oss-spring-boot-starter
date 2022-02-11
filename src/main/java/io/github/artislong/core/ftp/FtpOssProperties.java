@@ -15,6 +15,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.FTP)
 public class FtpOssProperties extends FtpConfig {
-    private FtpMode mode;
-    private boolean backToPwd;
+    /**
+     * FTP连接模式,默认被动
+     */
+    private FtpMode mode = FtpMode.Passive;
+    /**
+     * 设置执行完操作是否返回当前目录,默认false
+     */
+    private boolean backToPwd = false;
 }

@@ -2,7 +2,9 @@ package io.github.artislong.core.tencent;
 
 import cn.hutool.core.text.CharPool;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.model.SliceConfig;
 import lombok.Data;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -12,10 +14,21 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.TENCENT)
-public class TencentOssProperties {
+public class TencentOssProperties implements InitializingBean {
 
     private String bucketName;
     private String secretId;
     private String secretKey;
     private String region;
+
+    /**
+     * 断点续传参数
+     */
+    private SliceConfig sliceConfig = new SliceConfig();
+
+    @Override
+    public void afterPropertiesSet() {
+        this.getSliceConfig().valid();
+    }
+
 }

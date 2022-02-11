@@ -1,4 +1,4 @@
-package io.github.artislong.core.baidu.model;
+package io.github.artislong.model.slice;
 
 import lombok.Data;
 
@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.Serializable;
 
 /**
+ * 文件状态
  * @author 陈敏
  * @version FileStat.java, v 1.1 2022/2/9 22:54 chenmin Exp $
  * Created on 2022/2/9
@@ -16,15 +17,15 @@ public class FileStat implements Serializable {
     private static final long serialVersionUID = -1223810339796425415L;
 
     /**
-     * file size
+     * 文件大小
      */
     private long size;
     /**
-     * file last modified time.
+     * 文件最新修改时间
      */
     private long lastModified;
     /**
-     * file content's digest (signature).
+     * 文件内容签名
      */
     private String digest;
 

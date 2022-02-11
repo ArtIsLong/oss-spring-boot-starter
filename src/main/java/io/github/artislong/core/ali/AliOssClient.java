@@ -15,9 +15,10 @@ import com.aliyun.oss.model.*;
 import io.github.artislong.OssProperties;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
-import io.github.artislong.core.model.DirectoryOssInfo;
-import io.github.artislong.core.model.FileOssInfo;
-import io.github.artislong.core.model.OssInfo;
+import io.github.artislong.model.DirectoryOssInfo;
+import io.github.artislong.model.FileOssInfo;
+import io.github.artislong.model.OssInfo;
+import io.github.artislong.model.SliceConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -63,20 +64,25 @@ public class AliOssClient implements StandardOssClient {
         return ossInfo;
     }
 
+    /**
+     * 断点续传，使用SDK断点续传API实现，底层通过分块上传实现
+     *
+     * @param file       本地文件
+     * @param targetName 目标文件路径
+     * @return
+     */
     @SneakyThrows
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
         String bucketName = getBucketName();
         String key = getKey(targetName, false);
 
-        UploadFileRequest uploadFileRequest = new UploadFileRequest(bucketName,key);
+        UploadFileRequest uploadFileRequest = new UploadFileRequest(bucketName, key);
         uploadFileRequest.setUploadFile(file.getPath());
 
-        AliOssProperties.Slice slice = getAliOssProperties().getSlice();
-        if (ObjectUtil.isNotEmpty(slice)) {
-            uploadFileRequest.setTaskNum(slice.getTaskNum());
-            uploadFileRequest.setPartSize(slice.getPartSize());
-        }
+        SliceConfig slice = getAliOssProperties().getSliceConfig();
+        uploadFileRequest.setTaskNum(slice.getTaskNum());
+        uploadFileRequest.setPartSize(slice.getPartSize());
 
         uploadFileRequest.setEnableCheckpoint(true);
 

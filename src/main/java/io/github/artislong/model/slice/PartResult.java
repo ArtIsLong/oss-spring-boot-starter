@@ -1,8 +1,9 @@
-package io.github.artislong.core.baidu.model;
+package io.github.artislong.model.slice;
 
 import lombok.Data;
 
 /**
+ * 分块结果集
  * @author 陈敏
  * @version PartResult.java, v 1.1 2022/2/10 10:01 chenmin Exp $
  * Created on 2022/2/10
@@ -11,25 +12,28 @@ import lombok.Data;
 public class PartResult {
 
     /**
-     * part number
+     * 分块号
      */
     private int number;
     /**
-     * offset in the file
+     * 分块在文件中的偏移量
      */
     private long offset;
     /**
-     * part size
+     * 分块大小
      */
     private long length;
     /**
-     * part upload failure flag
+     * 分块失败标识
      */
     private boolean failed;
     /**
-     * part upload exception
+     * 分块上传失败异常
      */
     private Exception exception;
+    /**
+     * 分块crc
+     */
     private Long partCrc;
 
     public PartResult(int number, long offset, long length) {

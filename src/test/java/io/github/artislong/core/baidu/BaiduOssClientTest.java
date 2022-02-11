@@ -2,7 +2,7 @@ package io.github.artislong.core.baidu;
 
 import cn.hutool.core.date.StopWatch;
 import io.github.artislong.core.StandardOssClient;
-import io.github.artislong.core.model.OssInfo;
+import io.github.artislong.model.OssInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

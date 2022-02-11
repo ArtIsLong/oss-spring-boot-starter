@@ -15,14 +15,12 @@ import com.baidubce.services.bos.model.*;
 import io.github.artislong.OssProperties;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
-import io.github.artislong.core.baidu.model.FileStat;
-import io.github.artislong.core.baidu.model.PartResult;
-import io.github.artislong.core.baidu.model.UpLoadCheckPoint;
-import io.github.artislong.core.baidu.model.UploadPart;
-import io.github.artislong.core.model.DirectoryOssInfo;
-import io.github.artislong.core.model.FileOssInfo;
-import io.github.artislong.core.model.OssInfo;
+import io.github.artislong.model.slice.*;
+import io.github.artislong.model.DirectoryOssInfo;
+import io.github.artislong.model.FileOssInfo;
+import io.github.artislong.model.OssInfo;
 import io.github.artislong.exception.OssException;
+import io.github.artislong.model.SliceConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * https://cloud.baidu.com/doc/BOS/index.html
@@ -65,6 +64,13 @@ public class BaiduOssClient implements StandardOssClient {
         return getInfo(targetName);
     }
 
+    /**
+     * 断点续传，通过分块上传实现
+     *
+     * @param file       本地文件
+     * @param targetName 目标文件路径
+     * @return
+     */
     @SneakyThrows
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
@@ -85,38 +91,20 @@ public class BaiduOssClient implements StandardOssClient {
             FileUtil.del(checkpointFile);
         }
 
-        if (!upLoadCheckPoint.isValid(upLoadFile)) {
+        if (!upLoadCheckPoint.isValid(checkpointFile)) {
             prepare(upLoadCheckPoint, upLoadFile, targetName, checkpointFile);
             FileUtil.del(checkpointFile);
         }
 
-        BaiduOssProperties.Slice slice = getBaiduOssProperties().getSlice();
-        Long partSize = slice.getPartSize();
+        SliceConfig slice = getBaiduOssProperties().getSliceConfig();
         Integer taskNum = slice.getTaskNum();
-
-        if (partSize <= 0) {
-            throw new OssException("the chunksize must be greater than 0");
-        }
-        long fileLength = upLoadFile.length();
-        int parts = (int) (fileLength / partSize);
-        if (fileLength % partSize > 0) {
-            parts++;
-        }
-        if (parts > OssConstant.MAX_PARTS) {
-            throw new OssException("Total parts count should not exceed 10000");
-        }
 
         ExecutorService executorService = Executors.newFixedThreadPool(taskNum);
         List<Future<PartResult>> futures = new ArrayList<>();
 
-        List<PartResult> taskResults = new ArrayList<>();
-        // Upload parts.
         for (int i = 0; i < upLoadCheckPoint.getUploadParts().size(); i++) {
             if (!upLoadCheckPoint.getUploadParts().get(i).isCompleted()) {
                 futures.add(executorService.submit(new UploadPartTask(bosClient, upLoadCheckPoint, i)));
-            } else {
-                taskResults.add(new PartResult(i + 1, upLoadCheckPoint.getUploadParts().get(i).getOffset(),
-                        upLoadCheckPoint.getUploadParts().get(i).getSize(), upLoadCheckPoint.getUploadParts().get(i).getCrc()));
             }
         }
 
@@ -126,16 +114,13 @@ public class BaiduOssClient implements StandardOssClient {
                 executorService.shutdownNow();
             }
         } catch (InterruptedException e) {
-            throw new OssException("close thread executorService fail exception", e);
+            throw new OssException("关闭线程池失败", e);
         }
 
-        for (int i = 0; i < futures.size(); i++) {
-            Future<PartResult> future = futures.get(i);
+        for (Future<PartResult> future : futures) {
             try {
                 PartResult partResult = future.get();
-                if (!partResult.isFailed()) {
-                    taskResults.add(partResult);
-                } else {
+                if (partResult.isFailed()) {
                     throw partResult.getException();
                 }
             } catch (Exception e) {
@@ -143,11 +128,17 @@ public class BaiduOssClient implements StandardOssClient {
             }
         }
 
-        taskResults.sort(Comparator.comparingInt(PartResult::getNumber));
+        List<PartEntityTag> partEntityTags = upLoadCheckPoint.getPartEntityTags();
+        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(PartEntityTag::getPartNumber))
+                .map(partEntityTag -> {
+                    PartETag p = new PartETag();
+                    p.setETag(partEntityTag.getETag());
+                    p.setPartNumber(partEntityTag.getPartNumber());
+                    return p;
+                }).collect(Collectors.toList());
 
-        upLoadCheckPoint.getPartETags().sort(Comparator.comparingInt(PartETag::getPartNumber));
         CompleteMultipartUploadRequest completeMultipartUploadRequest =
-                new CompleteMultipartUploadRequest(bucket, key, upLoadCheckPoint.getUploadId(), upLoadCheckPoint.getPartETags());
+                new CompleteMultipartUploadRequest(bucket, key, upLoadCheckPoint.getUploadId(), eTags);
         bosClient.completeMultipartUpload(completeMultipartUploadRequest);
     }
 
@@ -162,18 +153,15 @@ public class BaiduOssClient implements StandardOssClient {
         uploadCheckPoint.setCheckpointFile(checkpointFile);
         uploadCheckPoint.setUploadFileStat(FileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
-        long chunkSize = getBaiduOssProperties().getSlice().getPartSize();
+        long chunkSize = getBaiduOssProperties().getSliceConfig().getPartSize();
         long fileLength = upLoadFile.length();
         int parts = (int) (fileLength / chunkSize);
         if (fileLength % chunkSize > 0) {
             parts++;
         }
-        if (parts > OssConstant.MAX_PARTS) {
-            throw new OssException("Total parts count should not exceed 10000");
-        }
 
         uploadCheckPoint.setUploadParts(splitFile(uploadCheckPoint.getUploadFileStat().getSize(), parts));
-        uploadCheckPoint.setPartETags(new ArrayList<>());
+        uploadCheckPoint.setPartEntityTags(new ArrayList<>());
         uploadCheckPoint.setOriginPartSize(parts);
 
         InitiateMultipartUploadRequest initiateUploadRequest = new InitiateMultipartUploadRequest(bucket, key);
@@ -249,9 +237,10 @@ public class BaiduOssClient implements StandardOssClient {
                 UploadPartResponse uploadPartResponse = bosClient.uploadPart(uploadPartRequest);
 
                 partResult.setNumber(uploadPartResponse.getPartNumber());
-                PartETag partETag = uploadPartResponse.getPartETag();
+                PartETag eTag = uploadPartResponse.getPartETag();
 
-                upLoadCheckPoint.update(partNum, partETag, true);
+                upLoadCheckPoint.update(partNum, new PartEntityTag().setETag(eTag.getETag())
+                        .setPartNumber(eTag.getPartNumber()), true);
                 upLoadCheckPoint.dump(upLoadCheckPoint.getCheckpointFile());
             } catch (Exception e) {
                 partResult.setFailed(true);

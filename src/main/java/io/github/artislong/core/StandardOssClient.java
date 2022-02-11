@@ -4,7 +4,7 @@ import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.OssProperties;
-import io.github.artislong.core.model.OssInfo;
+import io.github.artislong.model.OssInfo;
 
 import java.io.File;
 import java.io.InputStream;
@@ -60,6 +60,24 @@ public interface StandardOssClient {
      * @param targetName  目标文件路径
      */
     void downLoad(OutputStream os, String targetName);
+
+    /**
+     * 断点续传
+     * @param localFile 本地文件路径
+     * @param targetName 目标文件路径
+     * @return 文件信息
+     */
+    default void downLoadCheckPoint(String localFile, String targetName) {
+        downLoadCheckPoint(new File(localFile), targetName);
+    }
+
+    /**
+     * 断点续传
+     * @param localFile 本地文件
+     * @param targetName 目标文件路径
+     * @return 文件信息
+     */
+    default void downLoadCheckPoint(File localFile, String targetName) {}
 
     /**
      * 删除文件

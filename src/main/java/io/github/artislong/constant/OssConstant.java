@@ -10,9 +10,13 @@ public class OssConstant {
     public static final String OSS = "oss";
 
     /**
-     * 最大分片数
+     * 默认分片大小
      */
-    public static final int MAX_PARTS = 10000;
+    public static final Long DEFAULT_PART_SIZE = 1024 * 1024 * 5L;
+    /**
+     * 默认并发线程数
+     */
+    public static final Integer DEFAULT_TASK_NUM = Runtime.getRuntime().availableProcessors();
 
     /**
      * OSS存储类型

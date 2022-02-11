@@ -36,7 +36,7 @@ public enum QiNiuRegion {
      */
     AUTOREGION("autoRegion");
 
-    private String region;
+    private final String region;
 
     QiNiuRegion(String region) {
         this.region = region;

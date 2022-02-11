@@ -3,27 +3,29 @@ package io.github.artislong.core.ftp;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.ftp.Ftp;
+import cn.hutool.extra.ftp.FtpMode;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
-import io.github.artislong.core.model.DirectoryOssInfo;
-import io.github.artislong.core.model.FileOssInfo;
-import io.github.artislong.core.model.OssInfo;
+import io.github.artislong.model.DirectoryOssInfo;
+import io.github.artislong.model.FileOssInfo;
+import io.github.artislong.model.OssInfo;
+import io.github.artislong.exception.OssException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,7 @@ public class FtpOssClient implements StandardOssClient {
 
     private Ftp ftp;
     private OssProperties ossProperties;
+    private FtpOssProperties ftpOssProperties;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -55,9 +58,56 @@ public class FtpOssClient implements StandardOssClient {
         return getInfo(targetName);
     }
 
+    /**
+     * FTP协议不支持分块上传，通过追加实现断点上传
+     * @param file 本地文件
+     * @param targetName 目标文件路径
+     * @return
+     */
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
+        String key = getKey(targetName, true);
+        String fileName = FileNameUtil.getName(targetName);
 
+        Ftp ftp = new Ftp(ftpOssProperties, FtpMode.Passive);
+        ftp.setBackToPwd(ftpOssProperties.isBackToPwd());
+        FTPClient ftpClient = ftp.getClient();
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(file);
+            ftpClient.changeWorkingDirectory(convertPath(Paths.get(key).getParent().toString(), true));
+            ftpClient.setBufferSize(1024);
+            ftpClient.setControlEncoding(StandardCharsets.UTF_8.name());
+            ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
+            FTPFile[] files = ftpClient.listFiles(key);
+            if (files.length == 1) {
+                long remoteSize = files[0].getSize();
+                long localSize = file.length();
+                if (remoteSize == localSize) {
+                    log.info("要上传的文件已存在");
+                    ftpClient.disconnect();
+                } else if (remoteSize > localSize) {
+                    log.info("软件中心的软件比即将上传的要大，无须上传或重新命名要上传的文件名");
+                    ftpClient.disconnect();
+                }
+                if (inputStream.skip(remoteSize) == remoteSize) {
+                    ftpClient.setRestartOffset(remoteSize);
+                    boolean success = ftpClient.storeFile(new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1), inputStream);
+                    if (success) {
+                        log.info("文件断点续传成功");
+                        ftpClient.disconnect();
+                    }
+                }
+            } else {
+                boolean success = ftpClient.storeFile(new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1), inputStream);
+                log.info("文件上传" + success);
+            }
+        } catch (Exception e) {
+            throw new OssException(e);
+        } finally {
+            IoUtil.close(inputStream);
+            IoUtil.close(ftp);
+        }
         return getInfo(targetName);
     }
 
@@ -99,6 +149,7 @@ public class FtpOssClient implements StandardOssClient {
             }
         } catch (IOException e) {
             log.error("{}重命名为{}失败,错误信息为：", newSourceName, newTargetName, e);
+            throw new OssException(e);
         }
     }
 

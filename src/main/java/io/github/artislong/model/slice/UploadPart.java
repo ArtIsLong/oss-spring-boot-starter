@@ -1,10 +1,11 @@
-package io.github.artislong.core.baidu.model;
+package io.github.artislong.model.slice;
 
 import lombok.Data;
 
 import java.io.Serializable;
 
 /**
+ * 分块
  * @author 陈敏
  * @version UploadPart.java, v 1.1 2022/2/9 23:01 chenmin Exp $
  * Created on 2022/2/9
@@ -15,23 +16,23 @@ public class UploadPart implements Serializable {
     private static final long serialVersionUID = 6692863980224332199L;
 
     /**
-     * part number
+     * 分块号(顺序)
      */
     private int number;
     /**
-     * the offset in the file
+     * 分块在文件中的偏移量
      */
     private long offset;
     /**
-     * part size
+     * 分块大小
      */
     private long size;
     /**
-     * upload completeness flag.
+     * 分块成功标识
      */
-    private boolean isCompleted;
+    private boolean isCompleted = false;
     /**
-     * part crc
+     * 分块crc
      */
     private long crc;
 

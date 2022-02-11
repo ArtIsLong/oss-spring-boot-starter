@@ -3,33 +3,39 @@ package io.github.artislong.core.jd;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import io.github.artislong.OssProperties;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
-import io.github.artislong.core.model.DirectoryOssInfo;
-import io.github.artislong.core.model.FileOssInfo;
-import io.github.artislong.core.model.OssInfo;
+import io.github.artislong.model.DirectoryOssInfo;
+import io.github.artislong.model.FileOssInfo;
+import io.github.artislong.model.OssInfo;
+import io.github.artislong.exception.OssException;
+import io.github.artislong.model.SliceConfig;
+import io.github.artislong.model.slice.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * https://docs.jdcloud.com/cn/object-storage-service/product-overview
@@ -60,42 +66,185 @@ public class JdOssClient implements StandardOssClient {
         return getInfo(targetName);
     }
 
+    /**
+     * 断点续传，通过分块上传实现
+     *
+     * @param file       本地文件
+     * @param targetName 目标文件路径
+     * @return
+     */
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
+        upLoadFile(file, targetName);
+        return getInfo(targetName);
+    }
+
+    public void upLoadFile(File upLoadFile, String targetName) {
+
         String bucket = getBucket();
         String key = getKey(targetName, false);
-        long contentLength = file.length();
-        long partSize = 5 * 1024 * 1024; // 设置每个分片大小为5MB.
+        String checkpointFile = upLoadFile.getPath() + StrUtil.DOT + OssConstant.OssType.JD;
 
-        // 创建对象的Etag列表，并取回每个分片的Etag。
-        List<PartETag> partETags = new ArrayList<PartETag>();
-        // 初始化分片上传
-        InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(bucket, key);
-        InitiateMultipartUploadResult initResponse = amazonS3.initiateMultipartUpload(initRequest);
-
-        // 上传分片
-        long filePosition = 0;
-        for (int i = 1; filePosition < contentLength; i++) {
-            partSize = Math.min(partSize, (contentLength - filePosition));
-            UploadPartRequest uploadRequest = new UploadPartRequest()
-                    .withBucketName(bucket)
-                    .withKey(key)
-                    .withUploadId(initResponse.getUploadId())
-                    .withPartNumber(i)
-                    .withFileOffset(filePosition)
-                    .withFile(file)
-                    .withPartSize(partSize);
-            // 上传分片并将返回的Etag加入列表中
-            UploadPartResult uploadResult = amazonS3.uploadPart(uploadRequest);
-            partETags.add(uploadResult.getPartETag());
-            filePosition += partSize;
+        UpLoadCheckPoint upLoadCheckPoint = new UpLoadCheckPoint();
+        try {
+            upLoadCheckPoint.load(checkpointFile);
+        } catch (Exception e) {
+            FileUtil.del(checkpointFile);
         }
 
-        // 完成分片上传
-        CompleteMultipartUploadRequest compRequest = new CompleteMultipartUploadRequest(bucket, key,
-                initResponse.getUploadId(), partETags);
-        amazonS3.completeMultipartUpload(compRequest);
-        return getInfo(targetName);
+        if (!upLoadCheckPoint.isValid(checkpointFile)) {
+            prepare(upLoadCheckPoint, upLoadFile, targetName, checkpointFile);
+            FileUtil.del(checkpointFile);
+        }
+
+        SliceConfig slice = getJdOssProperties().getSliceConfig();
+        Integer taskNum = slice.getTaskNum();
+
+        ExecutorService executorService = Executors.newFixedThreadPool(taskNum);
+        List<Future<PartResult>> futures = new ArrayList<>();
+
+        for (int i = 0; i < upLoadCheckPoint.getUploadParts().size(); i++) {
+            if (!upLoadCheckPoint.getUploadParts().get(i).isCompleted()) {
+                futures.add(executorService.submit(new UploadPartTask(amazonS3, upLoadCheckPoint, i)));
+            }
+        }
+
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            throw new OssException("关闭线程池失败", e);
+        }
+
+        for (Future<PartResult> future : futures) {
+            try {
+                PartResult partResult = future.get();
+                if (partResult.isFailed()) {
+                    throw partResult.getException();
+                }
+            } catch (Exception e) {
+                throw new OssException(e);
+            }
+        }
+
+        List<PartEntityTag> partEntityTags = upLoadCheckPoint.getPartEntityTags();
+        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(PartEntityTag::getPartNumber))
+                .map(partEntityTag -> new PartETag(partEntityTag.getPartNumber(), partEntityTag.getETag())).collect(Collectors.toList());
+
+        CompleteMultipartUploadRequest completeMultipartUploadRequest =
+                new CompleteMultipartUploadRequest(bucket, key, upLoadCheckPoint.getUploadId(), eTags);
+        amazonS3.completeMultipartUpload(completeMultipartUploadRequest);
+    }
+
+    private void prepare(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile) {
+        String bucket = getBucket();
+        String key = getKey(targetName, false);
+
+        uploadCheckPoint.setMagic(UpLoadCheckPoint.UPLOAD_MAGIC);
+        uploadCheckPoint.setUploadFile(upLoadFile.getPath());
+        uploadCheckPoint.setKey(key);
+        uploadCheckPoint.setBucket(bucket);
+        uploadCheckPoint.setCheckpointFile(checkpointFile);
+        uploadCheckPoint.setUploadFileStat(FileStat.getFileStat(uploadCheckPoint.getUploadFile()));
+
+        long chunkSize = getJdOssProperties().getSliceConfig().getPartSize();
+        long fileLength = upLoadFile.length();
+        int parts = (int) (fileLength / chunkSize);
+        if (fileLength % chunkSize > 0) {
+            parts++;
+        }
+
+        uploadCheckPoint.setUploadParts(splitFile(uploadCheckPoint.getUploadFileStat().getSize(), parts));
+        uploadCheckPoint.setPartEntityTags(new ArrayList<>());
+        uploadCheckPoint.setOriginPartSize(parts);
+
+        InitiateMultipartUploadRequest request = new InitiateMultipartUploadRequest(bucket, key);
+        InitiateMultipartUploadResult result = amazonS3.initiateMultipartUpload(request);
+
+        uploadCheckPoint.setUploadId(result.getUploadId());
+    }
+
+    private ArrayList<UploadPart> splitFile(long fileSize, long partSize) {
+        ArrayList<UploadPart> parts = new ArrayList<>();
+
+        long partNum = fileSize / partSize;
+        if (partNum >= 10000) {
+            partSize = fileSize / (10000 - 1);
+            partNum = fileSize / partSize;
+        }
+
+        for (long i = 0; i < partNum; i++) {
+            UploadPart part = new UploadPart();
+            part.setNumber((int) (i + 1));
+            part.setOffset(i * partSize);
+            part.setSize(partSize);
+            part.setCompleted(false);
+            parts.add(part);
+        }
+
+        if (fileSize % partSize > 0) {
+            UploadPart part = new UploadPart();
+            part.setNumber(parts.size() + 1);
+            part.setOffset(parts.size() * partSize);
+            part.setSize(fileSize % partSize);
+            part.setCompleted(false);
+            parts.add(part);
+        }
+
+        return parts;
+    }
+
+    public static class UploadPartTask implements Callable<PartResult> {
+        AmazonS3 amazonS3;
+        UpLoadCheckPoint upLoadCheckPoint;
+        int partNum;
+
+        UploadPartTask(AmazonS3 amazonS3, UpLoadCheckPoint upLoadCheckPoint, int partNum) {
+            this.amazonS3 = amazonS3;
+            this.upLoadCheckPoint = upLoadCheckPoint;
+            this.partNum = partNum;
+        }
+
+        @Override
+        public PartResult call() {
+            PartResult partResult = null;
+            InputStream inputStream = null;
+            try {
+                UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+
+                partResult = new PartResult(partNum + 1, uploadPart.getOffset(), uploadPart.getSize());
+
+                File uploadFile = new File(upLoadCheckPoint.getUploadFile());
+
+                inputStream = new FileInputStream(uploadFile);
+                inputStream.skip(uploadPart.getOffset());
+
+                UploadPartRequest uploadPartRequest = new UploadPartRequest();
+                uploadPartRequest.setBucketName(upLoadCheckPoint.getBucket());
+                uploadPartRequest.setKey(upLoadCheckPoint.getKey());
+                uploadPartRequest.setUploadId(upLoadCheckPoint.getUploadId());
+                uploadPartRequest.setInputStream(inputStream);
+                uploadPartRequest.setPartSize(uploadPart.getSize());
+                uploadPartRequest.setPartNumber(uploadPart.getNumber());
+
+                UploadPartResult uploadPartResponse = amazonS3.uploadPart(uploadPartRequest);
+
+                partResult.setNumber(uploadPartResponse.getPartNumber());
+
+                upLoadCheckPoint.update(partNum, new PartEntityTag().setETag(uploadPartResponse.getETag())
+                        .setPartNumber(uploadPartResponse.getPartNumber()), true);
+                upLoadCheckPoint.dump(upLoadCheckPoint.getCheckpointFile());
+            } catch (Exception e) {
+                partResult.setFailed(true);
+                partResult.setException(e);
+            } finally {
+                IoUtil.close(inputStream);
+            }
+
+            return partResult;
+        }
     }
 
     @Override

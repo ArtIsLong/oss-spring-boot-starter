@@ -1,9 +1,11 @@
 package io.github.artislong.core.up;
 
+import com.upyun.ParallelUploader;
+import com.upyun.RestManager;
 import io.github.artislong.OssProperties;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
-import com.upyun.RestManager;
+import io.github.artislong.model.SliceConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,8 +30,8 @@ public class UpOssConfiguration {
     private OssProperties ossProperties;
 
     @Bean
-    public StandardOssClient upOssClient(RestManager restManager) {
-        return new UpOssClient(restManager, ossProperties, upOssProperties);
+    public StandardOssClient upOssClient(RestManager restManager, ParallelUploader parallelUploader) {
+        return new UpOssClient(restManager, parallelUploader, ossProperties, upOssProperties);
     }
 
     @Bean
@@ -40,5 +42,16 @@ public class UpOssConfiguration {
         // 选择最优的接入点
         restManager.setApiDomain(upOssProperties.getApiDomain());
         return restManager;
+    }
+
+    @Bean
+    public ParallelUploader parallelUploader() {
+        ParallelUploader parallelUploader = new ParallelUploader(upOssProperties.getBucketName(), upOssProperties.getUserName(), upOssProperties.getPassword());
+
+        SliceConfig sliceConfig = upOssProperties.getSliceConfig();
+        parallelUploader.setParallel(sliceConfig.getTaskNum());
+        parallelUploader.setCheckMD5(true);
+
+        return parallelUploader;
     }
 }

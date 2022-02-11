@@ -13,9 +13,9 @@ import com.aliyun.oss.common.utils.HttpHeaders;
 import com.google.common.io.ByteStreams;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
-import io.github.artislong.core.model.DirectoryOssInfo;
-import io.github.artislong.core.model.FileOssInfo;
-import io.github.artislong.core.model.OssInfo;
+import io.github.artislong.model.DirectoryOssInfo;
+import io.github.artislong.model.FileOssInfo;
+import io.github.artislong.model.OssInfo;
 import io.minio.*;
 import io.minio.messages.Item;
 import lombok.AllArgsConstructor;
@@ -26,12 +26,16 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * http://docs.minio.org.cn/docs/master/minio-monitoring-guide
+ * https://docs.min.io/
+ *
  * @author 陈敏
  * @version MinioOssClient.java, v 1.1 2021/11/24 15:35 chenmin Exp $
  * Created on 2021/11/24
@@ -59,8 +63,11 @@ public class MinioOssClient implements StandardOssClient {
         return getInfo(targetName);
     }
 
+    @SneakyThrows
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
+        InputStream inputStream = new FileInputStream(file);
+        upLoad(inputStream, targetName, true);
         return getInfo(targetName);
     }
 

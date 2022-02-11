@@ -13,9 +13,9 @@ import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
 import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
-import io.github.artislong.core.model.DirectoryOssInfo;
-import io.github.artislong.core.model.FileOssInfo;
-import io.github.artislong.core.model.OssInfo;
+import io.github.artislong.model.DirectoryOssInfo;
+import io.github.artislong.model.FileOssInfo;
+import io.github.artislong.model.OssInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -57,6 +57,12 @@ public class SftpOssClient implements StandardOssClient {
 
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
+        String key = getKey(targetName, true);
+        String parentPath = convertPath(Paths.get(key).getParent().toString(), true);
+        if (!sftp.exist(parentPath)) {
+            sftp.mkDirs(parentPath);
+        }
+        sftp.put(file.getPath(), parentPath, Sftp.Mode.RESUME);
         return getInfo(targetName);
     }
 
