@@ -29,7 +29,7 @@ public class LocalOssClientTest {
 
     @Test
     void upLoadCheckPoint() {
-        OssInfo ossInfo = ossClient.upLoadCheckPoint("F:\\影片\\饥饿站台BD中字.mp4", "饥饿站台BD中字.mp4");
+        OssInfo ossInfo = ossClient.upLoadCheckPoint("/Users/chenmin/study/data/data.zip", "data.zip");
         System.out.println(ossInfo);
     }
 

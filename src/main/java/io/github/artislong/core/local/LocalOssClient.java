@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * 本地文件操作客户端
@@ -92,21 +93,15 @@ public class LocalOssClient implements StandardOssClient {
         ExecutorService executorService = Executors.newFixedThreadPool(taskNum);
         List<Future<PartResult>> futures = new ArrayList<>();
 
-        for (int i = 0; i < upLoadCheckPoint.getUploadParts().stream().filter(uploadPart -> !uploadPart.isCompleted()).count(); i++) {
-            futures.add(executorService.submit(new UploadPartTask(upLoadCheckPoint, i)));
+        for (int i = 0; i < upLoadCheckPoint.getUploadParts().size(); i++) {
+            if (!upLoadCheckPoint.getUploadParts().get(i).isCompleted()) {
+                futures.add(executorService.submit(new UploadPartTask(upLoadCheckPoint, i)));
+            }
         }
 
         executorService.shutdown();
-        try {
-            if (!executorService.awaitTermination(500, TimeUnit.MILLISECONDS)) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            throw new OssException("关闭线程池失败", e);
-        }
 
         for (int i = 0; i < futures.size(); i++) {
-            log.info("{}", i);
             Future<PartResult> future = futures.get(i);
             try {
                 PartResult partResult = future.get();
@@ -118,6 +113,15 @@ public class LocalOssClient implements StandardOssClient {
             }
         }
 
+        try {
+            if (!executorService.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            throw new OssException("关闭线程池失败", e);
+        }
+
+        FileUtil.del(checkpointFile);
     }
 
     private void prepare(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile) {
@@ -172,8 +176,8 @@ public class LocalOssClient implements StandardOssClient {
 
     @Slf4j
     public static class UploadPartTask implements Callable<PartResult> {
-        UpLoadCheckPoint upLoadCheckPoint;
-        int partNum;
+        private UpLoadCheckPoint upLoadCheckPoint;
+        private int partNum;
 
         UploadPartTask(UpLoadCheckPoint upLoadCheckPoint, int partNum) {
             this.upLoadCheckPoint = upLoadCheckPoint;
@@ -202,7 +206,6 @@ public class LocalOssClient implements StandardOssClient {
                 int len = uploadFile.read(data);
                 log.info("partNum = {}, partOffset = {}, partSize = {}", partNum, partOffset, partSize);
                 targetFile.write(data, 0, len);
-
 
                 upLoadCheckPoint.update(partNum, new PartEntityTag(), true);
                 upLoadCheckPoint.dump();

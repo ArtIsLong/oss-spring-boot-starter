@@ -1,5 +1,8 @@
 package io.github.artislong.model.slice;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.json.JSONUtil;
 import io.github.artislong.exception.OssException;
 import lombok.Data;
 
@@ -36,13 +39,11 @@ public class UpLoadCheckPoint implements Serializable {
     /**
      * 从缓存文件中加载断点数据
      * @param checkpointFile 断点缓存文件
-     * @throws IOException
-     * @throws ClassNotFoundException
      */
     public synchronized void load(String checkpointFile) {
-        try (FileInputStream inputStream = new FileInputStream(checkpointFile);
-             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
-            UpLoadCheckPoint ucp = (UpLoadCheckPoint) objectInputStream.readObject();
+        try {
+            // TODO 缓存数据进行压缩
+            UpLoadCheckPoint ucp = JSONUtil.readJSONObject(new File(checkpointFile), CharsetUtil.CHARSET_UTF_8).toBean(this.getClass());
             assign(ucp);
         } catch (Exception e) {
             throw new OssException(e);
@@ -51,13 +52,11 @@ public class UpLoadCheckPoint implements Serializable {
 
     /**
      * 将断点信息写入到断点缓存文件
-     * @throws IOException
      */
     public synchronized void dump() {
         this.setMd5(hashCode());
-        try (FileOutputStream fileOutputStream = new FileOutputStream(checkpointFile);
-             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
-            objectOutputStream.writeObject(this);
+        try {
+            FileUtil.writeUtf8String(JSONUtil.toJsonStr(this), checkpointFile);
         } catch (Exception e) {
             throw new OssException(e);
         }
@@ -65,19 +64,15 @@ public class UpLoadCheckPoint implements Serializable {
 
     /**
      * 更新分块状态
-     *
-     * @throws IOException
      */
-    public synchronized void update(int partIndex, int lastOffset) throws IOException {
+    public synchronized void update(int partIndex, int lastOffset) {
         this.getUploadParts().get(partIndex).setLastOffset(lastOffset);
     }
 
     /**
      * 更新分块状态
-     *
-     * @throws IOException
      */
-    public synchronized void update(int partIndex, PartEntityTag partEntityTag, boolean completed) throws IOException {
+    public synchronized void update(int partIndex, PartEntityTag partEntityTag, boolean completed) {
         this.getPartEntityTags().add(partEntityTag);
         this.getUploadParts().get(partIndex).setCompleted(completed);
     }
@@ -90,12 +85,12 @@ public class UpLoadCheckPoint implements Serializable {
         if (this.getMagic() == null || !this.getMagic().equals(UPLOAD_MAGIC) || this.getMd5() != hashCode()) {
             return false;
         }
-        File file = new File(checkpointFile);
         // 检查断点缓存文件是否存在
-        if (!file.exists()) {
+        if (!FileUtil.exist(checkpointFile)) {
             return false;
         }
 
+        File file = new File(uploadFile);
         // 文件名，大小和上次修改时间必须与当前断点相同。
         // 如果有任何改变，则重新上传
         return this.getUploadFileStat().getSize() == file.length()
