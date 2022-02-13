@@ -25,6 +25,12 @@ public class SftpOssClientTest {
     }
 
     @Test
+    void upLoadCheckPoint() {
+        OssInfo ossInfo = ossClient.upLoadCheckPoint("/Users/chenmin/study/data/data.zip", "data.zip");
+        System.out.println(ossInfo);
+    }
+
+    @Test
     void downLoad() {
     }
 

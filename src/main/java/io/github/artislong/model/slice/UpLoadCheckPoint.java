@@ -65,13 +65,6 @@ public class UpLoadCheckPoint implements Serializable {
     /**
      * 更新分块状态
      */
-    public synchronized void update(int partIndex, int lastOffset) {
-        this.getUploadParts().get(partIndex).setLastOffset(lastOffset);
-    }
-
-    /**
-     * 更新分块状态
-     */
     public synchronized void update(int partIndex, PartEntityTag partEntityTag, boolean completed) {
         this.getPartEntityTags().add(partEntityTag);
         this.getUploadParts().get(partIndex).setCompleted(completed);

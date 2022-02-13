@@ -101,13 +101,6 @@ public class TencentOssClient implements StandardOssClient {
         }
 
         executorService.shutdown();
-        try {
-            if (!executorService.awaitTermination(500, TimeUnit.MILLISECONDS)) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            throw new OssException("关闭线程池失败", e);
-        }
 
         for (Future<PartResult> future : futures) {
             try {
@@ -118,6 +111,14 @@ public class TencentOssClient implements StandardOssClient {
             } catch (Exception e) {
                 throw new OssException(e);
             }
+        }
+
+        try {
+            if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            throw new OssException("关闭线程池失败", e);
         }
 
         List<PartEntityTag> partEntityTags = upLoadCheckPoint.getPartEntityTags();

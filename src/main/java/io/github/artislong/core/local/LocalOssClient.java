@@ -114,7 +114,7 @@ public class LocalOssClient implements StandardOssClient {
         }
 
         try {
-            if (!executorService.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
+            if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)) {
                 executorService.shutdownNow();
             }
         } catch (InterruptedException e) {
@@ -189,20 +189,20 @@ public class LocalOssClient implements StandardOssClient {
             PartResult partResult = null;
             try {
                 UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
-                long lastOffset = uploadPart.getLastOffset();
+                long offset = uploadPart.getOffset();
                 long size = uploadPart.getSize();
-                Integer partOffset = Convert.toInt(lastOffset);
+                Integer partOffset = Convert.toInt(offset);
                 Integer partSize = Convert.toInt(size);
 
-                partResult = new PartResult(partNum + 1, lastOffset, size);
+                partResult = new PartResult(partNum + 1, offset, size);
                 partResult.setNumber(partNum);
 
                 RandomAccessFile uploadFile = new RandomAccessFile(upLoadCheckPoint.getUploadFile(), "r");
                 RandomAccessFile targetFile = new RandomAccessFile(upLoadCheckPoint.getKey(), "rw");
 
                 byte[] data = new byte[partSize];
-                uploadFile.seek(lastOffset);
-                targetFile.seek(lastOffset);
+                uploadFile.seek(offset);
+                targetFile.seek(offset);
                 int len = uploadFile.read(data);
                 log.info("partNum = {}, partOffset = {}, partSize = {}", partNum, partOffset, partSize);
                 targetFile.write(data, 0, len);
