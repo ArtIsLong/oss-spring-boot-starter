@@ -15,12 +15,12 @@ import com.baidubce.services.bos.model.*;
 import io.github.artislong.OssProperties;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
-import io.github.artislong.model.slice.*;
+import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
-import io.github.artislong.exception.OssException;
 import io.github.artislong.model.SliceConfig;
+import io.github.artislong.model.slice.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -59,7 +59,7 @@ public class BaiduOssClient implements StandardOssClient {
         String bucket = getBucket();
         String key = getKey(targetName, false);
         if (isOverride || !bosClient.doesObjectExist(bucket, key)) {
-            bosClient.putObject(bucket, targetName, is);
+            bosClient.putObject(bucket, key, is);
         }
         return getInfo(targetName);
     }
@@ -231,8 +231,7 @@ public class BaiduOssClient implements StandardOssClient {
                     uploadPartRequest.setUploadId(upLoadCheckPoint.getUploadId());
                     uploadPartRequest.setInputStream(inputStream);
                     uploadPartRequest.setPartSize(partSize);
-                    uploadPartRequest.setPartNumber(partNum+1);
-
+                    uploadPartRequest.setPartNumber(partNum + 1);
                     UploadPartResponse uploadPartResponse = bosClient.uploadPart(uploadPartRequest);
 
                     partResult.setNumber(uploadPartResponse.getPartNumber());
@@ -242,7 +241,6 @@ public class BaiduOssClient implements StandardOssClient {
                             .setPartNumber(eTag.getPartNumber()), true);
                     upLoadCheckPoint.dump();
                 } catch (Exception e) {
-                    log.error("Failed to upload the part " + partNum + " [tryCount] = " + tryCount);
                     tryCount--;
                     if (tryCount == 0) {
                         partResult.setFailed(true);
@@ -252,7 +250,6 @@ public class BaiduOssClient implements StandardOssClient {
                     IoUtil.close(inputStream);
                 }
             }
-
 
             return partResult;
         }
@@ -292,22 +289,26 @@ public class BaiduOssClient implements StandardOssClient {
 
             List<OssInfo> fileOssInfos = new ArrayList<>();
             List<OssInfo> directoryInfos = new ArrayList<>();
-            for (BosObjectSummary bosObjectSummary : listObjects.getContents()) {
-                if (FileNameUtil.getName(bosObjectSummary.getKey()).equals(FileNameUtil.getName(key))) {
-                    ossInfo.setLastUpdateTime(DateUtil.date(bosObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                    ossInfo.setCreateTime(DateUtil.date(bosObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                    ossInfo.setSize(Convert.toStr(bosObjectSummary.getSize()));
-                } else {
-                    fileOssInfos.add(getInfo(replaceKey(bosObjectSummary.getKey(), getBasePath(), false), false));
+            if (ObjectUtil.isNotEmpty(listObjects.getContents())) {
+                for (BosObjectSummary bosObjectSummary : listObjects.getContents()) {
+                    if (FileNameUtil.getName(bosObjectSummary.getKey()).equals(FileNameUtil.getName(key))) {
+                        ossInfo.setLastUpdateTime(DateUtil.date(bosObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
+                        ossInfo.setCreateTime(DateUtil.date(bosObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
+                        ossInfo.setSize(Convert.toStr(bosObjectSummary.getSize()));
+                    } else {
+                        fileOssInfos.add(getInfo(replaceKey(bosObjectSummary.getKey(), getBasePath(), false), false));
+                    }
                 }
             }
 
-            for (String commonPrefix : listObjects.getCommonPrefixes()) {
-                String target = replaceKey(commonPrefix, getBasePath(), false);
-                if (isDirectory(commonPrefix)) {
-                    directoryInfos.add(getInfo(target, true));
-                } else {
-                    fileOssInfos.add(getInfo(target, false));
+            if (ObjectUtil.isNotEmpty(listObjects.getCommonPrefixes())) {
+                for (String commonPrefix : listObjects.getCommonPrefixes()) {
+                    String target = replaceKey(commonPrefix, getBasePath(), false);
+                    if (isDirectory(commonPrefix)) {
+                        directoryInfos.add(getInfo(target, true));
+                    } else {
+                        fileOssInfos.add(getInfo(target, false));
+                    }
                 }
             }
             if (ObjectUtil.isNotEmpty(fileOssInfos) && fileOssInfos.get(0) instanceof FileOssInfo) {

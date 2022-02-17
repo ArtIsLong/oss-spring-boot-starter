@@ -1,18 +1,15 @@
 package io.github.artislong.core.baidu;
 
-import cn.hutool.core.date.StopWatch;
 import cn.hutool.core.io.FileUtil;
 import com.baidubce.services.bos.BosClient;
-import com.baidubce.services.bos.model.AbortMultipartUploadRequest;
-import com.baidubce.services.bos.model.MultipartUploadSummary;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.model.OssInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.io.File;
-import java.util.List;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
 /**
  * @author 陈敏
@@ -28,52 +25,53 @@ public class BaiduOssClientTest {
     private BosClient bosClient;
 
     @Test
-    public void test01() {
-        bosClient.putSuperObjectFromFile(new File("/Users/chenmin/study/data/data.zip"), "artislong", "Study/data.zip");
-    }
-
-    @Test
     void upLoad() {
-        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("/Users/chenmin/Desktop/mac按键.png"), "mac按键.png");
+        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("C:\\Users\\15221\\Desktop\\vim.png"), "vim1.png");
         System.out.println(ossInfo);
     }
 
     @Test
     void upLoadCheckPoint() {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        OssInfo ossInfo = ossClient.upLoadCheckPoint("/Users/chenmin/study/data/data.zip", "data.zip");
-        stopWatch.stop();
-        System.out.println(stopWatch.getTotalTimeMillis());
+        OssInfo ossInfo = ossClient.upLoadCheckPoint("F:\\影片\\饥饿站台BD中字.mp4", "饥饿站台BD中字.mp4");
         System.out.println(ossInfo);
     }
 
     @Test
-    void downLoad() {
+    void downLoad() throws FileNotFoundException {
+        FileOutputStream fileOutputStream = new FileOutputStream("C:\\Users\\15221\\Desktop\\vim1.png");
+        ossClient.downLoad(fileOutputStream, "vim.png");
     }
 
     @Test
     void delete() {
+        ossClient.delete("vim1.png");
     }
 
     @Test
     void copy() {
+        ossClient.copy("vim.png", "vim1.png");
     }
 
     @Test
     void move() {
+        ossClient.move("vim1.png", "vim2.png");
     }
 
     @Test
     void rename() {
+        ossClient.rename("vim2.png", "vim3.png");
     }
 
     @Test
     void getInfo() {
+//        OssInfo info = ossClient.getInfo("vim3.png");
+        OssInfo info = ossClient.getInfo("/", true);
+        System.out.println(info);
     }
 
     @Test
     void isExist() {
+        System.out.println(ossClient.isExist("vim.png"));
     }
 
     @Test
@@ -84,11 +82,4 @@ public class BaiduOssClientTest {
     void isDirectory() {
     }
 
-    @Test
-    void createFile() {
-    }
-
-    @Test
-    void createDirectory() {
-    }
 }

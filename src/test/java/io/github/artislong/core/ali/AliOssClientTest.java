@@ -28,7 +28,7 @@ class AliOssClientTest {
 //        System.out.println(ossInfo);
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("/Users/chenmin/Desktop/mac按键.png"), "mac按键.png");
+        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("C:\\Users\\15221\\Desktop\\vim.png"), "vim.png");
         stopWatch.stop();
         System.out.println(stopWatch.getTotalTimeMillis());
         System.out.println(ossInfo);

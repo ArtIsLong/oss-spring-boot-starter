@@ -59,7 +59,7 @@ public class TencentOssClient implements StandardOssClient {
         String key = getKey(targetName, false);
 
         if (isOverride || !cosClient.doesObjectExist(bucketName, key)) {
-            cosClient.putObject(bucketName, targetName, is, new ObjectMetadata());
+            cosClient.putObject(bucketName, key, is, new ObjectMetadata());
         }
         return getInfo(targetName);
     }

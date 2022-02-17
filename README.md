@@ -2,7 +2,13 @@
 
 本工具集成了常用的第三方对象存储平台，简化项目中使用对象存储时繁琐的集成过程，并针对实际使用过程中的积累，对常用方法进行封装，提供了一套标准的API，让对象存储开箱即用。
 
-目前已支持：
+- 源码地址
+
+[Github](https://github.com/ArtIsLong/oss-spring-boot-starter)
+
+[Gitee](https://gitee.com/spring-boot-starter/oss-spring-boot-starter)
+
+- 目前已支持：
 
 [本地存储](https://hutool.cn/docs/#/core/IO/%E6%96%87%E4%BB%B6%E5%B7%A5%E5%85%B7%E7%B1%BB-FileUtil)
 
