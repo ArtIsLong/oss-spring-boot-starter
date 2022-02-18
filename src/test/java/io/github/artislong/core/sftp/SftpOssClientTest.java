@@ -36,12 +36,12 @@ public class SftpOssClientTest {
     @Test
     void downLoad() throws FileNotFoundException {
         FileOutputStream fileOutputStream = new FileOutputStream("/Users/admin/test.png");
-        ossClient.downLoad(fileOutputStream, "test.png");
+        ossClient.downLoad(fileOutputStream, "test1.png");
     }
 
     @Test
     void delete() {
-        ossClient.delete("test.png");
+        ossClient.delete("test1.png");
     }
 
     @Test
