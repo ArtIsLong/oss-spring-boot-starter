@@ -126,7 +126,6 @@ public class BaiduOssClient implements StandardOssClient {
             throw new OssException("关闭线程池失败", e);
         }
 
-
         List<PartEntityTag> partEntityTags = upLoadCheckPoint.getPartEntityTags();
         List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(PartEntityTag::getPartNumber))
                 .map(partEntityTag -> {
@@ -139,6 +138,8 @@ public class BaiduOssClient implements StandardOssClient {
         CompleteMultipartUploadRequest completeMultipartUploadRequest =
                 new CompleteMultipartUploadRequest(upLoadCheckPoint.getBucket(), upLoadCheckPoint.getKey(), upLoadCheckPoint.getUploadId(), eTags);
         bosClient.completeMultipartUpload(completeMultipartUploadRequest);
+
+        FileUtil.del(checkpointFile);
     }
 
     private void prepare(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile) {
@@ -212,43 +213,37 @@ public class BaiduOssClient implements StandardOssClient {
 
         @Override
         public PartResult call() {
-            int tryCount = 3;
             PartResult partResult = null;
             InputStream inputStream = null;
-            while (tryCount > 0) {
-                try {
-                    UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
-                    long partSize = uploadPart.getSize();
+            try {
+                UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+                long partSize = uploadPart.getSize();
 
-                    partResult = new PartResult(partNum + 1, uploadPart.getOffset(), partSize);
+                partResult = new PartResult(partNum + 1, uploadPart.getOffset(), partSize);
 
-                    inputStream = new FileInputStream(upLoadCheckPoint.getUploadFile());
-                    inputStream.skip(uploadPart.getOffset());
+                inputStream = new FileInputStream(upLoadCheckPoint.getUploadFile());
+                inputStream.skip(uploadPart.getOffset());
 
-                    UploadPartRequest uploadPartRequest = new UploadPartRequest();
-                    uploadPartRequest.setBucketName(upLoadCheckPoint.getBucket());
-                    uploadPartRequest.setKey(upLoadCheckPoint.getKey());
-                    uploadPartRequest.setUploadId(upLoadCheckPoint.getUploadId());
-                    uploadPartRequest.setInputStream(inputStream);
-                    uploadPartRequest.setPartSize(partSize);
-                    uploadPartRequest.setPartNumber(partNum + 1);
-                    UploadPartResponse uploadPartResponse = bosClient.uploadPart(uploadPartRequest);
+                UploadPartRequest uploadPartRequest = new UploadPartRequest();
+                uploadPartRequest.setBucketName(upLoadCheckPoint.getBucket());
+                uploadPartRequest.setKey(upLoadCheckPoint.getKey());
+                uploadPartRequest.setUploadId(upLoadCheckPoint.getUploadId());
+                uploadPartRequest.setInputStream(inputStream);
+                uploadPartRequest.setPartSize(partSize);
+                uploadPartRequest.setPartNumber(partNum + 1);
+                UploadPartResponse uploadPartResponse = bosClient.uploadPart(uploadPartRequest);
 
-                    partResult.setNumber(uploadPartResponse.getPartNumber());
-                    PartETag eTag = uploadPartResponse.getPartETag();
+                partResult.setNumber(uploadPartResponse.getPartNumber());
+                PartETag eTag = uploadPartResponse.getPartETag();
 
-                    upLoadCheckPoint.update(partNum, new PartEntityTag().setETag(eTag.getETag())
-                            .setPartNumber(eTag.getPartNumber()), true);
-                    upLoadCheckPoint.dump();
-                } catch (Exception e) {
-                    tryCount--;
-                    if (tryCount == 0) {
-                        partResult.setFailed(true);
-                        partResult.setException(e);
-                    }
-                } finally {
-                    IoUtil.close(inputStream);
-                }
+                upLoadCheckPoint.update(partNum, new PartEntityTag().setETag(eTag.getETag())
+                        .setPartNumber(eTag.getPartNumber()), true);
+                upLoadCheckPoint.dump();
+            } catch (Exception e) {
+                partResult.setFailed(true);
+                partResult.setException(e);
+            } finally {
+                IoUtil.close(inputStream);
             }
 
             return partResult;

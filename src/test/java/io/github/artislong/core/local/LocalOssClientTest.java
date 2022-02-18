@@ -23,62 +23,52 @@ public class LocalOssClientTest {
 
     @Test
     void upLoad() {
-        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("C:\\Users\\15221\\Desktop\\vim.png"), "vim.png");
+        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("/Users/admin/test.png"), "test.png");
         System.out.println(ossInfo);
     }
 
     @Test
     void upLoadCheckPoint() {
-        OssInfo ossInfo = ossClient.upLoadCheckPoint("/Users/chenmin/study/data/data.zip", "data.zip");
+        OssInfo ossInfo = ossClient.upLoadCheckPoint("/Users/admin/test.data", "/Users/admin/test.data");
         System.out.println(ossInfo);
     }
 
     @Test
     void downLoad() throws FileNotFoundException {
-        FileOutputStream fileOutputStream = new FileOutputStream("C:\\Users\\15221\\Desktop\\vim1.png");
-        ossClient.downLoad(fileOutputStream, "/vim.png");
+        FileOutputStream fileOutputStream = new FileOutputStream("/Users/admin/test.png");
+        ossClient.downLoad(fileOutputStream, "test.png");
     }
 
     @Test
     void delete() {
-        ossClient.delete("/vim.png");
+        ossClient.delete("test.png");
     }
 
     @Test
     void copy() {
-        ossClient.copy("/vim.png", "/vim1.png");
+        ossClient.copy("test.png", "test1.png");
     }
 
     @Test
     void move() {
-        ossClient.move("/test/vim.png", "");
+        ossClient.move("test1.png", "test2.png");
     }
 
     @Test
     void rename() {
-        ossClient.rename("/test/vim.png", "/test/vim1.png");
+        ossClient.rename("test2.png", "test1.png");
     }
 
     @Test
     void getInfo() {
-//        System.out.println(ossClient.getInfo("/vim.png"));
-        OssInfo ossInfo = ossClient.getInfo("/test", true);
-        System.out.println(ossInfo);
+        OssInfo info = ossClient.getInfo("test.png");
+        System.out.println(info);
+        info = ossClient.getInfo("/", true);
+        System.out.println(info);
     }
 
     @Test
     void isExist() {
-        System.out.println(ossClient.isExist("/test/vim1.png"));
+        System.out.println(ossClient.isExist("test.png"));
     }
-
-    @Test
-    void isFile() {
-        System.out.println(ossClient.isFile("/test/vim1.png"));
-    }
-
-    @Test
-    void isDirectory() {
-        System.out.println(ossClient.isDirectory("/test/vim1.png"));
-    }
-
 }

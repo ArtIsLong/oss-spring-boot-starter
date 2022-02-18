@@ -1,6 +1,5 @@
 package io.github.artislong.core.ali;
 
-import cn.hutool.core.date.StopWatch;
 import cn.hutool.core.io.FileUtil;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.model.OssInfo;
@@ -24,71 +23,51 @@ class AliOssClientTest {
 
     @Test
     void upLoad() {
-//        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("C:\\Users\\15221\\Desktop\\vim.png"), "/test/test1/vim.png");
-//        System.out.println(ossInfo);
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("C:\\Users\\15221\\Desktop\\vim.png"), "vim.png");
-        stopWatch.stop();
-        System.out.println(stopWatch.getTotalTimeMillis());
+        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("/Users/vim.png"), "vim.png");
         System.out.println(ossInfo);
     }
 
     @Test
     void upLoadCheckPoint() {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        OssInfo ossInfo = ossClient.upLoadCheckPoint("/Users/chenmin/study/data/data.zip", "data.zip");
-        stopWatch.stop();
-        System.out.println(stopWatch.getTotalTimeMillis());
+        OssInfo ossInfo = ossClient.upLoadCheckPoint("F:\\影片\\饥饿站台BD中字.mp4", "饥饿站台BD中字.mp4");
         System.out.println(ossInfo);
     }
 
     @Test
     void downLoad() throws FileNotFoundException {
         FileOutputStream fileOutputStream = new FileOutputStream("C:\\Users\\15221\\Desktop\\vim1.png");
-        ossClient.downLoad(fileOutputStream, "vim1.png");
+        ossClient.downLoad(fileOutputStream, "vim.png");
     }
 
     @Test
     void delete() {
-        ossClient.delete("/test/test1/vim1.png");
+        ossClient.delete("vim1.png");
     }
 
     @Test
     void copy() {
-        ossClient.copy("/test/test1/vim.png", "/test/test1/vim2.png");
+        ossClient.copy("vim.png", "vim1.png");
     }
 
     @Test
     void move() {
-        ossClient.move("/test/test1/vim2.png", "/test/test1/vim3.png");
+        ossClient.move("vim1.png", "vim2.png");
     }
 
     @Test
     void rename() {
-        ossClient.rename("/test/test1/vim3.png", "/test/test1/vim2.png");
+        ossClient.rename("vim2.png", "vim1.png");
     }
 
     @Test
     void getInfo() {
-        OssInfo ossInfo = ossClient.getInfo("/Study/", true);
-        System.out.println(ossInfo);
+//        OssInfo info = ossClient.getInfo("vim3.png");
+        OssInfo info = ossClient.getInfo("/", true);
+        System.out.println(info);
     }
 
     @Test
     void isExist() {
-        System.out.println(ossClient.isExist("/test/test1"));
+        System.out.println(ossClient.isExist("vim.png"));
     }
-
-    @Test
-    void isFile() {
-        System.out.println(ossClient.isFile("/test/test1/vim0.png"));
-    }
-
-    @Test
-    void isDirectory() {
-        System.out.println(ossClient.isDirectory("/test/test1g"));
-    }
-
 }

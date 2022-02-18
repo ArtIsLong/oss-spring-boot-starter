@@ -2,7 +2,7 @@ package io.github.artislong.core.up;
 
 import cn.hutool.core.text.CharPool;
 import io.github.artislong.constant.OssConstant;
-import com.upyun.RestManager;
+import io.github.artislong.core.up.constant.ApiDomain;
 import io.github.artislong.model.SliceConfig;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
@@ -28,7 +28,7 @@ public class UpOssProperties implements InitializingBean {
     /**
      * 默认为自动识别接入点
      */
-    private String apiDomain = RestManager.ED_AUTO;
+    private ApiDomain apiDomain = ApiDomain.ED_AUTO;
 
     /**
      * 断点续传参数

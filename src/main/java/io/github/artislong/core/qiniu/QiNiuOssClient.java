@@ -33,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +58,7 @@ public class QiNiuOssClient implements StandardOssClient {
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
         try {
-            uploadManager.put(is, getKey(targetName, true), getUpToken(), null, null);
+            uploadManager.put(is, getKey(targetName, false), getUpToken(), null, null);
         } catch (QiniuException e) {
             String errorMsg = String.format("%s上传失败", targetName);
             log.error(errorMsg, e);
@@ -70,8 +69,7 @@ public class QiNiuOssClient implements StandardOssClient {
 
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
-        String key = getKey(targetName, true);
-        String parentPath = convertPath(Paths.get(key).getParent().toString(), true);
+        String key = getKey(targetName, false);
 
         QiNiuOssProperties qiNiuOssProperties = getQiNiuOssProperties();
         SliceConfig sliceConfig = qiNiuOssProperties.getSliceConfig();
@@ -84,7 +82,7 @@ public class QiNiuOssClient implements StandardOssClient {
         cfg.resumableUploadAPIV2BlockSize = sliceConfig.getPartSize().intValue();
 
         try {
-            FileRecorder fileRecorder = new FileRecorder(parentPath);
+            FileRecorder fileRecorder = new FileRecorder(file.getParent());
             UploadManager uploadManager = new UploadManager(cfg, fileRecorder);
             uploadManager.put(file.getPath(), key, getUpToken());
         } catch (Exception e) {
@@ -97,7 +95,7 @@ public class QiNiuOssClient implements StandardOssClient {
 
     @Override
     public void downLoad(OutputStream os, String targetName) {
-        DownloadUrl downloadUrl = new DownloadUrl("", false, getKey(targetName, true));
+        DownloadUrl downloadUrl = new DownloadUrl("qiniu.com", false, getKey(targetName, false));
         try {
             String url = downloadUrl.buildURL();
             HttpUtil.download(url, os, false);
@@ -111,7 +109,7 @@ public class QiNiuOssClient implements StandardOssClient {
     @Override
     public void delete(String targetName) {
         try {
-            bucketManager.delete(getBucket(), getKey(targetName, true));
+            bucketManager.delete(getBucket(), getKey(targetName, false));
         } catch (QiniuException e) {
             String errorMsg = String.format("%s删除失败", targetName);
             log.error(errorMsg, e);
@@ -122,7 +120,7 @@ public class QiNiuOssClient implements StandardOssClient {
     @Override
     public void copy(String sourceName, String targetName, Boolean isOverride) {
         try {
-            bucketManager.copy(getBucket(), getKey(sourceName, true), getBucket(), getKey(targetName, true), isOverride);
+            bucketManager.copy(getBucket(), getKey(sourceName, false), getBucket(), getKey(targetName, false), isOverride);
         } catch (QiniuException e) {
             String errorMsg = String.format("%s复制失败", targetName);
             log.error(errorMsg, e);
@@ -133,7 +131,7 @@ public class QiNiuOssClient implements StandardOssClient {
     @Override
     public void move(String sourceName, String targetName, Boolean isOverride) {
         try {
-            bucketManager.move(getBucket(), getKey(sourceName, true), getBucket(), getKey(targetName, false), isOverride);
+            bucketManager.move(getBucket(), getKey(sourceName, false), getBucket(), getKey(targetName, false), isOverride);
         } catch (QiniuException e) {
             String errorMsg = String.format("%s移动到%s失败", sourceName, targetName);
             log.error(errorMsg, e);
@@ -144,7 +142,7 @@ public class QiNiuOssClient implements StandardOssClient {
     @Override
     public void rename(String sourceName, String targetName, Boolean isOverride) {
         try {
-            bucketManager.rename(getBucket(), getKey(sourceName, true), getKey(targetName, true), isOverride);
+            bucketManager.rename(getBucket(), getKey(sourceName, false), getKey(targetName, false), isOverride);
         } catch (QiniuException e) {
             String errorMsg = String.format("%s重命名为%s失败", sourceName, targetName);
             log.error(errorMsg, e);
@@ -155,7 +153,7 @@ public class QiNiuOssClient implements StandardOssClient {
     @SneakyThrows
     @Override
     public OssInfo getInfo(String targetName, Boolean isRecursion) {
-        String key = getKey(targetName, true);
+        String key = getKey(targetName, false);
 
         OssInfo ossInfo = getBaseInfo(targetName);
         if (isRecursion && isDirectory(key)) {
@@ -166,7 +164,7 @@ public class QiNiuOssClient implements StandardOssClient {
             List<OssInfo> directoryInfos = new ArrayList<>();
             if (ObjectUtil.isNotEmpty(listFiles.items)) {
                 for (FileInfo fileInfo : listFiles.items) {
-                    fileOssInfos.add(getInfo(replaceKey(fileInfo.key, getBasePath(), true), false));
+                    fileOssInfos.add(getInfo(replaceKey(fileInfo.key, getBasePath(), false), false));
                 }
             }
 
@@ -195,7 +193,7 @@ public class QiNiuOssClient implements StandardOssClient {
     }
 
     private OssInfo getBaseInfo(String targetName) {
-        String key = getKey(targetName, true);
+        String key = getKey(targetName, false);
         OssInfo ossInfo;
         if (isFile(targetName)) {
             ossInfo = new FileOssInfo();

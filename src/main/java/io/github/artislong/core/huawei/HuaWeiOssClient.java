@@ -12,6 +12,7 @@ import cn.hutool.core.util.StrUtil;
 import com.obs.services.ObsClient;
 import com.obs.services.model.*;
 import io.github.artislong.OssProperties;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
@@ -67,13 +68,18 @@ public class HuaWeiOssClient implements StandardOssClient {
         String bucket = getBucket();
         String key = getKey(targetName, false);
         UploadFileRequest request = new UploadFileRequest(bucket, key);
-        request.setUploadFile(file.getPath());
+        String upLoadFile = file.getPath();
+        request.setUploadFile(upLoadFile);
 
         SliceConfig slice = getHuaWeiOssProperties().getSliceConfig();
 
         request.setTaskNum(slice.getTaskNum());
         request.setPartSize(slice.getPartSize());
         request.setEnableCheckpoint(true);
+
+        String checkpointFile = upLoadFile + StrUtil.DOT + OssConstant.OssType.HUAWEI;
+
+        request.setCheckpointFile(checkpointFile);
         obsClient.uploadFile(request);
         return getInfo(targetName);
     }

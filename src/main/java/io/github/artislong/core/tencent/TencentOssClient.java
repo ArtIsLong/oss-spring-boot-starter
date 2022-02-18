@@ -73,9 +73,7 @@ public class TencentOssClient implements StandardOssClient {
 
     public void upLoadFile(File upLoadFile, String targetName) {
 
-        String bucket = getBucket();
-        String key = getKey(targetName, false);
-        String checkpointFile = upLoadFile.getPath() + StrUtil.DOT + OssConstant.OssType.JD;
+        String checkpointFile = upLoadFile.getPath() + StrUtil.DOT + OssConstant.OssType.TENCENT;
 
         UpLoadCheckPoint upLoadCheckPoint = new UpLoadCheckPoint();
         try {
@@ -126,8 +124,10 @@ public class TencentOssClient implements StandardOssClient {
                 .map(partEntityTag -> new PartETag(partEntityTag.getPartNumber(), partEntityTag.getETag())).collect(Collectors.toList());
 
         CompleteMultipartUploadRequest completeMultipartUploadRequest =
-                new CompleteMultipartUploadRequest(bucket, key, upLoadCheckPoint.getUploadId(), eTags);
+                new CompleteMultipartUploadRequest(upLoadCheckPoint.getBucket(), upLoadCheckPoint.getKey(), upLoadCheckPoint.getUploadId(), eTags);
         cosClient.completeMultipartUpload(completeMultipartUploadRequest);
+
+        FileUtil.del(checkpointFile);
     }
 
     private void prepare(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile) {

@@ -40,7 +40,7 @@ public class UpOssConfiguration {
         // 手动设置超时时间：默认为30秒
         restManager.setTimeout(upOssProperties.getTimeout());
         // 选择最优的接入点
-        restManager.setApiDomain(upOssProperties.getApiDomain());
+        restManager.setApiDomain(upOssProperties.getApiDomain().toString());
         return restManager;
     }
 

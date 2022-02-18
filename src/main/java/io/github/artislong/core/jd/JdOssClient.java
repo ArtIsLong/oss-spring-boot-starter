@@ -136,6 +136,8 @@ public class JdOssClient implements StandardOssClient {
         CompleteMultipartUploadRequest completeMultipartUploadRequest =
                 new CompleteMultipartUploadRequest(bucket, key, upLoadCheckPoint.getUploadId(), eTags);
         amazonS3.completeMultipartUpload(completeMultipartUploadRequest);
+
+        FileUtil.del(checkpointFile);
     }
 
     private void prepare(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile) {

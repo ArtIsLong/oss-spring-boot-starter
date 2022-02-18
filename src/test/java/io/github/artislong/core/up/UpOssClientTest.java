@@ -19,52 +19,56 @@ import java.io.FileOutputStream;
 public class UpOssClientTest {
 
     @Autowired
-    private StandardOssClient upOssClient;
+    private StandardOssClient ossClient;
 
     @Test
     void upLoad() {
-        OssInfo ossInfo = upOssClient.upLoad(FileUtil.getInputStream("C:\\Users\\15221\\Desktop\\vim.png"), "vim.png");
+        OssInfo ossInfo = ossClient.upLoad(FileUtil.getInputStream("/Users/admin/test.png"), "test.png");
+        System.out.println(ossInfo);
+    }
+
+    @Test
+    void upLoadCheckPoint() {
+        OssInfo ossInfo = ossClient.upLoadCheckPoint("/Users/admin/test.data", "/Users/admin/test.data");
         System.out.println(ossInfo);
     }
 
     @Test
     void downLoad() throws FileNotFoundException {
-        FileOutputStream fileOutputStream = new FileOutputStream("C:\\Users\\15221\\Desktop\\vim1.png");
-        upOssClient.downLoad(fileOutputStream, "/vim.png");
+        FileOutputStream fileOutputStream = new FileOutputStream("/Users/admin/test.png");
+        ossClient.downLoad(fileOutputStream, "test.png");
     }
 
     @Test
     void delete() {
+        ossClient.delete("test.png");
     }
 
     @Test
     void copy() {
+        ossClient.copy("test.png", "test1.png");
     }
 
     @Test
     void move() {
+        ossClient.move("test1.png", "test2.png");
     }
 
     @Test
     void rename() {
+        ossClient.rename("test2.png", "test1.png");
     }
 
     @Test
     void getInfo() {
-//        System.out.println(upOssClient.getInfo("/vim.png"));
-        OssInfo ossInfo = upOssClient.getInfo("/", true);
-        System.out.println(ossInfo);
+        OssInfo info = ossClient.getInfo("test.png");
+        System.out.println(info);
+        info = ossClient.getInfo("/", true);
+        System.out.println(info);
     }
 
     @Test
     void isExist() {
-    }
-
-    @Test
-    void createFile() {
-    }
-
-    @Test
-    void createDirectory() {
+        System.out.println(ossClient.isExist("test.png"));
     }
 }
