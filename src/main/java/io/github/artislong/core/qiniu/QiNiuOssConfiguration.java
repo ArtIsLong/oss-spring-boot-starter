@@ -1,16 +1,19 @@
 package io.github.artislong.core.qiniu;
 
-import io.github.artislong.OssProperties;
-import io.github.artislong.constant.OssConstant;
-import io.github.artislong.core.StandardOssClient;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
+import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.qiniu.model.QiNiuOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -18,38 +21,61 @@ import org.springframework.context.annotation.Configuration;
  * Created on 2021/11/16
  */
 @Configuration
-@EnableConfigurationProperties({QiNiuOssProperties.class, OssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "oss-type", havingValue = OssConstant.OssType.QINIU)
+@EnableConfigurationProperties({QiNiuOssProperties.class})
+@ConditionalOnProperty(prefix = "oss", name = "qiniu", havingValue = "true")
 public class QiNiuOssConfiguration {
 
     @Autowired
     private QiNiuOssProperties qiNiuOssProperties;
-    @Autowired
-    private OssProperties ossProperties;
 
-    @Bean
-    public StandardOssClient qiNiuOssClient(Auth auth, UploadManager uploadManager, BucketManager bucketManager) {
-        return new QiNiuOssClient(auth, uploadManager, bucketManager, ossProperties, qiNiuOssProperties);
+    @PostConstruct
+    public void init() {
+        final String defaultBeanName = "qiNiuOssClient";
+        List<QiNiuOssConfig> qiNiuOssConfigs = qiNiuOssProperties.getQiNiuOssConfigs();
+        if (qiNiuOssConfigs.isEmpty()) {
+            SpringUtil.registerBean(defaultBeanName, build(qiNiuOssProperties));
+        } else {
+            String accessKey = qiNiuOssProperties.getAccessKey();
+            String secretKey = qiNiuOssProperties.getSecretKey();
+            for (int i = 0; i < qiNiuOssConfigs.size(); i++) {
+                QiNiuOssConfig qiNiuOssConfig = qiNiuOssConfigs.get(i);
+                if (ObjectUtil.isEmpty(qiNiuOssConfig.getAccessKey())) {
+                    qiNiuOssConfig.setAccessKey(accessKey);
+                }
+                if (ObjectUtil.isEmpty(qiNiuOssConfig.getSecretKey())) {
+                    qiNiuOssConfig.setSecretKey(secretKey);
+                }
+                SpringUtil.registerBean(defaultBeanName, build(qiNiuOssConfig));
+            }
+        }
     }
 
-    @Bean
-    public Auth auth() {
-        return Auth.create(qiNiuOssProperties.getAccessKey(), qiNiuOssProperties.getSecretKey());
+    private StandardOssClient build(QiNiuOssConfig qiNiuOssConfig) {
+        Auth auth = auth(qiNiuOssConfig);
+        com.qiniu.storage.Configuration configuration = configuration(qiNiuOssConfig);
+        UploadManager uploadManager = uploadManager(configuration);
+        BucketManager bucketManager = bucketManager(auth, configuration);
+        return qiNiuOssClient(auth, uploadManager, bucketManager, qiNiuOssConfig);
     }
 
-    @Bean
+    public StandardOssClient qiNiuOssClient(Auth auth, UploadManager uploadManager, BucketManager bucketManager, QiNiuOssConfig qiNiuOssConfig) {
+        return new QiNiuOssClient(auth, uploadManager, bucketManager, qiNiuOssConfig);
+    }
+
+    public Auth auth(QiNiuOssConfig qiNiuOssConfig) {
+        return Auth.create(qiNiuOssConfig.getAccessKey(), qiNiuOssConfig.getSecretKey());
+    }
+
     public UploadManager uploadManager(com.qiniu.storage.Configuration configuration) {
         return new UploadManager(configuration);
     }
 
-    @Bean
     public BucketManager bucketManager(Auth auth, com.qiniu.storage.Configuration configuration) {
         return new BucketManager(auth, configuration);
     }
 
-    @Bean
-    public com.qiniu.storage.Configuration configuration() {
-        return new com.qiniu.storage.Configuration(qiNiuOssProperties.getRegion().buildRegion());
+    public com.qiniu.storage.Configuration configuration(QiNiuOssConfig qiNiuOssConfig) {
+        return new com.qiniu.storage.Configuration(qiNiuOssConfig.getRegion().buildRegion());
     }
 
 

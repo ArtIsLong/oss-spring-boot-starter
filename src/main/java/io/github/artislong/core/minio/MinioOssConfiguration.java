@@ -1,15 +1,18 @@
 package io.github.artislong.core.minio;
 
-import io.github.artislong.OssProperties;
-import io.github.artislong.constant.OssConstant;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.minio.model.MinioOssConfig;
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -18,25 +21,47 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass(MinioClient.class)
-@EnableConfigurationProperties({MinioOssProperties.class, OssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "oss-type", havingValue = OssConstant.OssType.MINIO)
+@EnableConfigurationProperties({MinioOssProperties.class})
+@ConditionalOnProperty(prefix = "oss", name = "minio", havingValue = "true")
 public class MinioOssConfiguration {
 
     @Autowired
     private MinioOssProperties minioOssProperties;
-    @Autowired
-    private OssProperties ossProperties;
 
-    @Bean
-    public StandardOssClient minioOssClient(MinioClient minioClient) {
-        return new MinioOssClient(minioClient, ossProperties, minioOssProperties);
+    @PostConstruct
+    public void init() {
+        final String defaultBeanName = "minioOssClient";
+        List<MinioOssConfig> minioOssConfigs = minioOssProperties.getMinioOssConfigs();
+        if (minioOssConfigs.isEmpty()) {
+            SpringUtil.registerBean(defaultBeanName, minioOssClient(minioClient(minioOssProperties), minioOssProperties));
+        } else {
+            String endpoint = minioOssProperties.getEndpoint();
+            String accessKey = minioOssProperties.getAccessKey();
+            String secretKey = minioOssProperties.getSecretKey();
+            for (int i = 0; i < minioOssConfigs.size(); i++) {
+                MinioOssConfig minioOssConfig = minioOssConfigs.get(i);
+                if (ObjectUtil.isEmpty(minioOssConfig.getEndpoint())) {
+                    minioOssConfig.setEndpoint(endpoint);
+                }
+                if (ObjectUtil.isEmpty(minioOssConfig.getAccessKey())) {
+                    minioOssConfig.setAccessKey(accessKey);
+                }
+                if (ObjectUtil.isEmpty(minioOssConfig.getSecretKey())) {
+                    minioOssConfig.setSecretKey(secretKey);
+                }
+                SpringUtil.registerBean(defaultBeanName + (i + 1), minioOssClient(minioClient(minioOssConfig), minioOssConfig));
+            }
+        }
     }
 
-    @Bean
-    public MinioClient minioClient() {
+    public StandardOssClient minioOssClient(MinioClient minioClient, MinioOssConfig minioOssConfig) {
+        return new MinioOssClient(minioClient, minioOssConfig);
+    }
+
+    public MinioClient minioClient(MinioOssConfig minioOssConfig) {
         return MinioClient.builder()
-                .endpoint(minioOssProperties.getEndpoint())
-                .credentials(minioOssProperties.getAccessKey(), minioOssProperties.getSecretKey())
+                .endpoint(minioOssConfig.getEndpoint())
+                .credentials(minioOssConfig.getAccessKey(), minioOssConfig.getSecretKey())
                 .build();
     }
 }

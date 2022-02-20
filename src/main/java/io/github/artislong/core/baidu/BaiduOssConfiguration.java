@@ -1,17 +1,20 @@
 package io.github.artislong.core.baidu;
 
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.baidubce.auth.DefaultBceCredentials;
 import com.baidubce.services.bos.BosClient;
 import com.baidubce.services.bos.BosClientConfiguration;
-import io.github.artislong.OssProperties;
-import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.baidu.model.BaiduOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -20,29 +23,50 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass(BosClient.class)
-@EnableConfigurationProperties({BaiduOssProperties.class, OssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "oss-type", havingValue = OssConstant.OssType.BAIDU)
+@EnableConfigurationProperties({BaiduOssProperties.class})
+@ConditionalOnProperty(prefix = "oss", name = "baidu", havingValue = "true")
 public class BaiduOssConfiguration {
 
     @Autowired
     private BaiduOssProperties baiduOssProperties;
-    @Autowired
-    private OssProperties ossProperties;
 
-    @Bean
-    public StandardOssClient baiduOssClient(BosClient bosClient) {
-        return new BaiduOssClient(bosClient, ossProperties, baiduOssProperties);
+    @PostConstruct
+    public void init() {
+        final String defaultBeanName = "baiduOssClient";
+        List<BaiduOssConfig> baiduOssConfigs = baiduOssProperties.getBaiduOssConfigs();
+        if (baiduOssConfigs.isEmpty()) {
+            SpringUtil.registerBean(defaultBeanName, baiduOssClient(bosClient(bosClientConfiguration(baiduOssProperties)), baiduOssProperties));
+        } else {
+            String endPoint = baiduOssProperties.getEndPoint();
+            String accessKeyId = baiduOssProperties.getAccessKeyId();
+            String secretAccessKey = baiduOssProperties.getSecretAccessKey();
+            for (int i = 0; i < baiduOssConfigs.size(); i++) {
+                BaiduOssConfig baiduOssConfig = baiduOssConfigs.get(i);
+                if (ObjectUtil.isEmpty(baiduOssConfig.getEndPoint())) {
+                    baiduOssConfig.setEndPoint(endPoint);
+                }
+                if (ObjectUtil.isEmpty(baiduOssConfig.getAccessKeyId())) {
+                    baiduOssConfig.setAccessKeyId(accessKeyId);
+                }
+                if (ObjectUtil.isEmpty(baiduOssConfig.getSecretAccessKey())) {
+                    baiduOssConfig.setSecretAccessKey(secretAccessKey);
+                }
+                SpringUtil.registerBean(defaultBeanName + (i + 1), baiduOssClient(bosClient(bosClientConfiguration(baiduOssConfig)), baiduOssConfig));
+            }
+        }
     }
 
-    @Bean
-    public BosClientConfiguration bosClientConfiguration() {
+    public StandardOssClient baiduOssClient(BosClient bosClient, BaiduOssConfig baiduOssConfig) {
+        return new BaiduOssClient(bosClient, baiduOssConfig);
+    }
+
+    public BosClientConfiguration bosClientConfiguration(BaiduOssConfig baiduOssConfig) {
         BosClientConfiguration config = new BosClientConfiguration();
-        config.setCredentials(new DefaultBceCredentials(baiduOssProperties.getAccessKeyId(), baiduOssProperties.getSecretAccessKey()));
-        config.setEndpoint(baiduOssProperties.getEndPoint());
+        config.setCredentials(new DefaultBceCredentials(baiduOssConfig.getAccessKeyId(), baiduOssConfig.getSecretAccessKey()));
+        config.setEndpoint(baiduOssConfig.getEndPoint());
         return config;
     }
 
-    @Bean
     public BosClient bosClient(BosClientConfiguration config) {
         return new BosClient(config);
     }

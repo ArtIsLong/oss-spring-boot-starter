@@ -11,12 +11,12 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.extra.ftp.Ftp;
 import cn.hutool.extra.ftp.FtpMode;
-import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.ftp.model.FtpOssConfig;
+import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
-import io.github.artislong.exception.OssException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -42,8 +42,7 @@ import java.util.List;
 public class FtpOssClient implements StandardOssClient {
 
     private Ftp ftp;
-    private OssProperties ossProperties;
-    private FtpOssProperties ftpOssProperties;
+    private FtpOssConfig ftpOssConfig;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -69,8 +68,8 @@ public class FtpOssClient implements StandardOssClient {
         String key = getKey(targetName, true);
         String fileName = FileNameUtil.getName(targetName);
 
-        Ftp ftp = new Ftp(ftpOssProperties, FtpMode.Passive);
-        ftp.setBackToPwd(ftpOssProperties.isBackToPwd());
+        Ftp ftp = new Ftp(ftpOssConfig, FtpMode.Passive);
+        ftp.setBackToPwd(ftpOssConfig.isBackToPwd());
         FTPClient ftpClient = ftp.getClient();
         InputStream inputStream = null;
         try {
@@ -187,6 +186,11 @@ public class FtpOssClient implements StandardOssClient {
     @Override
     public Boolean isDirectory(String targetName) {
         return ftp.isDir(getKey(targetName, true));
+    }
+
+    @Override
+    public String getBasePath() {
+        return ftpOssConfig.getBasePath();
     }
 
     private OssInfo getBaseInfo(String targetName) {

@@ -13,13 +13,13 @@ import cn.hutool.core.util.StrUtil;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.amazonaws.services.s3.transfer.TransferManager;
-import io.github.artislong.OssProperties;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.jd.model.JdOssConfig;
+import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
-import io.github.artislong.exception.OssException;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.model.slice.*;
 import lombok.AllArgsConstructor;
@@ -52,8 +52,7 @@ public class JdOssClient implements StandardOssClient {
 
     private AmazonS3 amazonS3;
     private TransferManager transferManager;
-    private OssProperties ossProperties;
-    private JdOssProperties jdOssProperties;
+    private JdOssConfig jdOssConfig;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -97,7 +96,7 @@ public class JdOssClient implements StandardOssClient {
             FileUtil.del(checkpointFile);
         }
 
-        SliceConfig slice = getJdOssProperties().getSliceConfig();
+        SliceConfig slice = jdOssConfig.getSliceConfig();
 
         ExecutorService executorService = Executors.newFixedThreadPool(slice.getTaskNum());
         List<Future<PartResult>> futures = new ArrayList<>();
@@ -151,7 +150,7 @@ public class JdOssClient implements StandardOssClient {
         uploadCheckPoint.setCheckpointFile(checkpointFile);
         uploadCheckPoint.setUploadFileStat(FileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
-        long partSize = getJdOssProperties().getSliceConfig().getPartSize();
+        long partSize = jdOssConfig.getSliceConfig().getPartSize();
         long fileLength = upLoadFile.length();
         int parts = (int) (fileLength / partSize);
         if (fileLength % partSize > 0) {
@@ -317,8 +316,13 @@ public class JdOssClient implements StandardOssClient {
         return amazonS3.doesObjectExist(getBucket(), getKey(targetName, false));
     }
 
+    @Override
+    public String getBasePath() {
+        return jdOssConfig.getBasePath();
+    }
+
     private String getBucket() {
-        return jdOssProperties.getBucketName();
+        return jdOssConfig.getBucketName();
     }
 
     public OssInfo getBaseInfo(String key) {

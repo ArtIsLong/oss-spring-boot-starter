@@ -2,11 +2,14 @@ package io.github.artislong.core.huawei;
 
 import cn.hutool.core.text.CharPool;
 import io.github.artislong.constant.OssConstant;
-import io.github.artislong.model.SliceConfig;
+import io.github.artislong.core.huawei.model.HuaweiOssConfig;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -16,20 +19,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Slf4j
 @Data
 @ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.HUAWEI)
-public class HuaWeiOssProperties implements InitializingBean {
+public class HuaWeiOssProperties extends HuaweiOssConfig implements InitializingBean {
 
-    private String endpoint;
-    private String accessKey;
-    private String secretKey;
-    private String bucketName;
-
-    /**
-     * 断点续传参数
-     */
-    private SliceConfig sliceConfig = new SliceConfig();
+    private Boolean enable = false;
+    
+    private List<HuaweiOssConfig> huaweiOssConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        this.getSliceConfig().valid();
+        if (huaweiOssConfigs.isEmpty()) {
+            this.valid();
+        } else {
+            huaweiOssConfigs.forEach(HuaweiOssConfig::valid);
+        }
     }
 }

@@ -11,9 +11,9 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.obs.services.ObsClient;
 import com.obs.services.model.*;
-import io.github.artislong.OssProperties;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.huawei.model.HuaweiOssConfig;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
@@ -43,8 +43,7 @@ import java.util.List;
 public class HuaWeiOssClient implements StandardOssClient {
 
     private ObsClient obsClient;
-    private HuaWeiOssProperties huaWeiOssProperties;
-    private OssProperties ossProperties;
+    private HuaweiOssConfig huaweiOssConfig;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -71,7 +70,7 @@ public class HuaWeiOssClient implements StandardOssClient {
         String upLoadFile = file.getPath();
         request.setUploadFile(upLoadFile);
 
-        SliceConfig slice = getHuaWeiOssProperties().getSliceConfig();
+        SliceConfig slice = huaweiOssConfig.getSliceConfig();
 
         request.setTaskNum(slice.getTaskNum());
         request.setPartSize(slice.getPartSize());
@@ -156,8 +155,13 @@ public class HuaWeiOssClient implements StandardOssClient {
         return obsClient.doesObjectExist(getBucket(), getKey(targetName, false));
     }
 
+    @Override
+    public String getBasePath() {
+        return huaweiOssConfig.getBasePath();
+    }
+
     private String getBucket() {
-        return huaWeiOssProperties.getBucketName();
+        return huaweiOssConfig.getBucketName();
     }
 
     public OssInfo getBaseInfo(String key) {

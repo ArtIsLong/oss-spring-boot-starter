@@ -2,11 +2,13 @@ package io.github.artislong.core.up;
 
 import cn.hutool.core.text.CharPool;
 import io.github.artislong.constant.OssConstant;
-import io.github.artislong.core.up.constant.ApiDomain;
-import io.github.artislong.model.SliceConfig;
+import io.github.artislong.core.up.model.UpOssConfig;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -15,29 +17,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.UP)
-public class UpOssProperties implements InitializingBean {
+public class UpOssProperties extends UpOssConfig implements InitializingBean {
 
-    private String bucketName;
-    private String userName;
-    private String password;
+    private Boolean enable = false;
 
-    /**
-     * 默认的超时时间：30秒
-     */
-    private int timeout = 30;
-    /**
-     * 默认为自动识别接入点
-     */
-    private ApiDomain apiDomain = ApiDomain.ED_AUTO;
-
-    /**
-     * 断点续传参数
-     */
-    private SliceConfig sliceConfig = new SliceConfig();
+    private List<UpOssConfig> upOssConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        this.getSliceConfig().valid();
+        if (upOssConfigs.isEmpty()) {
+            this.valid();
+        } else {
+            upOssConfigs.forEach(UpOssConfig::valid);
+        }
     }
 
 }

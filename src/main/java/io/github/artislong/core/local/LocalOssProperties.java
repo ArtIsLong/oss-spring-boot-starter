@@ -2,10 +2,13 @@ package io.github.artislong.core.local;
 
 import cn.hutool.core.text.CharPool;
 import io.github.artislong.constant.OssConstant;
-import io.github.artislong.model.SliceConfig;
+import io.github.artislong.core.local.model.LocalOssConfig;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -14,15 +17,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.LOCAL)
-public class LocalProperties implements InitializingBean {
+public class LocalOssProperties extends LocalOssConfig implements InitializingBean {
 
-    /**
-     * 断点续传参数
-     */
-    private SliceConfig sliceConfig = new SliceConfig();
+    private Boolean enable = false;
+
+    private List<LocalOssConfig> localOssConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        this.getSliceConfig().valid();
+        if (localOssConfigs.isEmpty()) {
+            this.valid();
+        } else {
+            localOssConfigs.forEach(LocalOssConfig::valid);
+        }
     }
 }

@@ -1,16 +1,18 @@
 package io.github.artislong.core.sftp;
 
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.extra.ssh.Sftp;
-import io.github.artislong.OssProperties;
-import io.github.artislong.constant.OssConstant;
-import io.github.artislong.core.StandardOssClient;
 import com.jcraft.jsch.ChannelSftp;
+import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.sftp.model.SftpOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -19,23 +21,34 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass(ChannelSftp.class)
-@EnableConfigurationProperties({SftpOssProperties.class, OssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "oss-type", havingValue = OssConstant.OssType.SFTP)
+@EnableConfigurationProperties({SftpOssProperties.class})
+@ConditionalOnProperty(prefix = "oss", name = "sftp", havingValue = "true")
 public class SftpOssConfiguration {
+
+    public static final String DEFAULT_BEAN_NAME = "sftpOssClient";
 
     @Autowired
     private SftpOssProperties sftpOssProperties;
-    @Autowired
-    private OssProperties ossProperties;
 
-    @Bean
-    public StandardOssClient sftpOssClient(Sftp sftp) {
-        return new SftpOssClient(sftp, ossProperties);
+    @PostConstruct
+    public void init() {
+        List<SftpOssConfig> sftpOssConfigs = sftpOssProperties.getSftpOssConfigs();
+        if (sftpOssConfigs.isEmpty()) {
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, sftpOssClient(sftp(sftpOssProperties), sftpOssProperties));
+        } else {
+            for (int i = 0; i < sftpOssConfigs.size(); i++) {
+                SftpOssConfig sftpOssConfig = sftpOssConfigs.get(i);
+                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), sftpOssClient(sftp(sftpOssConfig), sftpOssConfig));
+            }
+        }
     }
 
-    @Bean
-    public Sftp sftp() {
-        return new Sftp(sftpOssProperties);
+    public StandardOssClient sftpOssClient(Sftp sftp, SftpOssConfig sftpOssConfig) {
+        return new SftpOssClient(sftp, sftpOssConfig);
+    }
+
+    public Sftp sftp(SftpOssConfig sftpOssConfig) {
+        return new Sftp(sftpOssConfig);
     }
 
 }

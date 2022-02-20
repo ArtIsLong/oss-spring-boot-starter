@@ -2,10 +2,13 @@ package io.github.artislong.core.tencent;
 
 import cn.hutool.core.text.CharPool;
 import io.github.artislong.constant.OssConstant;
-import io.github.artislong.model.SliceConfig;
+import io.github.artislong.core.tencent.model.TencentOssConfig;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -14,21 +17,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.TENCENT)
-public class TencentOssProperties implements InitializingBean {
+public class TencentOssProperties extends TencentOssConfig implements InitializingBean {
 
-    private String bucketName;
-    private String secretId;
-    private String secretKey;
-    private String region;
+    private Boolean enable = false;
 
-    /**
-     * 断点续传参数
-     */
-    private SliceConfig sliceConfig = new SliceConfig();
+    private List<TencentOssConfig> tencentOssConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        this.getSliceConfig().valid();
+        if (tencentOssConfigs.isEmpty()) {
+            this.valid();
+        } else {
+            tencentOssConfigs.forEach(TencentOssConfig::valid);
+        }
     }
 
 }

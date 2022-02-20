@@ -8,9 +8,9 @@ import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.io.file.PathUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import io.github.artislong.OssProperties;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.local.model.LocalOssConfig;
 import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
@@ -35,10 +35,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * 本地文件操作客户端
+ *
  * @author 陈敏
  * @version LocalOssClient.java, v 1.1 2021/11/5 15:44 chenmin Exp $
  * Created on 2021/11/5
@@ -49,8 +49,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class LocalOssClient implements StandardOssClient {
 
-    private OssProperties ossProperties;
-    private LocalProperties localProperties;
+    private LocalOssConfig localOssConfig;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -88,7 +87,7 @@ public class LocalOssClient implements StandardOssClient {
             FileUtil.del(checkpointFile);
         }
 
-        Integer taskNum = getLocalProperties().getSliceConfig().getTaskNum();
+        Integer taskNum = localOssConfig.getSliceConfig().getTaskNum();
 
         ExecutorService executorService = Executors.newFixedThreadPool(taskNum);
         List<Future<PartResult>> futures = new ArrayList<>();
@@ -133,7 +132,7 @@ public class LocalOssClient implements StandardOssClient {
         uploadCheckPoint.setCheckpointFile(checkpointFile);
         uploadCheckPoint.setUploadFileStat(FileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
-        long partSize = getLocalProperties().getSliceConfig().getPartSize();
+        long partSize = localOssConfig.getSliceConfig().getPartSize();
         long fileLength = upLoadFile.length();
         int parts = (int) (fileLength / partSize);
         if (fileLength % partSize > 0) {
@@ -314,7 +313,7 @@ public class LocalOssClient implements StandardOssClient {
 
     @Override
     public String getBasePath() {
-        String basePath = ossProperties.getBasePath();
+        String basePath = localOssConfig.getBasePath();
         if (!FileUtil.exist(basePath)) {
             FileUtil.mkdir(basePath);
         }

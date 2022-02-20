@@ -12,9 +12,9 @@ import cn.hutool.core.util.StrUtil;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.common.utils.HttpHeaders;
 import com.aliyun.oss.model.*;
-import io.github.artislong.OssProperties;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.ali.model.AliOssConfig;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
@@ -46,8 +46,7 @@ import java.util.List;
 public class AliOssClient implements StandardOssClient {
 
     private OSS oss;
-    private OssProperties ossProperties;
-    private AliOssProperties aliOssProperties;
+    private AliOssConfig aliOssConfig;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -80,7 +79,7 @@ public class AliOssClient implements StandardOssClient {
         UploadFileRequest uploadFileRequest = new UploadFileRequest(bucketName, key);
         uploadFileRequest.setUploadFile(file.getPath());
 
-        SliceConfig slice = getAliOssProperties().getSliceConfig();
+        SliceConfig slice = aliOssConfig.getSliceConfig();
         uploadFileRequest.setTaskNum(slice.getTaskNum());
         uploadFileRequest.setPartSize(slice.getPartSize());
 
@@ -168,8 +167,13 @@ public class AliOssClient implements StandardOssClient {
         return oss.doesObjectExist(getBucketName(), getKey(targetName, false));
     }
 
+    @Override
+    public String getBasePath() {
+        return aliOssConfig.getBasePath();
+    }
+
     public String getBucketName() {
-        return aliOssProperties.getBucketName();
+        return aliOssConfig.getBucketName();
     }
 
     public OssInfo getBaseInfo(String bucketName, String key) {

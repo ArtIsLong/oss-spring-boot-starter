@@ -11,8 +11,8 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aliyun.oss.common.utils.HttpHeaders;
 import com.google.common.io.ByteStreams;
-import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.minio.model.MinioOssConfig;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
@@ -47,8 +47,7 @@ import java.util.List;
 public class MinioOssClient implements StandardOssClient {
 
     private MinioClient minioClient;
-    private OssProperties ossProperties;
-    private MinioOssProperties minioOssProperties;
+    private MinioOssConfig minioOssConfig;
 
     @SneakyThrows
     @Override
@@ -146,8 +145,13 @@ public class MinioOssClient implements StandardOssClient {
         return ossInfo;
     }
 
+    @Override
+    public String getBasePath() {
+        return minioOssConfig.getBasePath();
+    }
+
     private String getBucket() {
-        return minioOssProperties.getBucketName();
+        return minioOssConfig.getBucketName();
     }
 
     public OssInfo getBaseInfo(String targetName) {

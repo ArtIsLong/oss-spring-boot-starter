@@ -12,13 +12,13 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.*;
-import io.github.artislong.OssProperties;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.tencent.model.TencentOssConfig;
+import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
-import io.github.artislong.exception.OssException;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.model.slice.*;
 import lombok.AllArgsConstructor;
@@ -50,8 +50,7 @@ import java.util.stream.Collectors;
 public class TencentOssClient implements StandardOssClient {
 
     private COSClient cosClient;
-    private OssProperties ossProperties;
-    private TencentOssProperties tencentOssProperties;
+    private TencentOssConfig tencentOssConfig;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -87,7 +86,7 @@ public class TencentOssClient implements StandardOssClient {
             FileUtil.del(checkpointFile);
         }
 
-        SliceConfig slice = getTencentOssProperties().getSliceConfig();
+        SliceConfig slice = tencentOssConfig.getSliceConfig();
 
         ExecutorService executorService = Executors.newFixedThreadPool(slice.getTaskNum());
         List<Future<PartResult>> futures = new ArrayList<>();
@@ -141,7 +140,7 @@ public class TencentOssClient implements StandardOssClient {
         uploadCheckPoint.setCheckpointFile(checkpointFile);
         uploadCheckPoint.setUploadFileStat(FileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
-        long partSize = getTencentOssProperties().getSliceConfig().getPartSize();
+        long partSize = tencentOssConfig.getSliceConfig().getPartSize();
         long fileLength = upLoadFile.length();
         int parts = (int) (fileLength / partSize);
         if (fileLength % partSize > 0) {
@@ -307,8 +306,13 @@ public class TencentOssClient implements StandardOssClient {
         return cosClient.doesObjectExist(getBucket(), getKey(targetName, false));
     }
 
+    @Override
+    public String getBasePath() {
+        return tencentOssConfig.getBasePath();
+    }
+
     private String getBucket() {
-        return tencentOssProperties.getBucketName();
+        return tencentOssConfig.getBucketName();
     }
 
     public OssInfo getBaseInfo(String key) {

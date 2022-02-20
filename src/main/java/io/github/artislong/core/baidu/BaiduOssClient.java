@@ -12,9 +12,9 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baidubce.services.bos.BosClient;
 import com.baidubce.services.bos.model.*;
-import io.github.artislong.OssProperties;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.baidu.model.BaiduOssConfig;
 import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
@@ -51,8 +51,7 @@ import java.util.stream.Collectors;
 public class BaiduOssClient implements StandardOssClient {
 
     private BosClient bosClient;
-    private OssProperties ossProperties;
-    private BaiduOssProperties baiduOssProperties;
+    private BaiduOssConfig baiduOssConfig;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -94,7 +93,7 @@ public class BaiduOssClient implements StandardOssClient {
             FileUtil.del(checkpointFile);
         }
 
-        SliceConfig slice = getBaiduOssProperties().getSliceConfig();
+        SliceConfig slice = baiduOssConfig.getSliceConfig();
 
         ExecutorService executorService = Executors.newFixedThreadPool(slice.getTaskNum());
         List<Future<PartResult>> futures = new ArrayList<>();
@@ -153,7 +152,7 @@ public class BaiduOssClient implements StandardOssClient {
         uploadCheckPoint.setCheckpointFile(checkpointFile);
         uploadCheckPoint.setUploadFileStat(FileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
-        long partSize = getBaiduOssProperties().getSliceConfig().getPartSize();
+        long partSize = baiduOssConfig.getSliceConfig().getPartSize();
         long fileLength = upLoadFile.length();
         int parts = (int) (fileLength / partSize);
         if (fileLength % partSize > 0) {
@@ -322,8 +321,13 @@ public class BaiduOssClient implements StandardOssClient {
         return bosClient.doesObjectExist(getBucket(), getKey(targetName, false));
     }
 
+    @Override
+    public String getBasePath() {
+        return baiduOssConfig.getBasePath();
+    }
+
     private String getBucket() {
-        return baiduOssProperties.getBucketName();
+        return baiduOssConfig.getBucketName();
     }
 
     public OssInfo getBaseInfo(String key) {

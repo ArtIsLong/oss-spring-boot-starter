@@ -1,11 +1,14 @@
 package io.github.artislong.core.ftp;
 
 import cn.hutool.core.text.CharPool;
-import cn.hutool.extra.ftp.FtpConfig;
-import cn.hutool.extra.ftp.FtpMode;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.core.ftp.model.FtpOssConfig;
 import lombok.Data;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -14,13 +17,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.FTP)
-public class FtpOssProperties extends FtpConfig {
-    /**
-     * FTP连接模式,默认被动
-     */
-    private FtpMode mode = FtpMode.Passive;
-    /**
-     * 设置执行完操作是否返回当前目录,默认false
-     */
-    private boolean backToPwd = false;
+public class FtpOssProperties extends FtpOssConfig implements InitializingBean {
+
+    private Boolean enable = false;
+
+    private List<FtpOssConfig> ftpOssConfigs = new ArrayList<>();
+
+    @Override
+    public void afterPropertiesSet() {
+        if (ftpOssConfigs.isEmpty()) {
+            this.valid();
+        } else {
+            ftpOssConfigs.forEach(FtpOssConfig::valid);
+        }
+    }
 }

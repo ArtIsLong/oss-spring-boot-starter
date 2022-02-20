@@ -1,7 +1,9 @@
 package io.github.artislong.model;
 
 import io.github.artislong.constant.OssConstant;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -12,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class SliceConfig {
     /**
      * 分片大小,默认5MB
@@ -23,7 +27,7 @@ public class SliceConfig {
      */
     private Integer taskNum = OssConstant.DEFAULT_TASK_NUM;
 
-    public void valid() {
+    public void init() {
         if (this.getPartSize() <= 0) {
             log.warn("断点续传——分片大小必须大于0");
             this.setPartSize(OssConstant.DEFAULT_PART_SIZE);

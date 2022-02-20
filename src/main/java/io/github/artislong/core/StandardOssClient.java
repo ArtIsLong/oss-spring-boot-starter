@@ -4,7 +4,6 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import io.github.artislong.OssProperties;
 import io.github.artislong.model.OssInfo;
 
 import java.io.File;
@@ -249,20 +248,6 @@ public interface StandardOssClient {
      * 获取文件存储根路径
      * @return 根路径
      */
-    default String getBasePath() {
-        return getOssProperties().getBasePath();
-    }
-
-    /**
-     * 注入OssProperties对象
-     * @param ossProperties OssProperties对象
-     */
-    void setOssProperties(OssProperties ossProperties);
-
-    /**
-     * 获取OssProperties对象
-     * @return OssProperties对象
-     */
-    OssProperties getOssProperties();
+    String getBasePath();
 
 }

@@ -12,13 +12,13 @@ import cn.hutool.core.util.StrUtil;
 import com.upyun.ParallelUploader;
 import com.upyun.RestManager;
 import com.upyun.UpException;
-import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.up.constant.UpConstant;
+import io.github.artislong.core.up.model.UpOssConfig;
+import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
-import io.github.artislong.core.up.constant.UpConstant;
-import io.github.artislong.exception.OssException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -48,8 +48,7 @@ public class UpOssClient implements StandardOssClient {
 
     private RestManager restManager;
     private ParallelUploader parallelUploader;
-    private OssProperties ossProperties;
-    private UpOssProperties upOssProperties;
+    private UpOssConfig upOssConfig;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -165,6 +164,11 @@ public class UpOssClient implements StandardOssClient {
             log.error("判断{}是否存在失败", targetName, e);
             return false;
         }
+    }
+
+    @Override
+    public String getBasePath() {
+        return upOssConfig.getBasePath();
     }
 
     private OssInfo getBaseInfo(String key) throws UpException, IOException {

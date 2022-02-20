@@ -1,10 +1,14 @@
 package io.github.artislong.core.sftp;
 
 import cn.hutool.core.text.CharPool;
-import cn.hutool.extra.ftp.FtpConfig;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.core.sftp.model.SftpOssConfig;
 import lombok.Data;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -13,5 +17,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.SFTP)
-public class SftpOssProperties extends FtpConfig {
+public class SftpOssProperties extends SftpOssConfig implements InitializingBean {
+
+    private Boolean enable = false;
+
+    private List<SftpOssConfig> sftpOssConfigs = new ArrayList<>();
+
+    @Override
+    public void afterPropertiesSet() {
+        if (sftpOssConfigs.isEmpty()) {
+            this.valid();
+        } else {
+            sftpOssConfigs.forEach(SftpOssConfig::valid);
+        }
+    }
+
 }

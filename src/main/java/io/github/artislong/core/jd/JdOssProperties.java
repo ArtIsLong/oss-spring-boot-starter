@@ -2,10 +2,13 @@ package io.github.artislong.core.jd;
 
 import cn.hutool.core.text.CharPool;
 import io.github.artislong.constant.OssConstant;
-import io.github.artislong.model.SliceConfig;
+import io.github.artislong.core.jd.model.JdOssConfig;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -14,22 +17,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.JD)
-public class JdOssProperties implements InitializingBean {
+public class JdOssProperties extends JdOssConfig implements InitializingBean {
 
-    private String bucketName;
-    private String endpoint;
-    private String accessKey;
-    private String secretKey;
+    private Boolean enable = false;
 
-    private String region;
-
-    /**
-     * 断点续传参数
-     */
-    private SliceConfig sliceConfig = new SliceConfig();
+    private List<JdOssConfig> jdOssConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        this.getSliceConfig().valid();
+        if (jdOssConfigs.isEmpty()) {
+            this.valid();
+        } else {
+            jdOssConfigs.forEach(JdOssConfig::valid);
+        }
     }
 }

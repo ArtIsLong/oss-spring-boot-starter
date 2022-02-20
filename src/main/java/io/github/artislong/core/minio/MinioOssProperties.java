@@ -2,8 +2,13 @@ package io.github.artislong.core.minio;
 
 import cn.hutool.core.text.CharPool;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.core.minio.model.MinioOssConfig;
 import lombok.Data;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -12,11 +17,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.MINIO)
-public class MinioOssProperties {
+public class MinioOssProperties extends MinioOssConfig implements InitializingBean {
 
-    private String endpoint;
-    private String accessKey;
-    private String secretKey;
-    private String bucketName;
+    private Boolean enable = false;
 
+    private List<MinioOssConfig> minioOssConfigs = new ArrayList<>();
+
+    @Override
+    public void afterPropertiesSet() {
+        if (minioOssConfigs.isEmpty()) {
+            this.valid();
+        } else {
+            minioOssConfigs.forEach(MinioOssConfig::valid);
+        }
+    }
 }

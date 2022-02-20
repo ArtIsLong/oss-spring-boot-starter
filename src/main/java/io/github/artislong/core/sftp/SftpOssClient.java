@@ -11,8 +11,8 @@ import cn.hutool.extra.ssh.Sftp;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
-import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.sftp.model.SftpOssConfig;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
@@ -40,7 +40,7 @@ import java.util.List;
 public class SftpOssClient implements StandardOssClient {
 
     private Sftp sftp;
-    private OssProperties ossProperties;
+    private SftpOssConfig sftpOssConfig;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -142,6 +142,11 @@ public class SftpOssClient implements StandardOssClient {
     @Override
     public Boolean isDirectory(String targetName) {
         return sftp.isDir(getKey(targetName, true));
+    }
+
+    @Override
+    public String getBasePath() {
+        return sftpOssConfig.getBasePath();
     }
 
     private OssInfo getBaseInfo(String targetName) {

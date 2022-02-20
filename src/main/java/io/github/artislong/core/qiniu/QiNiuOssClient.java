@@ -17,8 +17,8 @@ import com.qiniu.storage.model.FileInfo;
 import com.qiniu.storage.model.FileListing;
 import com.qiniu.storage.persistent.FileRecorder;
 import com.qiniu.util.Auth;
-import io.github.artislong.OssProperties;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.qiniu.model.QiNiuOssConfig;
 import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
@@ -52,8 +52,7 @@ public class QiNiuOssClient implements StandardOssClient {
     private Auth auth;
     private UploadManager uploadManager;
     private BucketManager bucketManager;
-    private OssProperties ossProperties;
-    private QiNiuOssProperties qiNiuOssProperties;
+    private QiNiuOssConfig qiNiuOssConfig;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -71,10 +70,9 @@ public class QiNiuOssClient implements StandardOssClient {
     public OssInfo upLoadCheckPoint(File file, String targetName) {
         String key = getKey(targetName, false);
 
-        QiNiuOssProperties qiNiuOssProperties = getQiNiuOssProperties();
-        SliceConfig sliceConfig = qiNiuOssProperties.getSliceConfig();
+        SliceConfig sliceConfig = qiNiuOssConfig.getSliceConfig();
 
-        Configuration cfg = new Configuration(qiNiuOssProperties.getRegion().buildRegion());
+        Configuration cfg = new Configuration(qiNiuOssConfig.getRegion().buildRegion());
         // 指定分片上传版本
         cfg.resumableUploadAPIVersion = Configuration.ResumableUploadAPIVersion.V2;
         // 设置分片上传并发，1：采用同步上传；大于1：采用并发上传
@@ -184,12 +182,17 @@ public class QiNiuOssClient implements StandardOssClient {
         return ossInfo;
     }
 
+    @Override
+    public String getBasePath() {
+        return qiNiuOssConfig.getBasePath();
+    }
+
     private String getUpToken() {
         return auth.uploadToken(getBucket());
     }
 
     private String getBucket() {
-        return qiNiuOssProperties.getBucketName();
+        return qiNiuOssConfig.getBucketName();
     }
 
     private OssInfo getBaseInfo(String targetName) {

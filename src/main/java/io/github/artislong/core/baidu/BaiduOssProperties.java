@@ -2,11 +2,14 @@ package io.github.artislong.core.baidu;
 
 import cn.hutool.core.text.CharPool;
 import io.github.artislong.constant.OssConstant;
-import io.github.artislong.model.SliceConfig;
+import io.github.artislong.core.baidu.model.BaiduOssConfig;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -16,20 +19,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Slf4j
 @Data
 @ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.BAIDU)
-public class BaiduOssProperties implements InitializingBean {
+public class BaiduOssProperties extends BaiduOssConfig implements InitializingBean {
 
-    private String bucketName;
-    private String endPoint;
-    private String accessKeyId;
-    private String secretAccessKey;
+    private Boolean enable = false;
 
-    /**
-     * 断点续传参数
-     */
-    private SliceConfig sliceConfig = new SliceConfig();
+    private List<BaiduOssConfig> baiduOssConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        this.getSliceConfig().valid();
+        if (baiduOssConfigs.isEmpty()) {
+            this.init();
+        } else {
+            baiduOssConfigs.forEach(BaiduOssConfig::init);
+        }
     }
 }
