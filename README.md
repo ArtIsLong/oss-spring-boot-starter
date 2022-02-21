@@ -336,7 +336,7 @@ oss:
 ```yaml
 oss:
   sftp:
-  	enable: true
+    enable: true
     host: SFTP服务器IP
     port: SFTP服务端口
     user: 用户名
@@ -350,14 +350,14 @@ oss:
 ```yaml
 oss:
   sftp:
-  	enable: true
-  	oss-configs:
-  	  - host: SFTP服务器IP
-    	port: SFTP服务端口
-	    user: 用户名
-	    password: 密码
-	    charset: 编码
-	    base-path: FTP服务器存储根路径
+    enable: true
+    oss-configs:
+      - host: SFTP服务器IP
+        port: SFTP服务端口
+        user: 用户名
+        password: 密码
+        charset: 编码
+        base-path: FTP服务器存储根路径
 ```
 
 ### 阿里云
@@ -377,7 +377,7 @@ oss:
 ```yaml
 oss:
   ali:
-  	enable: true
+    enable: true
     access-key-id: accessKeyId
     access-key-secret: accessKeySecret
     endpoint: endpoint
@@ -393,16 +393,16 @@ oss:
 ```yaml
 oss:
   ali:
-  	enable: true
-  	oss-configs:
+    enable: true
+    oss-configs:
       - access-key-id: accessKeyId
-	    access-key-secret: accessKeySecret
-	    endpoint: endpoint
-	    bucket-name: bucketName
-	    base-path: 阿里云存储根路径
-	    slice-config:
-	      task-num: 8
-	      part-size: 104857600 # 1024*1024*100
+        access-key-secret: accessKeySecret
+        endpoint: endpoint
+        bucket-name: bucketName
+        base-path: 阿里云存储根路径
+        slice-config:
+          task-num: 8
+          part-size: 104857600 # 1024*1024*100
 ```
 
 **注：** 对于批量配置，如access-key-id、access-key-secret、endpoint可复用，基础配置中配置这三个参数，批量配置中配置其他如bucket-name等参数即可，示例如下：
@@ -410,16 +410,16 @@ oss:
 ```yaml
 oss:
   ali:
-  	enable: true
-  	access-key-id: accessKeyId
+    enable: true
+    access-key-id: accessKeyId
     access-key-secret: accessKeySecret
     endpoint: endpoint
-  	oss-configs:
+    oss-configs:
       - bucket-name: bucketName
-	    base-path: 阿里云存储根路径
-	    slice-config:
-	      task-num: 8
-	      part-size: 104857600 # 1024*1024*100
+        base-path: 阿里云存储根路径
+        slice-config:
+          task-num: 8
+          part-size: 104857600 # 1024*1024*100
 ```
 
 ### 华为云
@@ -439,7 +439,7 @@ oss:
 ```yaml
 oss:
   huawei:
-  	enable: true
+    enable: true
     endpoint: endpoint
     access-key: accessKey
     secret-key: secretKey
@@ -455,16 +455,16 @@ oss:
 ```yaml
 oss:
   huawei:
-  	enable: true
-  	oss-configs:
-  	  - endpoint: endpoint
-	    access-key: accessKey
-    	secret-key: secretKey
-	    bucket-name: backetName
-	    base-path: 华为云存储根路径
-	    slice-config:
-	      task-num: 8
-	      part-size: 104857600 # 1024*1024*100
+    enable: true
+    oss-configs:
+      - endpoint: endpoint
+        access-key: accessKey
+        secret-key: secretKey
+        bucket-name: backetName
+        base-path: 华为云存储根路径
+        slice-config:
+          task-num: 8
+          part-size: 104857600 # 1024*1024*100
 ```
 
 **注：** 对于批量配置，如access-key、secret-key、endpoint可复用，基础配置中配置这三个参数，批量配置中配置其他如bucket-name等参数即可，示例如下：
@@ -472,16 +472,16 @@ oss:
 ```yaml
 oss:
   huawei:
-  	enable: true
-  	endpoint: endpoint
+    enable: true
+    endpoint: endpoint
     access-key: accessKey
-   	secret-key: secretKey
-  	oss-configs:
-  	  - bucket-name: backetName
-	    base-path: 华为云存储根路径
-	    slice-config:
-	      task-num: 8
-	      part-size: 104857600 # 1024*1024*100
+    secret-key: secretKey
+    oss-configs:
+      - bucket-name: backetName
+        base-path: 华为云存储根路径
+        slice-config:
+          task-num: 8
+          part-size: 104857600 # 1024*1024*100
 ```
 
 ### 京东云
@@ -501,7 +501,7 @@ oss:
 ```yaml
 oss:
   jd:
-  	enable: true
+    enable: true
     endpoint: endpoint
     region: region
     access-key: accessKey
@@ -518,14 +518,14 @@ oss:
 ```yaml
 oss:
   jd:
-  	enable: true
-  	oss-configs:  	
-  	  - endpoint: endpoint
-   		region: region
-   		access-key: accessKey
-   		secret-key: secretKey
-	    bucket-name: bucket
-  	  	base-path: 京东云存储根路径
+    enable: true
+    oss-configs:
+      - endpoint: endpoint
+        region: region
+        access-key: accessKey
+        secret-key: secretKey
+        bucket-name: bucket
+        base-path: 京东云存储根路径
     	slice-config:
       	  task-num: 8
       	  part-size: 104857600 # 1024*1024*100
@@ -536,14 +536,14 @@ oss:
 ```yaml
 oss:
   jd:
-  	enable: true
-  	endpoint: endpoint
-   	region: region
-   	access-key: accessKey
-   	secret-key: secretKey
-  	oss-configs:
-  	  - bucket-name: bucket
-  	  	base-path: 京东云存储根路径
+    enable: true
+    endpoint: endpoint
+    region: region
+    access-key: accessKey
+    secret-key: secretKey
+    oss-configs:
+      - bucket-name: bucket
+        base-path: 京东云存储根路径
     	slice-config:
       	  task-num: 8
       	  part-size: 104857600 # 1024*1024*100
@@ -571,7 +571,7 @@ oss:
 ```yaml
 oss:
   qiniu:
-  	enable: true
+    enable: true
     region: region
     access-key: accessKey
     secret-key: secretKey
@@ -587,12 +587,12 @@ oss:
 ```yaml
 oss:
   qiniu:
-  	enable: true
-  	oss-configs:
-  	  - region: region
-    	access-key: accessKey
+    enable: true
+    oss-configs:
+      - region: region
+        access-key: accessKey
     	secret-key: secretKey
-	    bucket-name: bucket
+        bucket-name: bucket
     	base-path: 七牛云存储根路径
     	slice-config:
       	  task-num: 8
@@ -604,13 +604,13 @@ oss:
 ```yaml
 oss:
   qiniu:
-  	enable: true
-  	region: region
+    enable: true
+    region: region
     access-key: accessKey
     secret-key: secretKey
-  	oss-configs:
-  	  - bucket-name: bucket
-  	  	base-path: 七牛云存储根路径
+    oss-configs:
+      - bucket-name: bucket
+        base-path: 七牛云存储根路径
     	slice-config:
       	  task-num: 8
        	  part-size: 104857600 # 1024*1024*100
@@ -633,7 +633,7 @@ oss:
 ```yaml
 oss:
   tencent:
-  	enable: true
+    enable: true
     region: region
     secret-key: secretKey
     secret-id: secretId
@@ -649,9 +649,9 @@ oss:
 ```yaml
 oss:
   tencent:
-  	enable: true
-  	oss-configs:
-  	  - region: region
+    enable: true
+    oss-configs:
+      - region: region
     	secret-key: secretKey
     	secret-id: secretId
     	bucket-name: bucket
@@ -666,12 +666,12 @@ oss:
 ```yaml
 oss:
   tencent:
-  	enable: true
-  	region: region
+    enable: true
+    region: region
     secret-key: secretKey
     secret-id: secretId
     oss-configs:
-  	  - bucket-name: bucket
+      - bucket-name: bucket
     	base-path: 腾讯云存储根路径
     	slice-config:
       	  task-num: 8
@@ -695,7 +695,7 @@ oss:
 ```yaml
 oss:
   up:
-  	enable: true
+    enable: true
     user-name: 用户名
     password: 密码
     bucket-name: bucketName
@@ -709,9 +709,9 @@ oss:
 ```yaml
 oss:
   up:
-  	enable: true
-  	oss-configs:
-  	  - user-name: 用户名
+    enable: true
+    oss-configs:
+      - user-name: 用户名
     	password: 密码
     	bucket-name: bucketName
     	base-path: 又拍云存储根路径
@@ -724,11 +724,11 @@ oss:
 ```yaml
 oss:
   up:
-  	enable: true
-  	user-name: 用户名
+    enable: true
+    user-name: 用户名
     password: 密码
     oss-configs:
-  	  - bucket-name: bucketName
+      - bucket-name: bucketName
     	base-path: 又拍云存储根路径
     	slice-config:
       	  task-num: 8
@@ -757,7 +757,7 @@ oss:
 ```yaml
 oss:
   up:
-  	enable: true
+    enable: true
     endpoint: 地址
     access-key: 用户名
     secret-key: 密码
@@ -770,9 +770,9 @@ oss:
 ```yaml
 oss:
   up:
-  	enable: true
-  	oss-configs:
-  	  - endpoint: 地址
+    enable: true
+    oss-configs:
+      - endpoint: 地址
     	access-key: 用户名
     	secret-key: 密码
     	bucket-name: bucketName
@@ -784,12 +784,12 @@ oss:
 ```yaml
 oss:
   up:
-  	enable: true
-  	endpoint: 地址
+    enable: true
+    endpoint: 地址
     access-key: 用户名
     secret-key: 密码
-  	oss-configs:
-  	  - bucket-name: bucketName
+    oss-configs:
+      - bucket-name: bucketName
     	base-path: Minio存储根路径
 ```
 
