@@ -2,9 +2,11 @@ package io.github.artislong.core.minio;
 
 import cn.hutool.core.io.FileUtil;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.baidu.BaiduOssConfiguration;
 import io.github.artislong.model.OssInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.FileNotFoundException;
@@ -19,6 +21,7 @@ import java.io.FileOutputStream;
 public class MinioOssClientTest {
 
     @Autowired
+    @Qualifier(MinioOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

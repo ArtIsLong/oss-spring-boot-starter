@@ -1,5 +1,6 @@
 package io.github.artislong.core.tencent;
 
+import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.qcloud.cos.COSClient;
@@ -7,6 +8,7 @@ import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
 import com.qcloud.cos.region.Region;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.tencent.model.TencentOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,8 @@ import java.util.List;
 @Configuration
 @ConditionalOnClass(COSClient.class)
 @EnableConfigurationProperties({TencentOssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "tencent", havingValue = "true")
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.TENCENT + CharPool.DOT + OssConstant.ENABLE,
+        havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class TencentOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "tencentOssClient";
@@ -36,7 +39,7 @@ public class TencentOssConfiguration {
 
     @PostConstruct
     public void init() {
-        List<TencentOssConfig> tencentOssConfigs = tencentOssProperties.getTencentOssConfigs();
+        List<TencentOssConfig> tencentOssConfigs = tencentOssProperties.getOssConfigs();
         if (tencentOssConfigs.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(tencentOssProperties));
         } else {

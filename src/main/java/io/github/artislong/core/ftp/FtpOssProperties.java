@@ -21,14 +21,14 @@ public class FtpOssProperties extends FtpOssConfig implements InitializingBean {
 
     private Boolean enable = false;
 
-    private List<FtpOssConfig> ftpOssConfigs = new ArrayList<>();
+    private List<FtpOssConfig> ossConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (ftpOssConfigs.isEmpty()) {
-            this.valid();
+        if (ossConfigs.isEmpty()) {
+            this.init();
         } else {
-            ftpOssConfigs.forEach(FtpOssConfig::valid);
+            ossConfigs.forEach(FtpOssConfig::init);
         }
     }
 }

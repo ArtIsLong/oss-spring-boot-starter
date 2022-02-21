@@ -23,14 +23,14 @@ public class BaiduOssProperties extends BaiduOssConfig implements InitializingBe
 
     private Boolean enable = false;
 
-    private List<BaiduOssConfig> baiduOssConfigs = new ArrayList<>();
+    private List<BaiduOssConfig> ossConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (baiduOssConfigs.isEmpty()) {
+        if (ossConfigs.isEmpty()) {
             this.init();
         } else {
-            baiduOssConfigs.forEach(BaiduOssConfig::init);
+            ossConfigs.forEach(BaiduOssConfig::init);
         }
     }
 }

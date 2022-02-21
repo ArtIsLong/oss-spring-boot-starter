@@ -14,7 +14,7 @@ public class SftpOssConfig extends FtpConfig {
 
     private String basePath;
 
-    public void valid() {
+    public void init() {
         basePath = PathUtil.valid(basePath);
     }
 

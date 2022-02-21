@@ -21,14 +21,14 @@ public class SftpOssProperties extends SftpOssConfig implements InitializingBean
 
     private Boolean enable = false;
 
-    private List<SftpOssConfig> sftpOssConfigs = new ArrayList<>();
+    private List<SftpOssConfig> ossConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (sftpOssConfigs.isEmpty()) {
-            this.valid();
+        if (ossConfigs.isEmpty()) {
+            this.init();
         } else {
-            sftpOssConfigs.forEach(SftpOssConfig::valid);
+            ossConfigs.forEach(SftpOssConfig::init);
         }
     }
 

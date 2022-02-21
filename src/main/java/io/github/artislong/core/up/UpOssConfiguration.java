@@ -1,9 +1,11 @@
 package io.github.artislong.core.up;
 
+import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.upyun.ParallelUploader;
 import com.upyun.RestManager;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.up.model.UpOssConfig;
 import io.github.artislong.model.SliceConfig;
@@ -24,7 +26,8 @@ import java.util.List;
 @Configuration
 @ConditionalOnClass(RestManager.class)
 @EnableConfigurationProperties({UpOssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "up", havingValue = "true")
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UP + CharPool.DOT + OssConstant.ENABLE,
+        havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class UpOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "upOssClient";
@@ -34,7 +37,7 @@ public class UpOssConfiguration {
 
     @PostConstruct
     public void init() {
-        List<UpOssConfig> upOssConfigs = upOssProperties.getUpOssConfigs();
+        List<UpOssConfig> upOssConfigs = upOssProperties.getOssConfigs();
         if (upOssConfigs.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(upOssProperties));
         } else {

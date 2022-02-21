@@ -21,14 +21,14 @@ public class TencentOssProperties extends TencentOssConfig implements Initializi
 
     private Boolean enable = false;
 
-    private List<TencentOssConfig> tencentOssConfigs = new ArrayList<>();
+    private List<TencentOssConfig> ossConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (tencentOssConfigs.isEmpty()) {
-            this.valid();
+        if (ossConfigs.isEmpty()) {
+            this.init();
         } else {
-            tencentOssConfigs.forEach(TencentOssConfig::valid);
+            ossConfigs.forEach(TencentOssConfig::init);
         }
     }
 

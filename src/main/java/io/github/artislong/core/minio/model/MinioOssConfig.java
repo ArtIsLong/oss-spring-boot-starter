@@ -17,7 +17,7 @@ public class MinioOssConfig {
     private String secretKey;
     private String bucketName;
 
-    public void valid() {
+    public void init() {
         basePath = PathUtil.valid(basePath);
     }
 }

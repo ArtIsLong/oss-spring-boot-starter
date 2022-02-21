@@ -23,14 +23,14 @@ public class HuaWeiOssProperties extends HuaweiOssConfig implements Initializing
 
     private Boolean enable = false;
     
-    private List<HuaweiOssConfig> huaweiOssConfigs = new ArrayList<>();
+    private List<HuaweiOssConfig> ossConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (huaweiOssConfigs.isEmpty()) {
-            this.valid();
+        if (ossConfigs.isEmpty()) {
+            this.init();
         } else {
-            huaweiOssConfigs.forEach(HuaweiOssConfig::valid);
+            ossConfigs.forEach(HuaweiOssConfig::init);
         }
     }
 }

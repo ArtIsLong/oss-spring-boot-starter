@@ -1,19 +1,21 @@
 package io.github.artislong.core.ali;
 
+import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSClientBuilder;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ali.model.AliOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -24,19 +26,21 @@ import java.util.List;
 @Configuration
 @ConditionalOnClass(OSSClient.class)
 @EnableConfigurationProperties({AliOssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "ali", havingValue = "true")
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.ALI + CharPool.DOT + OssConstant.ENABLE,
+        havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class AliOssConfiguration {
+
+    public static final String DEFAULT_BEAN_NAME = "aliOssClient";
 
     @Autowired
     private AliOssProperties aliOssProperties;
 
-    @PostConstruct
+    @Bean
     public void init() {
-        final String defaultBeanName = "aliOssClient";
 
-        List<AliOssConfig> aliOssConfigs = aliOssProperties.getAliOssConfigs();
+        List<AliOssConfig> aliOssConfigs = aliOssProperties.getOssConfigs();
         if (aliOssConfigs.isEmpty()) {
-            SpringUtil.registerBean(defaultBeanName, aliOssClient(ossClient(aliOssProperties), aliOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, aliOssClient(ossClient(aliOssProperties), aliOssProperties));
         } else {
             String endpoint = aliOssProperties.getEndpoint();
             String accessKeyId = aliOssProperties.getAccessKeyId();
@@ -52,7 +56,7 @@ public class AliOssConfiguration {
                 if (ObjectUtil.isEmpty(aliOssConfig.getAccessKeySecret())) {
                     aliOssConfig.setAccessKeySecret(accessKeySecret);
                 }
-                SpringUtil.registerBean(defaultBeanName + (i + 1), aliOssClient(ossClient(aliOssConfig), aliOssConfig));
+                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), aliOssClient(ossClient(aliOssConfig), aliOssConfig));
             }
         }
     }

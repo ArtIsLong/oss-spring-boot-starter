@@ -21,14 +21,14 @@ public class UpOssProperties extends UpOssConfig implements InitializingBean {
 
     private Boolean enable = false;
 
-    private List<UpOssConfig> upOssConfigs = new ArrayList<>();
+    private List<UpOssConfig> ossConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (upOssConfigs.isEmpty()) {
-            this.valid();
+        if (ossConfigs.isEmpty()) {
+            this.init();
         } else {
-            upOssConfigs.forEach(UpOssConfig::valid);
+            ossConfigs.forEach(UpOssConfig::init);
         }
     }
 

@@ -1,8 +1,10 @@
 package io.github.artislong.core.sftp;
 
+import cn.hutool.core.text.CharPool;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.extra.ssh.Sftp;
 import com.jcraft.jsch.ChannelSftp;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.sftp.model.SftpOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,8 @@ import java.util.List;
 @Configuration
 @ConditionalOnClass(ChannelSftp.class)
 @EnableConfigurationProperties({SftpOssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "sftp", havingValue = "true")
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.SFTP + CharPool.DOT + OssConstant.ENABLE,
+        havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class SftpOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "sftpOssClient";
@@ -32,7 +35,7 @@ public class SftpOssConfiguration {
 
     @PostConstruct
     public void init() {
-        List<SftpOssConfig> sftpOssConfigs = sftpOssProperties.getSftpOssConfigs();
+        List<SftpOssConfig> sftpOssConfigs = sftpOssProperties.getOssConfigs();
         if (sftpOssConfigs.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, sftpOssClient(sftp(sftpOssProperties), sftpOssProperties));
         } else {

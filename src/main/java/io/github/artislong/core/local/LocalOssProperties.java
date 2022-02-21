@@ -21,14 +21,14 @@ public class LocalOssProperties extends LocalOssConfig implements InitializingBe
 
     private Boolean enable = false;
 
-    private List<LocalOssConfig> localOssConfigs = new ArrayList<>();
+    private List<LocalOssConfig> ossConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (localOssConfigs.isEmpty()) {
-            this.valid();
+        if (ossConfigs.isEmpty()) {
+            this.init();
         } else {
-            localOssConfigs.forEach(LocalOssConfig::valid);
+            ossConfigs.forEach(LocalOssConfig::init);
         }
     }
 }

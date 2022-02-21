@@ -1,10 +1,12 @@
 package io.github.artislong.core.qiniu;
 
+import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.qiniu.model.QiNiuOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,18 +24,20 @@ import java.util.List;
  */
 @Configuration
 @EnableConfigurationProperties({QiNiuOssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "qiniu", havingValue = "true")
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINIU + CharPool.DOT + OssConstant.ENABLE,
+        havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class QiNiuOssConfiguration {
+
+    public static final String DEFAULT_BEAN_NAME = "qiNiuOssClient";
 
     @Autowired
     private QiNiuOssProperties qiNiuOssProperties;
 
     @PostConstruct
     public void init() {
-        final String defaultBeanName = "qiNiuOssClient";
-        List<QiNiuOssConfig> qiNiuOssConfigs = qiNiuOssProperties.getQiNiuOssConfigs();
+        List<QiNiuOssConfig> qiNiuOssConfigs = qiNiuOssProperties.getOssConfigs();
         if (qiNiuOssConfigs.isEmpty()) {
-            SpringUtil.registerBean(defaultBeanName, build(qiNiuOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(qiNiuOssProperties));
         } else {
             String accessKey = qiNiuOssProperties.getAccessKey();
             String secretKey = qiNiuOssProperties.getSecretKey();
@@ -45,7 +49,7 @@ public class QiNiuOssConfiguration {
                 if (ObjectUtil.isEmpty(qiNiuOssConfig.getSecretKey())) {
                     qiNiuOssConfig.setSecretKey(secretKey);
                 }
-                SpringUtil.registerBean(defaultBeanName, build(qiNiuOssConfig));
+                SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(qiNiuOssConfig));
             }
         }
     }

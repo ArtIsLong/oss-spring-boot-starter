@@ -23,14 +23,14 @@ public class AliOssProperties extends AliOssConfig implements InitializingBean {
 
     private Boolean enable = false;
 
-    private List<AliOssConfig> aliOssConfigs = new ArrayList<>();
+    private List<AliOssConfig> ossConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (aliOssConfigs.isEmpty()) {
+        if (ossConfigs.isEmpty()) {
             this.init();
         } else {
-            aliOssConfigs.forEach(AliOssConfig::init);
+            ossConfigs.forEach(AliOssConfig::init);
         }
     }
 

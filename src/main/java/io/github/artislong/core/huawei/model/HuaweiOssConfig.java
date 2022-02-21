@@ -26,7 +26,7 @@ public class HuaweiOssConfig {
      */
     private SliceConfig sliceConfig = new SliceConfig();
 
-    public void valid() {
+    public void init() {
         this.sliceConfig.init();
         basePath = PathUtil.valid(basePath);
     }

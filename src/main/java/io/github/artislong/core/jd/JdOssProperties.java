@@ -21,14 +21,14 @@ public class JdOssProperties extends JdOssConfig implements InitializingBean {
 
     private Boolean enable = false;
 
-    private List<JdOssConfig> jdOssConfigs = new ArrayList<>();
+    private List<JdOssConfig> ossConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (jdOssConfigs.isEmpty()) {
-            this.valid();
+        if (ossConfigs.isEmpty()) {
+            this.init();
         } else {
-            jdOssConfigs.forEach(JdOssConfig::valid);
+            ossConfigs.forEach(JdOssConfig::init);
         }
     }
 }

@@ -25,7 +25,7 @@ public class FtpOssConfig extends FtpConfig {
      */
     private boolean backToPwd = false;
 
-    public void valid() {
+    public void init() {
         basePath = PathUtil.valid(basePath);
     }
 

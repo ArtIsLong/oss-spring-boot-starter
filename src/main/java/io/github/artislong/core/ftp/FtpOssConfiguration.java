@@ -1,7 +1,9 @@
 package io.github.artislong.core.ftp;
 
+import cn.hutool.core.text.CharPool;
 import cn.hutool.extra.ftp.Ftp;
 import cn.hutool.extra.spring.SpringUtil;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ftp.model.FtpOssConfig;
 import org.apache.commons.net.ftp.FTPClient;
@@ -22,22 +24,24 @@ import java.util.List;
 @Configuration
 @ConditionalOnClass(FTPClient.class)
 @EnableConfigurationProperties({FtpOssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "ftp", havingValue = "true")
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.FTP + CharPool.DOT + OssConstant.ENABLE,
+        havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class FtpOssConfiguration {
+
+    public static final String DEFAULT_BEAN_NAME = "ftpOssClient";
 
     @Autowired
     private FtpOssProperties ftpOssProperties;
 
     @PostConstruct
     public void init() {
-        final String defaultBeanName = "ftpOssClient";
-        List<FtpOssConfig> ftpOssConfigs = ftpOssProperties.getFtpOssConfigs();
+        List<FtpOssConfig> ftpOssConfigs = ftpOssProperties.getOssConfigs();
         if (ftpOssConfigs.isEmpty()) {
-            SpringUtil.registerBean(defaultBeanName, ftpOssClient(ftp(ftpOssProperties), ftpOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, ftpOssClient(ftp(ftpOssProperties), ftpOssProperties));
         } else {
             for (int i = 0; i < ftpOssConfigs.size(); i++) {
                 FtpOssConfig ftpOssConfig = ftpOssConfigs.get(i);
-                SpringUtil.registerBean(defaultBeanName + (i + 1), ftpOssClient(ftp(ftpOssConfig), ftpOssConfig));
+                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), ftpOssClient(ftp(ftpOssConfig), ftpOssConfig));
             }
         }
     }

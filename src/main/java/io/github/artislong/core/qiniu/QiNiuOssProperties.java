@@ -21,14 +21,14 @@ public class QiNiuOssProperties extends QiNiuOssConfig implements InitializingBe
 
     private Boolean enable = false;
 
-    private List<QiNiuOssConfig> qiNiuOssConfigs = new ArrayList<>();
+    private List<QiNiuOssConfig> ossConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (qiNiuOssConfigs.isEmpty()) {
-            this.valid();
+        if (ossConfigs.isEmpty()) {
+            this.init();
         } else {
-            qiNiuOssConfigs.forEach(QiNiuOssConfig::valid);
+            ossConfigs.forEach(QiNiuOssConfig::init);
         }
     }
 

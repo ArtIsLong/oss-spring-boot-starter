@@ -1,7 +1,9 @@
 package io.github.artislong.core.minio;
 
+import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.minio.model.MinioOssConfig;
 import io.minio.MinioClient;
@@ -22,18 +24,20 @@ import java.util.List;
 @Configuration
 @ConditionalOnClass(MinioClient.class)
 @EnableConfigurationProperties({MinioOssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "minio", havingValue = "true")
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.MINIO + CharPool.DOT + OssConstant.ENABLE,
+        havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class MinioOssConfiguration {
+
+    public static final String DEFAULT_BEAN_NAME = "minioOssClient";
 
     @Autowired
     private MinioOssProperties minioOssProperties;
 
     @PostConstruct
     public void init() {
-        final String defaultBeanName = "minioOssClient";
-        List<MinioOssConfig> minioOssConfigs = minioOssProperties.getMinioOssConfigs();
+        List<MinioOssConfig> minioOssConfigs = minioOssProperties.getOssConfigs();
         if (minioOssConfigs.isEmpty()) {
-            SpringUtil.registerBean(defaultBeanName, minioOssClient(minioClient(minioOssProperties), minioOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, minioOssClient(minioClient(minioOssProperties), minioOssProperties));
         } else {
             String endpoint = minioOssProperties.getEndpoint();
             String accessKey = minioOssProperties.getAccessKey();
@@ -49,7 +53,7 @@ public class MinioOssConfiguration {
                 if (ObjectUtil.isEmpty(minioOssConfig.getSecretKey())) {
                     minioOssConfig.setSecretKey(secretKey);
                 }
-                SpringUtil.registerBean(defaultBeanName + (i + 1), minioOssClient(minioClient(minioOssConfig), minioOssConfig));
+                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), minioOssClient(minioClient(minioOssConfig), minioOssConfig));
             }
         }
     }

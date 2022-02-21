@@ -8,6 +8,8 @@ package io.github.artislong.constant;
 public class OssConstant {
 
     public static final String OSS = "oss";
+    public static final String ENABLE = "enable";
+    public static final String DEFAULT_ENABLE_VALUE = "true";
 
     /**
      * 默认分片大小

@@ -1,10 +1,12 @@
 package io.github.artislong.core.baidu;
 
+import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.baidubce.auth.DefaultBceCredentials;
 import com.baidubce.services.bos.BosClient;
 import com.baidubce.services.bos.BosClientConfiguration;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.baidu.model.BaiduOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,18 +26,20 @@ import java.util.List;
 @Configuration
 @ConditionalOnClass(BosClient.class)
 @EnableConfigurationProperties({BaiduOssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "baidu", havingValue = "true")
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.BAIDU + CharPool.DOT + OssConstant.ENABLE,
+        havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class BaiduOssConfiguration {
+
+    public static final String DEFAULT_BEAN_NAME = "baiduOssClient";
 
     @Autowired
     private BaiduOssProperties baiduOssProperties;
 
     @PostConstruct
     public void init() {
-        final String defaultBeanName = "baiduOssClient";
-        List<BaiduOssConfig> baiduOssConfigs = baiduOssProperties.getBaiduOssConfigs();
+        List<BaiduOssConfig> baiduOssConfigs = baiduOssProperties.getOssConfigs();
         if (baiduOssConfigs.isEmpty()) {
-            SpringUtil.registerBean(defaultBeanName, baiduOssClient(bosClient(bosClientConfiguration(baiduOssProperties)), baiduOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, baiduOssClient(bosClient(bosClientConfiguration(baiduOssProperties)), baiduOssProperties));
         } else {
             String endPoint = baiduOssProperties.getEndPoint();
             String accessKeyId = baiduOssProperties.getAccessKeyId();
@@ -51,7 +55,7 @@ public class BaiduOssConfiguration {
                 if (ObjectUtil.isEmpty(baiduOssConfig.getSecretAccessKey())) {
                     baiduOssConfig.setSecretAccessKey(secretAccessKey);
                 }
-                SpringUtil.registerBean(defaultBeanName + (i + 1), baiduOssClient(bosClient(bosClientConfiguration(baiduOssConfig)), baiduOssConfig));
+                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), baiduOssClient(bosClient(bosClientConfiguration(baiduOssConfig)), baiduOssConfig));
             }
         }
     }

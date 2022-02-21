@@ -21,14 +21,14 @@ public class MinioOssProperties extends MinioOssConfig implements InitializingBe
 
     private Boolean enable = false;
 
-    private List<MinioOssConfig> minioOssConfigs = new ArrayList<>();
+    private List<MinioOssConfig> ossConfigs = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (minioOssConfigs.isEmpty()) {
-            this.valid();
+        if (ossConfigs.isEmpty()) {
+            this.init();
         } else {
-            minioOssConfigs.forEach(MinioOssConfig::valid);
+            ossConfigs.forEach(MinioOssConfig::init);
         }
     }
 }

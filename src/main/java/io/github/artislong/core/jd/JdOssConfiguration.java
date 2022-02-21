@@ -1,5 +1,6 @@
 package io.github.artislong.core.jd;
 
+import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.amazonaws.ClientConfiguration;
@@ -12,6 +13,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jd.model.JdOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,18 +33,20 @@ import java.util.List;
 @Configuration
 @ConditionalOnClass(AmazonS3.class)
 @EnableConfigurationProperties({JdOssProperties.class})
-@ConditionalOnProperty(prefix = "oss", name = "jd", havingValue = "true")
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JD + CharPool.DOT + OssConstant.ENABLE,
+        havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class JdOssConfiguration {
+
+    public static final String DEFAULT_BEAN_NAME = "jdOssClient";
 
     @Autowired
     private JdOssProperties jdOssProperties;
 
     @PostConstruct
     public void init() {
-        final String defaultBeanName = "jdOssClient";
-        List<JdOssConfig> jdOssConfigs = jdOssProperties.getJdOssConfigs();
+        List<JdOssConfig> jdOssConfigs = jdOssProperties.getOssConfigs();
         if (jdOssConfigs.isEmpty()) {
-            SpringUtil.registerBean(defaultBeanName, build(jdOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(jdOssProperties));
         } else {
             String endpoint = jdOssProperties.getEndpoint();
             String accessKey = jdOssProperties.getAccessKey();
@@ -62,7 +66,7 @@ public class JdOssConfiguration {
                 if (ObjectUtil.isEmpty(jdOssConfig.getRegion())) {
                     jdOssConfig.setRegion(region);
                 }
-                SpringUtil.registerBean(defaultBeanName + (i + 1), build(jdOssConfig));
+                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), build(jdOssConfig));
             }
         }
     }
