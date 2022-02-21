@@ -526,9 +526,9 @@ oss:
         secret-key: secretKey
         bucket-name: bucket
         base-path: 京东云存储根路径
-    	slice-config:
-      	  task-num: 8
-      	  part-size: 104857600 # 1024*1024*100
+        slice-config:
+          task-num: 8
+          part-size: 104857600 # 1024*1024*100
 ```
 
 **注：** 对于批量配置，如access-key、secret-key、endpoint、region可复用，基础配置中配置这三个参数，批量配置中配置其他如bucket-name等参数即可，示例如下：
@@ -544,9 +544,9 @@ oss:
     oss-configs:
       - bucket-name: bucket
         base-path: 京东云存储根路径
-    	slice-config:
-      	  task-num: 8
-      	  part-size: 104857600 # 1024*1024*100
+        slice-config:
+          task-num: 8
+          part-size: 104857600 # 1024*1024*100
 ```
 
 ### 七牛云
@@ -594,9 +594,9 @@ oss:
     	secret-key: secretKey
         bucket-name: bucket
     	base-path: 七牛云存储根路径
-    	slice-config:
-      	  task-num: 8
-       	  part-size: 104857600 # 1024*1024*100
+        slice-config:
+          task-num: 8
+          part-size: 104857600 # 1024*1024*100
 ```
 
 **注：** 对于批量配置，如region、access-key、secret-key可复用，基础配置中配置这三个参数，批量配置中配置其他如bucket-name等参数即可，示例如下：
@@ -611,9 +611,9 @@ oss:
     oss-configs:
       - bucket-name: bucket
         base-path: 七牛云存储根路径
-    	slice-config:
-      	  task-num: 8
-       	  part-size: 104857600 # 1024*1024*100
+        slice-config:
+          task-num: 8
+          part-size: 104857600 # 1024*1024*100
 ```
 
 ### 腾讯云
@@ -652,13 +652,13 @@ oss:
     enable: true
     oss-configs:
       - region: region
-    	secret-key: secretKey
-    	secret-id: secretId
-    	bucket-name: bucket
-    	base-path: 腾讯云存储根路径
-    	slice-config:
-      	  task-num: 8
-      	  part-size: 104857600 # 1024*1024*100
+        secret-key: secretKey
+        secret-id: secretId
+        bucket-name: bucket
+        base-path: 腾讯云存储根路径
+        slice-config:
+          task-num: 8
+          part-size: 104857600 # 1024*1024*100
 ```
 
 **注：** 对于批量配置，如region、secret-key、secret-id可复用，基础配置中配置这三个参数，批量配置中配置其他如bucket-name等参数即可，示例如下：
@@ -672,10 +672,10 @@ oss:
     secret-id: secretId
     oss-configs:
       - bucket-name: bucket
-    	base-path: 腾讯云存储根路径
-    	slice-config:
-      	  task-num: 8
-      	  part-size: 104857600 # 1024*1024*100
+        base-path: 腾讯云存储根路径
+        slice-config:
+          task-num: 8
+          part-size: 104857600 # 1024*1024*100
 ```
 
 ### 又拍云
@@ -712,11 +712,11 @@ oss:
     enable: true
     oss-configs:
       - user-name: 用户名
-    	password: 密码
-    	bucket-name: bucketName
-    	base-path: 又拍云存储根路径
-    	slice-config:
-      	  task-num: 8
+        password: 密码
+        bucket-name: bucketName
+        base-path: 又拍云存储根路径
+        slice-config:
+          task-num: 8
 ```
 
 **注：** 对于批量配置，如user-name、password可复用，基础配置中配置这三个参数，批量配置中配置其他如bucket-name等参数即可，示例如下：
@@ -729,9 +729,9 @@ oss:
     password: 密码
     oss-configs:
       - bucket-name: bucketName
-    	base-path: 又拍云存储根路径
-    	slice-config:
-      	  task-num: 8
+        base-path: 又拍云存储根路径
+        slice-config:
+          task-num: 8
 ```
 
 ### Minio
@@ -773,10 +773,10 @@ oss:
     enable: true
     oss-configs:
       - endpoint: 地址
-    	access-key: 用户名
-    	secret-key: 密码
-    	bucket-name: bucketName
-    	base-path: Minio存储根路径
+        access-key: 用户名
+        secret-key: 密码
+        bucket-name: bucketName
+        base-path: Minio存储根路径
 ```
 
 **注：** 对于批量配置，如endpoint、access-key、secret-key可复用，基础配置中配置这三个参数，批量配置中配置其他如bucket-name等参数即可，示例如下：
@@ -790,7 +790,7 @@ oss:
     secret-key: 密码
     oss-configs:
       - bucket-name: bucketName
-    	base-path: Minio存储根路径
+        base-path: Minio存储根路径
 ```
 
 新功能持续增加中，敬请期待！！！
