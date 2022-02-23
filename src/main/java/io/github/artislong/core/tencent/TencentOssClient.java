@@ -20,7 +20,7 @@ import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
 import io.github.artislong.model.SliceConfig;
-import io.github.artislong.model.slice.*;
+import io.github.artislong.model.upload.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -89,7 +89,7 @@ public class TencentOssClient implements StandardOssClient {
         SliceConfig slice = tencentOssConfig.getSliceConfig();
 
         ExecutorService executorService = Executors.newFixedThreadPool(slice.getTaskNum());
-        List<Future<PartResult>> futures = new ArrayList<>();
+        List<Future<UpLoadPartResult>> futures = new ArrayList<>();
 
         for (int i = 0; i < upLoadCheckPoint.getUploadParts().size(); i++) {
             if (!upLoadCheckPoint.getUploadParts().get(i).isCompleted()) {
@@ -99,9 +99,9 @@ public class TencentOssClient implements StandardOssClient {
 
         executorService.shutdown();
 
-        for (Future<PartResult> future : futures) {
+        for (Future<UpLoadPartResult> future : futures) {
             try {
-                PartResult partResult = future.get();
+                UpLoadPartResult partResult = future.get();
                 if (partResult.isFailed()) {
                     throw partResult.getException();
                 }
@@ -118,8 +118,8 @@ public class TencentOssClient implements StandardOssClient {
             throw new OssException("关闭线程池失败", e);
         }
 
-        List<PartEntityTag> partEntityTags = upLoadCheckPoint.getPartEntityTags();
-        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(PartEntityTag::getPartNumber))
+        List<UpLoadPartEntityTag> partEntityTags = upLoadCheckPoint.getPartEntityTags();
+        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(UpLoadPartEntityTag::getPartNumber))
                 .map(partEntityTag -> new PartETag(partEntityTag.getPartNumber(), partEntityTag.getETag())).collect(Collectors.toList());
 
         CompleteMultipartUploadRequest completeMultipartUploadRequest =
@@ -138,7 +138,7 @@ public class TencentOssClient implements StandardOssClient {
         uploadCheckPoint.setKey(key);
         uploadCheckPoint.setBucket(bucket);
         uploadCheckPoint.setCheckpointFile(checkpointFile);
-        uploadCheckPoint.setUploadFileStat(FileStat.getFileStat(uploadCheckPoint.getUploadFile()));
+        uploadCheckPoint.setUploadFileStat(UpLoadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
         long partSize = tencentOssConfig.getSliceConfig().getPartSize();
         long fileLength = upLoadFile.length();
@@ -187,7 +187,7 @@ public class TencentOssClient implements StandardOssClient {
         return parts;
     }
 
-    public static class UploadPartTask implements Callable<PartResult> {
+    public static class UploadPartTask implements Callable<UpLoadPartResult> {
         COSClient cosClient;
         UpLoadCheckPoint upLoadCheckPoint;
         int partNum;
@@ -199,13 +199,13 @@ public class TencentOssClient implements StandardOssClient {
         }
 
         @Override
-        public PartResult call() {
-            PartResult partResult = null;
+        public UpLoadPartResult call() {
+            UpLoadPartResult partResult = null;
             InputStream inputStream = null;
             try {
                 UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
 
-                partResult = new PartResult(partNum + 1, uploadPart.getOffset(), uploadPart.getSize());
+                partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), uploadPart.getSize());
 
                 File uploadFile = new File(upLoadCheckPoint.getUploadFile());
 
@@ -224,7 +224,7 @@ public class TencentOssClient implements StandardOssClient {
 
                 partResult.setNumber(uploadPartResponse.getPartNumber());
 
-                upLoadCheckPoint.update(partNum, new PartEntityTag().setETag(uploadPartResponse.getETag())
+                upLoadCheckPoint.update(partNum, new UpLoadPartEntityTag().setETag(uploadPartResponse.getETag())
                         .setPartNumber(uploadPartResponse.getPartNumber()), true);
                 upLoadCheckPoint.dump();
             } catch (Exception e) {

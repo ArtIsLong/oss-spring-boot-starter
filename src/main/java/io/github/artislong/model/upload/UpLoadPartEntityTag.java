@@ -1,4 +1,4 @@
-package io.github.artislong.model.slice;
+package io.github.artislong.model.upload;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,7 +17,7 @@ import java.io.Serializable;
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class PartEntityTag implements Serializable {
+public class UpLoadPartEntityTag implements Serializable {
 
     private static final long serialVersionUID = 2471854027355307627L;
 
@@ -51,7 +51,7 @@ public class PartEntityTag implements Serializable {
         if (this.getClass() != obj.getClass()) {
             return false;
         }
-        PartEntityTag other = (PartEntityTag) obj;
+        UpLoadPartEntityTag other = (UpLoadPartEntityTag) obj;
         if (this.eTag == null) {
             if (other.eTag != null) {
                 return false;

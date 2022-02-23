@@ -1,4 +1,4 @@
-package io.github.artislong.model.slice;
+package io.github.artislong.model.upload;
 
 import lombok.Data;
 
@@ -9,7 +9,7 @@ import lombok.Data;
  * Created on 2022/2/10
  */
 @Data
-public class PartResult {
+public class UpLoadPartResult {
 
     /**
      * 分块号
@@ -36,13 +36,13 @@ public class PartResult {
      */
     private Long partCrc;
 
-    public PartResult(int number, long offset, long length) {
+    public UpLoadPartResult(int number, long offset, long length) {
         this.number = number;
         this.offset = offset;
         this.length = length;
     }
 
-    public PartResult(int number, long offset, long length, long partCRC) {
+    public UpLoadPartResult(int number, long offset, long length, long partCRC) {
         this.number = number;
         this.offset = offset;
         this.length = length;

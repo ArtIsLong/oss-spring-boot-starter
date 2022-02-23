@@ -15,7 +15,7 @@ import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
-import io.github.artislong.model.slice.*;
+import io.github.artislong.model.upload.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -90,7 +90,7 @@ public class LocalOssClient implements StandardOssClient {
         Integer taskNum = localOssConfig.getSliceConfig().getTaskNum();
 
         ExecutorService executorService = Executors.newFixedThreadPool(taskNum);
-        List<Future<PartResult>> futures = new ArrayList<>();
+        List<Future<UpLoadPartResult>> futures = new ArrayList<>();
 
         for (int i = 0; i < upLoadCheckPoint.getUploadParts().size(); i++) {
             if (!upLoadCheckPoint.getUploadParts().get(i).isCompleted()) {
@@ -101,9 +101,9 @@ public class LocalOssClient implements StandardOssClient {
         executorService.shutdown();
 
         for (int i = 0; i < futures.size(); i++) {
-            Future<PartResult> future = futures.get(i);
+            Future<UpLoadPartResult> future = futures.get(i);
             try {
-                PartResult partResult = future.get();
+                UpLoadPartResult partResult = future.get();
                 if (partResult.isFailed()) {
                     throw partResult.getException();
                 }
@@ -130,7 +130,7 @@ public class LocalOssClient implements StandardOssClient {
         uploadCheckPoint.setUploadFile(upLoadFile.getPath());
         uploadCheckPoint.setKey(key);
         uploadCheckPoint.setCheckpointFile(checkpointFile);
-        uploadCheckPoint.setUploadFileStat(FileStat.getFileStat(uploadCheckPoint.getUploadFile()));
+        uploadCheckPoint.setUploadFileStat(UpLoadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
         long partSize = localOssConfig.getSliceConfig().getPartSize();
         long fileLength = upLoadFile.length();
@@ -174,7 +174,7 @@ public class LocalOssClient implements StandardOssClient {
     }
 
     @Slf4j
-    public static class UploadPartTask implements Callable<PartResult> {
+    public static class UploadPartTask implements Callable<UpLoadPartResult> {
         private UpLoadCheckPoint upLoadCheckPoint;
         private int partNum;
 
@@ -184,8 +184,8 @@ public class LocalOssClient implements StandardOssClient {
         }
 
         @Override
-        public PartResult call() {
-            PartResult partResult = null;
+        public UpLoadPartResult call() {
+            UpLoadPartResult partResult = null;
             try {
                 UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
                 long offset = uploadPart.getOffset();
@@ -193,7 +193,7 @@ public class LocalOssClient implements StandardOssClient {
                 Integer partOffset = Convert.toInt(offset);
                 Integer partSize = Convert.toInt(size);
 
-                partResult = new PartResult(partNum + 1, offset, size);
+                partResult = new UpLoadPartResult(partNum + 1, offset, size);
                 partResult.setNumber(partNum);
 
                 RandomAccessFile uploadFile = new RandomAccessFile(upLoadCheckPoint.getUploadFile(), "r");
@@ -206,7 +206,7 @@ public class LocalOssClient implements StandardOssClient {
                 log.info("partNum = {}, partOffset = {}, partSize = {}", partNum, partOffset, partSize);
                 targetFile.write(data, 0, len);
 
-                upLoadCheckPoint.update(partNum, new PartEntityTag(), true);
+                upLoadCheckPoint.update(partNum, new UpLoadPartEntityTag(), true);
                 upLoadCheckPoint.dump();
             } catch (Exception e) {
                 partResult.setFailed(true);

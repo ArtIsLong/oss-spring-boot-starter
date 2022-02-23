@@ -1,4 +1,4 @@
-package io.github.artislong.model.slice;
+package io.github.artislong.model.upload;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.CharsetUtil;
@@ -27,13 +27,13 @@ public class UpLoadCheckPoint implements Serializable {
     private String magic;
     private int md5;
     private String uploadFile;
-    private FileStat uploadFileStat;
+    private UpLoadFileStat uploadFileStat;
     private String key;
     private String bucket;
     private String checkpointFile;
     private String uploadId;
     private List<UploadPart> uploadParts = Collections.synchronizedList(new ArrayList<>());
-    private List<PartEntityTag> partEntityTags = Collections.synchronizedList(new ArrayList<>());
+    private List<UpLoadPartEntityTag> partEntityTags = Collections.synchronizedList(new ArrayList<>());
     private long originPartSize;
 
     /**
@@ -65,7 +65,7 @@ public class UpLoadCheckPoint implements Serializable {
     /**
      * 更新分块状态
      */
-    public synchronized void update(int partIndex, PartEntityTag partEntityTag, boolean completed) {
+    public synchronized void update(int partIndex, UpLoadPartEntityTag partEntityTag, boolean completed) {
         this.getPartEntityTags().add(partEntityTag);
         this.getUploadParts().get(partIndex).setCompleted(completed);
     }

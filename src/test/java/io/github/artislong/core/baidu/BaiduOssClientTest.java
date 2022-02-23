@@ -31,7 +31,7 @@ public class BaiduOssClientTest {
 
     @Test
     void upLoadCheckPoint() {
-        OssInfo ossInfo = ossClient.upLoadCheckPoint("/Users/admin/test.data", "/Users/admin/test.data");
+        OssInfo ossInfo = ossClient.upLoadCheckPoint("/Users/admin/test.data", "test.data");
         System.out.println(ossInfo);
     }
 
@@ -39,6 +39,11 @@ public class BaiduOssClientTest {
     void downLoad() throws FileNotFoundException {
         FileOutputStream fileOutputStream = new FileOutputStream("/Users/admin/test.png");
         ossClient.downLoad(fileOutputStream, "test1.png");
+    }
+
+    @Test
+    public void downLoadCheckPoint() {
+        ossClient.downLoadCheckPoint("/Users/admin/test1.data", "test.data");
     }
 
     @Test

@@ -77,7 +77,8 @@ public class AliOssClient implements StandardOssClient {
         String key = getKey(targetName, false);
 
         UploadFileRequest uploadFileRequest = new UploadFileRequest(bucketName, key);
-        uploadFileRequest.setUploadFile(file.getPath());
+        String filePath = file.getPath();
+        uploadFileRequest.setUploadFile(filePath);
 
         SliceConfig slice = aliOssConfig.getSliceConfig();
         uploadFileRequest.setTaskNum(slice.getTaskNum());
@@ -85,7 +86,7 @@ public class AliOssClient implements StandardOssClient {
 
         uploadFileRequest.setEnableCheckpoint(true);
 
-        String checkpointFile = file.getPath() + StrUtil.DOT + OssConstant.OssType.ALI;
+        String checkpointFile = filePath + StrUtil.DOT + OssConstant.OssType.ALI;
         uploadFileRequest.setCheckpointFile(checkpointFile);
 
         oss.uploadFile(uploadFileRequest);
@@ -99,6 +100,27 @@ public class AliOssClient implements StandardOssClient {
         OSSObject ossObject = oss.getObject(bucketName, key);
         IoUtil.copy(ossObject.getObjectContent(), os);
         IoUtil.close(ossObject);
+    }
+
+    @SneakyThrows
+    @Override
+    public void downLoadCheckPoint(File localFile, String targetName) {
+        String bucketName = getBucketName();
+        String key = getKey(targetName, false);
+        String filePath = localFile.getPath();
+
+        DownloadFileRequest downloadFileRequest = new DownloadFileRequest(bucketName, key);
+        downloadFileRequest.setDownloadFile(filePath);
+
+        SliceConfig sliceConfig = aliOssConfig.getSliceConfig();
+        downloadFileRequest.setPartSize(sliceConfig.getPartSize());
+        downloadFileRequest.setTaskNum(sliceConfig.getTaskNum());
+        downloadFileRequest.setEnableCheckpoint(true);
+
+        String checkpointFile = filePath + StrUtil.DOT + OssConstant.OssType.ALI;
+        downloadFileRequest.setCheckpointFile(checkpointFile);
+
+        oss.downloadFile(downloadFileRequest);
     }
 
     @Override

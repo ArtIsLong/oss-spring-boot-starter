@@ -1,4 +1,4 @@
-package io.github.artislong.model.slice;
+package io.github.artislong.model.upload;
 
 import lombok.Data;
 
@@ -12,7 +12,7 @@ import java.io.Serializable;
  * Created on 2022/2/9
  */
 @Data
-public class FileStat implements Serializable {
+public class UpLoadFileStat implements Serializable {
 
     private static final long serialVersionUID = -1223810339796425415L;
 
@@ -39,8 +39,8 @@ public class FileStat implements Serializable {
         return result;
     }
 
-    public static FileStat getFileStat(String uploadFile) {
-        FileStat fileStat = new FileStat();
+    public static UpLoadFileStat getFileStat(String uploadFile) {
+        UpLoadFileStat fileStat = new UpLoadFileStat();
         File file = new File(uploadFile);
         fileStat.setSize(file.length());
         fileStat.setLastModified(file.lastModified());
