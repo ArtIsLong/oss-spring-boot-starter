@@ -90,6 +90,21 @@ public class HuaWeiOssClient implements StandardOssClient {
     }
 
     @Override
+    public void downLoadCheckPoint(File localFile, String targetName) {
+        String downloadFile = localFile.getPath();
+        DownloadFileRequest request = new DownloadFileRequest(getBucket(), getKey(targetName, false));
+        request.setEnableCheckpoint(true);
+        SliceConfig sliceConfig = huaweiOssConfig.getSliceConfig();
+        request.setTaskNum(sliceConfig.getTaskNum());
+        request.setPartSize(sliceConfig.getPartSize());
+
+        String checkpointFile = downloadFile + StrUtil.DOT + OssConstant.OssType.HUAWEI;
+        request.setCheckpointFile(checkpointFile);
+        request.setDownloadFile(downloadFile);
+        obsClient.downloadFile(request);
+    }
+
+    @Override
     public void delete(String targetName) {
         obsClient.deleteObject(getBucket(), getKey(targetName, false));
     }
