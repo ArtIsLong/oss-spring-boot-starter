@@ -337,7 +337,7 @@ public class BaiduOssClient implements StandardOssClient {
         } else {
             //download whole file
             downloadSize = 0;
-            downloadCheckPoint.setDownloadParts(splitOneFile());
+            downloadCheckPoint.setDownloadParts(splitDownloadOneFile());
         }
         downloadCheckPoint.setOriginPartSize(downloadCheckPoint.getDownloadParts().size());
         downloadCheckPoint.setVersionId(IdUtil.fastSimpleUUID());
@@ -372,7 +372,7 @@ public class BaiduOssClient implements StandardOssClient {
         return begin + per - 1;
     }
 
-    private ArrayList<DownloadPart> splitOneFile() {
+    private ArrayList<DownloadPart> splitDownloadOneFile() {
         ArrayList<DownloadPart> parts = new ArrayList<>();
         DownloadPart part = new DownloadPart();
         part.setIndex(0);

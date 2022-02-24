@@ -162,7 +162,7 @@ public class JdOssClient implements StandardOssClient {
             parts++;
         }
 
-        uploadCheckPoint.setUploadParts(splitFile(uploadCheckPoint.getUploadFileStat().getSize(), parts));
+        uploadCheckPoint.setUploadParts(splitUploadFile(uploadCheckPoint.getUploadFileStat().getSize(), parts));
         uploadCheckPoint.setPartEntityTags(new ArrayList<>());
         uploadCheckPoint.setOriginPartSize(parts);
 
@@ -172,7 +172,7 @@ public class JdOssClient implements StandardOssClient {
         uploadCheckPoint.setUploadId(result.getUploadId());
     }
 
-    private ArrayList<UploadPart> splitFile(long fileSize, long partSize) {
+    private ArrayList<UploadPart> splitUploadFile(long fileSize, long partSize) {
         ArrayList<UploadPart> parts = new ArrayList<>();
 
         long partNum = fileSize / partSize;
@@ -262,7 +262,7 @@ public class JdOssClient implements StandardOssClient {
     @Override
     public void downLoadCheckPoint(File localFile, String targetName) {
 
-        String checkpointFile = localFile.getPath() + StrUtil.DOT + OssConstant.OssType.BAIDU;
+        String checkpointFile = localFile.getPath() + StrUtil.DOT + OssConstant.OssType.JD;
 
         DownloadCheckPoint downloadCheckPoint = new DownloadCheckPoint();
         try {
@@ -339,7 +339,7 @@ public class JdOssClient implements StandardOssClient {
         } else {
             //download whole file
             downloadSize = 0;
-            downloadCheckPoint.setDownloadParts(splitOneFile());
+            downloadCheckPoint.setDownloadParts(splitDownloadOneFile());
         }
         downloadCheckPoint.setOriginPartSize(downloadCheckPoint.getDownloadParts().size());
         downloadCheckPoint.setVersionId(IdUtil.fastSimpleUUID());
@@ -374,7 +374,7 @@ public class JdOssClient implements StandardOssClient {
         return begin + per - 1;
     }
 
-    private ArrayList<DownloadPart> splitOneFile() {
+    private ArrayList<DownloadPart> splitDownloadOneFile() {
         ArrayList<DownloadPart> parts = new ArrayList<>();
         DownloadPart part = new DownloadPart();
         part.setIndex(0);

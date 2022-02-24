@@ -1,5 +1,6 @@
 package io.github.artislong.core.minio.model;
 
+import io.github.artislong.model.SliceConfig;
 import io.github.artislong.utils.PathUtil;
 import lombok.Data;
 
@@ -17,7 +18,13 @@ public class MinioOssConfig {
     private String secretKey;
     private String bucketName;
 
+    /**
+     * 断点续传参数
+     */
+    private SliceConfig sliceConfig = new SliceConfig();
+
     public void init() {
+        this.sliceConfig.init();
         basePath = PathUtil.valid(basePath);
     }
 }
