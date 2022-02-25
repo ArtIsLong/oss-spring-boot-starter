@@ -15,6 +15,7 @@ import com.aliyun.oss.model.*;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ali.model.AliOssConfig;
+import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
@@ -70,26 +71,29 @@ public class AliOssClient implements StandardOssClient {
      * @param targetName 目标文件路径
      * @return
      */
-    @SneakyThrows
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
-        String bucketName = getBucketName();
-        String key = getKey(targetName, false);
+        try {
+            String bucketName = getBucketName();
+            String key = getKey(targetName, false);
 
-        UploadFileRequest uploadFileRequest = new UploadFileRequest(bucketName, key);
-        String filePath = file.getPath();
-        uploadFileRequest.setUploadFile(filePath);
+            UploadFileRequest uploadFileRequest = new UploadFileRequest(bucketName, key);
+            String filePath = file.getPath();
+            uploadFileRequest.setUploadFile(filePath);
 
-        SliceConfig slice = aliOssConfig.getSliceConfig();
-        uploadFileRequest.setTaskNum(slice.getTaskNum());
-        uploadFileRequest.setPartSize(slice.getPartSize());
+            SliceConfig slice = aliOssConfig.getSliceConfig();
+            uploadFileRequest.setTaskNum(slice.getTaskNum());
+            uploadFileRequest.setPartSize(slice.getPartSize());
 
-        uploadFileRequest.setEnableCheckpoint(true);
+            uploadFileRequest.setEnableCheckpoint(true);
 
-        String checkpointFile = filePath + StrUtil.DOT + OssConstant.OssType.ALI;
-        uploadFileRequest.setCheckpointFile(checkpointFile);
+            String checkpointFile = filePath + StrUtil.DOT + OssConstant.OssType.ALI;
+            uploadFileRequest.setCheckpointFile(checkpointFile);
 
-        oss.uploadFile(uploadFileRequest);
+            oss.uploadFile(uploadFileRequest);
+        } catch (Throwable e) {
+            throw new OssException(e);
+        }
         return getInfo(targetName);
     }
 

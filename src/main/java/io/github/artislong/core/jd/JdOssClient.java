@@ -97,7 +97,7 @@ public class JdOssClient implements StandardOssClient {
         }
 
         if (!upLoadCheckPoint.isValid()) {
-            prepare(upLoadCheckPoint, upLoadFile, targetName, checkpointFile);
+            prepareUpload(upLoadCheckPoint, upLoadFile, targetName, checkpointFile);
             FileUtil.del(checkpointFile);
         }
 
@@ -144,7 +144,7 @@ public class JdOssClient implements StandardOssClient {
         FileUtil.del(checkpointFile);
     }
 
-    private void prepare(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile) {
+    private void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile) {
         String bucket = getBucket();
         String key = getKey(targetName, false);
 
@@ -176,8 +176,8 @@ public class JdOssClient implements StandardOssClient {
         ArrayList<UploadPart> parts = new ArrayList<>();
 
         long partNum = fileSize / partSize;
-        if (partNum >= 10000) {
-            partSize = fileSize / (10000 - 1);
+        if (partNum >= OssConstant.DEFAULT_PART_NUM) {
+            partSize = fileSize / (OssConstant.DEFAULT_PART_NUM - 1);
             partNum = fileSize / partSize;
         }
 
@@ -273,7 +273,7 @@ public class JdOssClient implements StandardOssClient {
 
         DownloadObjectStat downloadObjectStat = getDownloadObjectStat(targetName);
         if (!downloadCheckPoint.isValid(downloadObjectStat)) {
-            prepare(downloadCheckPoint, localFile, targetName, checkpointFile);
+            prepareDownload(downloadCheckPoint, localFile, targetName, checkpointFile);
             FileUtil.del(checkpointFile);
         }
 
@@ -321,11 +321,11 @@ public class JdOssClient implements StandardOssClient {
         return new DownloadObjectStat().setSize(contentLength).setLastModified(date).setDigest(eTag);
     }
 
-    private void prepare(DownloadCheckPoint downloadCheckPoint, File localFile, String targetName, String checkpointFile) {
+    private void prepareDownload(DownloadCheckPoint downloadCheckPoint, File localFile, String targetName, String checkpointFile) {
         downloadCheckPoint.setMagic(DownloadCheckPoint.DOWNLOAD_MAGIC);
         downloadCheckPoint.setDownloadFile(localFile.getPath());
         downloadCheckPoint.setBucketName(getBucket());
-        downloadCheckPoint.setObjectKey(getKey(targetName, false));
+        downloadCheckPoint.setKey(getKey(targetName, false));
         downloadCheckPoint.setCheckPointFile(checkpointFile);
 
         downloadCheckPoint.setObjectStat(getDownloadObjectStat(targetName));
@@ -350,8 +350,8 @@ public class JdOssClient implements StandardOssClient {
         ArrayList<DownloadPart> parts = new ArrayList<>();
 
         long partNum = objectSize / partSize;
-        if (partNum >= 10000) {
-            partSize = objectSize / (10000 - 1);
+        if (partNum >= OssConstant.DEFAULT_PART_NUM) {
+            partSize = objectSize / (OssConstant.DEFAULT_PART_NUM - 1);
         }
 
         long offset = 0L;
@@ -448,8 +448,8 @@ public class JdOssClient implements StandardOssClient {
                 output = new RandomAccessFile(downloadCheckPoint.getTempDownloadFile(), "rw");
                 output.seek(downloadPart.getFileStart());
 
-                GetObjectRequest request = new GetObjectRequest(downloadCheckPoint.getBucketName(), downloadCheckPoint.getObjectKey());
-                request.setKey(downloadCheckPoint.getObjectKey());
+                GetObjectRequest request = new GetObjectRequest(downloadCheckPoint.getBucketName(), downloadCheckPoint.getKey());
+                request.setKey(downloadCheckPoint.getKey());
                 request.setBucketName(downloadCheckPoint.getBucketName());
                 request.setRange(downloadPart.getStart(), downloadPart.getEnd());
                 S3Object object = amazonS3.getObject(request);
@@ -463,7 +463,7 @@ public class JdOssClient implements StandardOssClient {
 
                 partResult.setLength(downloadPart.getLength());
                 downloadCheckPoint.update(partNum, true);
-                downloadCheckPoint.dump(downloadCheckPoint.getCheckPointFile());
+                downloadCheckPoint.dump();
             } catch (Exception e) {
                 partResult.setException(e);
                 partResult.setFailed(true);

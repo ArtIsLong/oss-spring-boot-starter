@@ -59,7 +59,8 @@ public class FtpOssClient implements StandardOssClient {
 
     /**
      * FTP协议不支持分块上传，通过追加实现断点上传
-     * @param file 本地文件
+     *
+     * @param file       本地文件
      * @param targetName 目标文件路径
      * @return
      */
@@ -114,6 +115,52 @@ public class FtpOssClient implements StandardOssClient {
     public void downLoad(OutputStream os, String targetName) {
         String key = getKey(targetName, true);
         ftp.download(convertPath(Paths.get(key).getParent().toString(), true), key, os);
+    }
+
+    @Override
+    public void downLoadCheckPoint(File localFile, String targetName) {
+        Ftp ftp = null;
+        OutputStream outputStream = null;
+
+        try {
+            ftp = new Ftp(ftpOssConfig, FtpMode.Passive);
+            ftp.setBackToPwd(ftpOssConfig.isBackToPwd());
+            FTPClient ftpClient = ftp.getClient();
+            ftpClient.enterLocalPassiveMode();
+
+            String key = getKey(targetName, true);
+            FTPFile[] ftpFiles = ftpClient.listFiles(key);
+
+            if (ObjectUtil.isEmpty(ftpFiles)) {
+                log.warn("目标文件不存在，请检查！");
+                return;
+            }
+            if (ftpFiles.length != 1) {
+                log.info("目标文件有多个，请检查！");
+                return;
+            }
+            long remoteFileSize = ftpFiles[0].getSize();
+            if (localFile.exists()) {
+                outputStream = new FileOutputStream(localFile, true);
+                long localFileSize = localFile.length();
+                if (localFileSize >= remoteFileSize) {
+                    log.info("本地文件大小大于远程文件大小，下载中止");
+                    return;
+                }
+                ftpClient.setRestartOffset(localFileSize);
+                ftpClient.retrieveFile(key, outputStream);
+                outputStream.close();
+            } else {
+                outputStream = new FileOutputStream(localFile);
+                ftpClient.retrieveFile(key, outputStream);
+                outputStream.close();
+            }
+        } catch (Exception e) {
+            throw new OssException(e);
+        } finally {
+            IoUtil.close(outputStream);
+            IoUtil.close(ftp);
+        }
     }
 
     @Override

@@ -37,7 +37,7 @@ public class UpOssClientTest {
 
     @Test
     void downLoad() throws FileNotFoundException {
-        FileOutputStream fileOutputStream = new FileOutputStream("/Users/admin/test.png");
+        FileOutputStream fileOutputStream = new FileOutputStream("F:\\Gitee\\oss-spring-boot-starter\\src\\test\\resources\\test.png");
         ossClient.downLoad(fileOutputStream, "test1.png");
     }
 

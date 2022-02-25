@@ -77,7 +77,7 @@ public interface StandardOssClient {
      * @param targetName 目标文件路径
      * @return 文件信息
      */
-    default void downLoadCheckPoint(File localFile, String targetName) {}
+    void downLoadCheckPoint(File localFile, String targetName);
 
     /**
      * 删除文件

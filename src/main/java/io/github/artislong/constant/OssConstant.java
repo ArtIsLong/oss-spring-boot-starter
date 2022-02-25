@@ -16,6 +16,10 @@ public class OssConstant {
      */
     public static final Long DEFAULT_PART_SIZE = 1024 * 1024 * 5L;
     /**
+     * 默认最大分片数
+     */
+    public static final Long DEFAULT_PART_NUM = 10000L;
+    /**
      * 默认并发线程数
      */
     public static final Integer DEFAULT_TASK_NUM = Runtime.getRuntime().availableProcessors();

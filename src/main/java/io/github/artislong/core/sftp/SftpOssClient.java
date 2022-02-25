@@ -13,6 +13,7 @@ import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.sftp.model.SftpOssConfig;
+import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
@@ -22,6 +23,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
@@ -62,13 +64,25 @@ public class SftpOssClient implements StandardOssClient {
         if (!sftp.exist(parentPath)) {
             sftp.mkDirs(parentPath);
         }
-        sftp.put(file.getPath(), parentPath, Sftp.Mode.RESUME);
+        sftp.put(file.getPath(), parentPath, new DefaultSftpProgressMonitor(), Sftp.Mode.RESUME);
         return getInfo(targetName);
     }
 
     @Override
     public void downLoad(OutputStream os, String targetName) {
         sftp.download(getKey(targetName, true), os);
+    }
+
+    @Override
+    public void downLoadCheckPoint(File localFile, String targetName) {
+        try {
+            long skip = localFile.exists() ? localFile.length() : 0;
+            OutputStream os = new FileOutputStream(localFile);
+            ChannelSftp sftpClient = sftp.getClient();
+            sftpClient.get(getKey(targetName, true), os, new DefaultSftpProgressMonitor(), Sftp.Mode.RESUME.ordinal(), skip);
+        } catch (Exception e) {
+            throw new OssException(e);
+        }
     }
 
     @Override

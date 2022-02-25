@@ -31,7 +31,6 @@ import io.minio.messages.Item;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
 
@@ -62,93 +61,105 @@ public class MinioOssClient implements StandardOssClient {
     private MinioClient minioClient;
     private MinioOssConfig minioOssConfig;
 
-    @SneakyThrows
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
-        String bucket = getBucket();
-        String key = getKey(targetName, true);
-        minioClient.putObject(PutObjectArgs.builder()
-                .bucket(bucket)
-                .object(key)
-                .stream(is, is.available(), -1)
-                .build());
+        try {
+            String bucket = getBucket();
+            String key = getKey(targetName, true);
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(key)
+                    .stream(is, is.available(), -1)
+                    .build());
+        } catch (Exception e) {
+            throw new OssException(e);
+        }
         return getInfo(targetName);
     }
 
-    @SneakyThrows
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
-        InputStream inputStream = new FileInputStream(file);
-        upLoad(inputStream, targetName, true);
-        IoUtil.close(inputStream);
+        try (InputStream inputStream = new FileInputStream(file)) {
+            upLoad(inputStream, targetName, true);
+        } catch (Exception e) {
+            throw new OssException(e);
+        }
         return getInfo(targetName);
     }
 
-    @SneakyThrows
     @Override
     public void downLoad(OutputStream os, String targetName) {
-        GetObjectArgs getObjectArgs = GetObjectArgs.builder()
-                .bucket(getBucket())
-                .object(getKey(targetName, true))
-                .build();
-        GetObjectResponse is = minioClient.getObject(getObjectArgs);
-        ByteStreams.copy(is, os);
-        IoUtil.close(is);
+        GetObjectResponse is = null;
+        try {
+            GetObjectArgs getObjectArgs = GetObjectArgs.builder()
+                    .bucket(getBucket())
+                    .object(getKey(targetName, true))
+                    .build();
+            is = minioClient.getObject(getObjectArgs);
+            ByteStreams.copy(is, os);
+        } catch (Exception e) {
+            throw new OssException(e);
+        } finally {
+            IoUtil.close(is);
+        }
     }
 
-    @SneakyThrows
     @Override
     public void downLoadCheckPoint(File localFile, String targetName) {
 
-        String checkpointFile = localFile.getPath() + StrUtil.DOT + OssConstant.OssType.MINIO;
-
-        DownloadCheckPoint downloadCheckPoint = new DownloadCheckPoint();
         try {
-            downloadCheckPoint.load(checkpointFile);
-        } catch (Exception e) {
-            FileUtil.del(checkpointFile);
-        }
+            String checkpointFile = localFile.getPath() + StrUtil.DOT + OssConstant.OssType.MINIO;
 
-        DownloadObjectStat downloadObjectStat = getDownloadObjectStat(targetName);
-        if (!downloadCheckPoint.isValid(downloadObjectStat)) {
-            prepare(downloadCheckPoint, localFile, targetName, checkpointFile);
-            FileUtil.del(checkpointFile);
-        }
-
-        SliceConfig slice = minioOssConfig.getSliceConfig();
-
-        ExecutorService executorService = Executors.newFixedThreadPool(slice.getTaskNum());
-        List<Future<DownloadPartResult>> futures = new ArrayList<>();
-
-        for (int i = 0; i < downloadCheckPoint.getDownloadParts().size(); i++) {
-            if (!downloadCheckPoint.getDownloadParts().get(i).isCompleted()) {
-                futures.add(executorService.submit(new DownloadPartTask(minioClient, downloadCheckPoint, i)));
-            }
-        }
-
-        executorService.shutdown();
-
-        for (Future<DownloadPartResult> future : futures) {
+            DownloadCheckPoint downloadCheckPoint = new DownloadCheckPoint();
             try {
-                DownloadPartResult partResult = future.get();
-                if (partResult.isFailed()) {
-                    throw partResult.getException();
-                }
+                downloadCheckPoint.load(checkpointFile);
             } catch (Exception e) {
-                throw new OssException(e);
+                FileUtil.del(checkpointFile);
             }
-        }
 
-        try {
-            if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)) {
-                executorService.shutdownNow();
+            DownloadObjectStat downloadObjectStat = getDownloadObjectStat(targetName);
+            if (!downloadCheckPoint.isValid(downloadObjectStat)) {
+                prepare(downloadCheckPoint, localFile, targetName, checkpointFile);
+                FileUtil.del(checkpointFile);
             }
-        } catch (InterruptedException e) {
-            throw new OssException("关闭线程池失败", e);
-        }
 
-        FileUtil.rename(new File(downloadCheckPoint.getTempDownloadFile()), downloadCheckPoint.getDownloadFile(), true);
-        FileUtil.del(downloadCheckPoint.getCheckPointFile());
+            SliceConfig slice = minioOssConfig.getSliceConfig();
+
+            ExecutorService executorService = Executors.newFixedThreadPool(slice.getTaskNum());
+            List<Future<DownloadPartResult>> futures = new ArrayList<>();
+
+            for (int i = 0; i < downloadCheckPoint.getDownloadParts().size(); i++) {
+                if (!downloadCheckPoint.getDownloadParts().get(i).isCompleted()) {
+                    futures.add(executorService.submit(new DownloadPartTask(minioClient, downloadCheckPoint, i)));
+                }
+            }
+
+            executorService.shutdown();
+
+            for (Future<DownloadPartResult> future : futures) {
+                try {
+                    DownloadPartResult partResult = future.get();
+                    if (partResult.isFailed()) {
+                        throw partResult.getException();
+                    }
+                } catch (Exception e) {
+                    throw new OssException(e);
+                }
+            }
+
+            try {
+                if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)) {
+                    executorService.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                throw new OssException("关闭线程池失败", e);
+            }
+
+            FileUtil.rename(new File(downloadCheckPoint.getTempDownloadFile()), downloadCheckPoint.getDownloadFile(), true);
+            FileUtil.del(downloadCheckPoint.getCheckPointFile());
+        } catch (Exception e) {
+            throw new OssException(e);
+        }
     }
 
     private DownloadObjectStat getDownloadObjectStat(String targetName) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
@@ -164,7 +175,7 @@ public class MinioOssClient implements StandardOssClient {
         downloadCheckPoint.setMagic(DownloadCheckPoint.DOWNLOAD_MAGIC);
         downloadCheckPoint.setDownloadFile(localFile.getPath());
         downloadCheckPoint.setBucketName(getBucket());
-        downloadCheckPoint.setObjectKey(getKey(targetName, false));
+        downloadCheckPoint.setKey(getKey(targetName, false));
         downloadCheckPoint.setCheckPointFile(checkpointFile);
 
         downloadCheckPoint.setObjectStat(getDownloadObjectStat(targetName));
@@ -189,8 +200,8 @@ public class MinioOssClient implements StandardOssClient {
         ArrayList<DownloadPart> parts = new ArrayList<>();
 
         long partNum = objectSize / partSize;
-        if (partNum >= 10000) {
-            partSize = objectSize / (10000 - 1);
+        if (partNum >= OssConstant.DEFAULT_PART_NUM) {
+            partSize = objectSize / (OssConstant.DEFAULT_PART_NUM - 1);
         }
 
         long offset = 0L;
@@ -289,7 +300,7 @@ public class MinioOssClient implements StandardOssClient {
 
                 GetObjectArgs getObjectArgs = GetObjectArgs.builder()
                         .bucket(downloadCheckPoint.getBucketName())
-                        .object(downloadCheckPoint.getObjectKey())
+                        .object(downloadCheckPoint.getKey())
                         .offset(downloadPart.getStart()) // 起始字节的位置
                         .length(downloadPart.getEnd())  // 要读取的长度 (可选，如果无值则代表读到文件结尾)。
                         .build();
@@ -303,7 +314,7 @@ public class MinioOssClient implements StandardOssClient {
 
                 partResult.setLength(downloadPart.getLength());
                 downloadCheckPoint.update(partNum, true);
-                downloadCheckPoint.dump(downloadCheckPoint.getCheckPointFile());
+                downloadCheckPoint.dump();
             } catch (Exception e) {
                 partResult.setException(e);
                 partResult.setFailed(true);
@@ -315,67 +326,76 @@ public class MinioOssClient implements StandardOssClient {
         }
     }
 
-    @SneakyThrows
     @Override
     public void delete(String targetName) {
-        RemoveObjectArgs removeObjectArgs = RemoveObjectArgs.builder()
-                .bucket(getBucket())
-                .object(getKey(targetName, true))
-                .build();
-        minioClient.removeObject(removeObjectArgs);
+        try {
+            RemoveObjectArgs removeObjectArgs = RemoveObjectArgs.builder()
+                    .bucket(getBucket())
+                    .object(getKey(targetName, true))
+                    .build();
+            minioClient.removeObject(removeObjectArgs);
+        } catch (Exception e) {
+            throw new OssException(e);
+        }
     }
 
-    @SneakyThrows
     @Override
     public void copy(String sourceName, String targetName, Boolean isOverride) {
-        CopyObjectArgs copyObjectArgs = CopyObjectArgs.builder()
-                .bucket(getBucket())
-                .object(getKey(targetName, true))
-                .source(CopySource.builder()
-                        .bucket(getBucket())
-                        .object(getKey(sourceName, true))
-                        .build())
-                .build();
-        minioClient.copyObject(copyObjectArgs);
+        try {
+            CopyObjectArgs copyObjectArgs = CopyObjectArgs.builder()
+                    .bucket(getBucket())
+                    .object(getKey(targetName, true))
+                    .source(CopySource.builder()
+                            .bucket(getBucket())
+                            .object(getKey(sourceName, true))
+                            .build())
+                    .build();
+            minioClient.copyObject(copyObjectArgs);
+        } catch (Exception e) {
+            throw new OssException(e);
+        }
     }
 
-    @SneakyThrows
     @Override
     public OssInfo getInfo(String targetName, Boolean isRecursion) {
-        String key = getKey(targetName, false);
+        try {
+            String key = getKey(targetName, false);
 
-        OssInfo ossInfo = getBaseInfo(targetName);
-        if (isRecursion && isDirectory(key)) {
+            OssInfo ossInfo = getBaseInfo(targetName);
+            if (isRecursion && isDirectory(key)) {
 
-            String prefix = convertPath(key, true);
-            ListObjectsArgs listObjectsArgs = ListObjectsArgs.builder()
-                    .bucket(getBucket())
-                    .delimiter("/")
-                    .prefix(prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH)
-                    .build();
-            Iterable<Result<Item>> results = minioClient.listObjects(listObjectsArgs);
+                String prefix = convertPath(key, true);
+                ListObjectsArgs listObjectsArgs = ListObjectsArgs.builder()
+                        .bucket(getBucket())
+                        .delimiter("/")
+                        .prefix(prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH)
+                        .build();
+                Iterable<Result<Item>> results = minioClient.listObjects(listObjectsArgs);
 
-            List<OssInfo> fileOssInfos = new ArrayList<>();
-            List<OssInfo> directoryInfos = new ArrayList<>();
+                List<OssInfo> fileOssInfos = new ArrayList<>();
+                List<OssInfo> directoryInfos = new ArrayList<>();
 
-            for (Result<Item> result : results) {
-                Item item = result.get();
-                String childKey = replaceKey(item.objectName(), getBasePath(), true);
-                if (item.isDir()) {
-                    directoryInfos.add(getInfo(childKey, true));
-                } else {
-                    fileOssInfos.add(getInfo(childKey, false));
+                for (Result<Item> result : results) {
+                    Item item = result.get();
+                    String childKey = replaceKey(item.objectName(), getBasePath(), true);
+                    if (item.isDir()) {
+                        directoryInfos.add(getInfo(childKey, true));
+                    } else {
+                        fileOssInfos.add(getInfo(childKey, false));
+                    }
+                }
+
+                if (ObjectUtil.isNotEmpty(fileOssInfos) && fileOssInfos.get(0) instanceof FileOssInfo) {
+                    ReflectUtil.setFieldValue(ossInfo, "fileInfos", fileOssInfos);
+                }
+                if (ObjectUtil.isNotEmpty(directoryInfos) && directoryInfos.get(0) instanceof DirectoryOssInfo) {
+                    ReflectUtil.setFieldValue(ossInfo, "directoryInfos", directoryInfos);
                 }
             }
-
-            if (ObjectUtil.isNotEmpty(fileOssInfos) && fileOssInfos.get(0) instanceof FileOssInfo) {
-                ReflectUtil.setFieldValue(ossInfo, "fileInfos", fileOssInfos);
-            }
-            if (ObjectUtil.isNotEmpty(directoryInfos) && directoryInfos.get(0) instanceof DirectoryOssInfo) {
-                ReflectUtil.setFieldValue(ossInfo, "directoryInfos", directoryInfos);
-            }
+            return ossInfo;
+        } catch (Exception e) {
+            throw new OssException(e);
         }
-        return ossInfo;
     }
 
     @Override

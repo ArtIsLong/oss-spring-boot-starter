@@ -36,7 +36,7 @@ public class DownloadCheckPoint implements Serializable {
     /**
      * object key
      */
-    private String objectKey;
+    private String key;
 
     private String checkPointFile;
     /**
@@ -67,9 +67,9 @@ public class DownloadCheckPoint implements Serializable {
     /**
      * Writes the checkpoint data to the checkpoint file.
      */
-    public synchronized void dump(String cpFile) throws IOException {
+    public synchronized void dump() throws IOException {
         this.md5 = hashCode();
-        FileOutputStream fileOut = new FileOutputStream(cpFile);
+        FileOutputStream fileOut = new FileOutputStream(checkPointFile);
         ObjectOutputStream outStream = new ObjectOutputStream(fileOut);
         outStream.writeObject(this);
         outStream.close();
@@ -120,7 +120,7 @@ public class DownloadCheckPoint implements Serializable {
         result = prime * result + ((downloadFile == null) ? 0 : downloadFile.hashCode());
         result = prime * result + ((checkPointFile == null) ? 0 : checkPointFile.hashCode());
         result = prime * result + ((magic == null) ? 0 : magic.hashCode());
-        result = prime * result + ((objectKey == null) ? 0 : objectKey.hashCode());
+        result = prime * result + ((key == null) ? 0 : key.hashCode());
         result = prime * result + ((objectStat == null) ? 0 : objectStat.hashCode());
         result = prime * result + ((downloadParts == null) ? 0 : downloadParts.hashCode());
         result = prime * result + ((versionId == null) ? 0 : versionId.hashCode());
@@ -133,7 +133,7 @@ public class DownloadCheckPoint implements Serializable {
         this.setDownloadFile(dcp.getDownloadFile());
         this.setCheckPointFile(dcp.getCheckPointFile());
         this.setBucketName(dcp.getBucketName());
-        this.setObjectKey(dcp.getObjectKey());
+        this.setKey(dcp.getKey());
         this.setObjectStat(dcp.getObjectStat());
         this.setDownloadParts(dcp.getDownloadParts());
         this.setOriginPartSize(dcp.getOriginPartSize());

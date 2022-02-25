@@ -42,11 +42,11 @@ public class UpLoadPartResult {
         this.length = length;
     }
 
-    public UpLoadPartResult(int number, long offset, long length, long partCRC) {
+    public UpLoadPartResult(int number, long offset, long length, long partCrc) {
         this.number = number;
         this.offset = offset;
         this.length = length;
-        this.partCrc = partCRC;
+        this.partCrc = partCrc;
     }
 
 }

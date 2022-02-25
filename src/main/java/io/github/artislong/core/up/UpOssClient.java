@@ -22,15 +22,11 @@ import io.github.artislong.model.OssInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
 import okhttp3.Response;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,10 +57,13 @@ public class UpOssClient implements StandardOssClient {
         return getInfo(targetName, false);
     }
 
-    @SneakyThrows
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
-        parallelUploader.upload(file.getPath(), getKey(targetName, true), null);
+        try {
+            parallelUploader.upload(file.getPath(), getKey(targetName, true), null);
+        } catch (Exception e) {
+            throw new OssException(e);
+        }
         return getInfo(targetName);
     }
 
@@ -74,6 +73,17 @@ public class UpOssClient implements StandardOssClient {
             Response response = restManager.readFile(getKey(targetName, true));
             IoUtil.copy(response.body().byteStream(), os);
         } catch (IOException | UpException e) {
+            log.error("{}下载失败", targetName, e);
+            throw new OssException(e);
+        }
+    }
+
+    @Override
+    public void downLoadCheckPoint(File localFile, String targetName) {
+        log.warn("又拍云不支持断点续传下载，将使用普通下载");
+        try (OutputStream os = new FileOutputStream(localFile)) {
+            downLoad(os, targetName);
+        } catch (Exception e) {
             log.error("{}下载失败", targetName, e);
             throw new OssException(e);
         }
