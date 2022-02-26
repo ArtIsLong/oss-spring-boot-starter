@@ -4,7 +4,6 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.io.file.PathUtil;
 import cn.hutool.core.util.IdUtil;
@@ -21,18 +20,13 @@ import io.github.artislong.model.OssInfo;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.model.download.DownloadCheckPoint;
 import io.github.artislong.model.download.DownloadObjectStat;
-import io.github.artislong.model.download.DownloadPart;
-import io.github.artislong.model.download.DownloadPartResult;
 import io.github.artislong.model.upload.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.*;
 
 /**
  * 本地文件操作客户端
@@ -77,62 +70,12 @@ public class LocalOssClient implements StandardOssClient {
 
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
-        upLoadFile(file, targetName);
+        uploadFile(file, targetName, localOssConfig.getSliceConfig(), OssConstant.OssType.LOCAL);
         return getInfo(targetName);
     }
 
-    public void upLoadFile(File upLoadFile, String targetName) {
-        String checkpointFile = upLoadFile.getPath() + StrUtil.DOT + OssConstant.OssType.LOCAL;
-
-        UpLoadCheckPoint upLoadCheckPoint = new UpLoadCheckPoint();
-        try {
-            upLoadCheckPoint.load(checkpointFile);
-        } catch (Exception e) {
-            FileUtil.del(checkpointFile);
-        }
-
-        if (!upLoadCheckPoint.isValid()) {
-            prepareUpload(upLoadCheckPoint, upLoadFile, targetName, checkpointFile);
-            FileUtil.del(checkpointFile);
-        }
-
-        Integer taskNum = localOssConfig.getSliceConfig().getTaskNum();
-
-        ExecutorService executorService = Executors.newFixedThreadPool(taskNum);
-        List<Future<UpLoadPartResult>> futures = new ArrayList<>();
-
-        for (int i = 0; i < upLoadCheckPoint.getUploadParts().size(); i++) {
-            if (!upLoadCheckPoint.getUploadParts().get(i).isCompleted()) {
-                futures.add(executorService.submit(new UploadPartTask(upLoadCheckPoint, i)));
-            }
-        }
-
-        executorService.shutdown();
-
-        for (int i = 0; i < futures.size(); i++) {
-            Future<UpLoadPartResult> future = futures.get(i);
-            try {
-                UpLoadPartResult partResult = future.get();
-                if (partResult.isFailed()) {
-                    throw partResult.getException();
-                }
-            } catch (Exception e) {
-                throw new OssException(e);
-            }
-        }
-
-        try {
-            if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            throw new OssException("关闭线程池失败", e);
-        }
-
-        FileUtil.del(checkpointFile);
-    }
-
-    private void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile) {
+    @Override
+    public void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile, SliceConfig slice) {
         String key = getKey(targetName, true);
 
         uploadCheckPoint.setMagic(UpLoadCheckPoint.UPLOAD_MAGIC);
@@ -152,76 +95,36 @@ public class LocalOssClient implements StandardOssClient {
         uploadCheckPoint.setOriginPartSize(parts);
     }
 
-    private ArrayList<UploadPart> splitUploadFile(long fileSize, long partSize) {
-        ArrayList<UploadPart> parts = new ArrayList<>();
+    @Override
+    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum) {
+        UpLoadPartResult partResult = null;
+        UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+        long offset = uploadPart.getOffset();
+        long size = uploadPart.getSize();
+        Integer partSize = Convert.toInt(size);
 
-        long partNum = fileSize / partSize;
-        if (partNum >= OssConstant.DEFAULT_PART_NUM) {
-            partSize = fileSize / (OssConstant.DEFAULT_PART_NUM - 1);
-            partNum = fileSize / partSize;
+        partResult = new UpLoadPartResult(partNum + 1, offset, size);
+        partResult.setNumber(partNum);
+        try {
+            uploadPart(upLoadCheckPoint, partNum);
+
+            RandomAccessFile uploadFile = new RandomAccessFile(upLoadCheckPoint.getUploadFile(), "r");
+            RandomAccessFile targetFile = new RandomAccessFile(upLoadCheckPoint.getKey(), "rw");
+
+            byte[] data = new byte[partSize];
+            uploadFile.seek(offset);
+            targetFile.seek(offset);
+            int len = uploadFile.read(data);
+            targetFile.write(data, 0, len);
+
+            upLoadCheckPoint.update(partNum, new UpLoadPartEntityTag(), true);
+            upLoadCheckPoint.dump();
+        } catch (Exception e) {
+            partResult.setFailed(true);
+            partResult.setException(e);
         }
 
-        for (long i = 0; i < partNum; i++) {
-            UploadPart part = new UploadPart();
-            part.setNumber((int) (i + 1));
-            part.setOffset(i * partSize);
-            part.setSize(partSize);
-            part.setCompleted(false);
-            parts.add(part);
-        }
-
-        if (fileSize % partSize > 0) {
-            UploadPart part = new UploadPart();
-            part.setNumber(parts.size() + 1);
-            part.setOffset(parts.size() * partSize);
-            part.setSize(fileSize % partSize);
-            part.setCompleted(false);
-            parts.add(part);
-        }
-
-        return parts;
-    }
-
-    @Slf4j
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class UploadPartTask implements Callable<UpLoadPartResult> {
-        private UpLoadCheckPoint upLoadCheckPoint;
-        private int partNum;
-
-        @Override
-        public UpLoadPartResult call() {
-            UpLoadPartResult partResult = null;
-            try {
-                UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
-                long offset = uploadPart.getOffset();
-                long size = uploadPart.getSize();
-                Integer partOffset = Convert.toInt(offset);
-                Integer partSize = Convert.toInt(size);
-
-                partResult = new UpLoadPartResult(partNum + 1, offset, size);
-                partResult.setNumber(partNum);
-
-                RandomAccessFile uploadFile = new RandomAccessFile(upLoadCheckPoint.getUploadFile(), "r");
-                RandomAccessFile targetFile = new RandomAccessFile(upLoadCheckPoint.getKey(), "rw");
-
-                byte[] data = new byte[partSize];
-                uploadFile.seek(offset);
-                targetFile.seek(offset);
-                int len = uploadFile.read(data);
-                log.info("partNum = {}, partOffset = {}, partSize = {}", partNum, partOffset, partSize);
-                targetFile.write(data, 0, len);
-
-                upLoadCheckPoint.update(partNum, new UpLoadPartEntityTag(), true);
-                upLoadCheckPoint.dump();
-            } catch (Exception e) {
-                partResult.setFailed(true);
-                partResult.setException(e);
-            }
-
-            return partResult;
-        }
+        return partResult;
     }
 
     @Override
@@ -231,59 +134,11 @@ public class LocalOssClient implements StandardOssClient {
 
     @Override
     public void downLoadCheckPoint(File localFile, String targetName) {
-
-        String checkpointFile = localFile.getPath() + StrUtil.DOT + OssConstant.OssType.BAIDU;
-
-        DownloadCheckPoint downloadCheckPoint = new DownloadCheckPoint();
-        try {
-            downloadCheckPoint.load(checkpointFile);
-        } catch (Exception e) {
-            FileUtil.del(checkpointFile);
-        }
-
-        DownloadObjectStat downloadObjectStat = getDownloadObjectStat(targetName);
-        if (!downloadCheckPoint.isValid(downloadObjectStat)) {
-            prepareDownload(downloadCheckPoint, localFile, targetName, checkpointFile);
-            FileUtil.del(checkpointFile);
-        }
-
-        SliceConfig slice = localOssConfig.getSliceConfig();
-
-        ExecutorService executorService = Executors.newFixedThreadPool(slice.getTaskNum());
-        List<Future<DownloadPartResult>> futures = new ArrayList<>();
-
-        for (int i = 0; i < downloadCheckPoint.getDownloadParts().size(); i++) {
-            if (!downloadCheckPoint.getDownloadParts().get(i).isCompleted()) {
-                futures.add(executorService.submit(new DownloadPartTask(downloadCheckPoint, i)));
-            }
-        }
-
-        executorService.shutdown();
-
-        for (Future<DownloadPartResult> future : futures) {
-            try {
-                DownloadPartResult partResult = future.get();
-                if (partResult.isFailed()) {
-                    throw partResult.getException();
-                }
-            } catch (Exception e) {
-                throw new OssException(e);
-            }
-        }
-
-        try {
-            if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            throw new OssException("关闭线程池失败", e);
-        }
-
-        FileUtil.rename(new File(downloadCheckPoint.getTempDownloadFile()), downloadCheckPoint.getDownloadFile(), true);
-        FileUtil.del(downloadCheckPoint.getCheckPointFile());
+        downLoadFile(localFile, targetName, localOssConfig.getSliceConfig(), OssConstant.OssType.LOCAL);
     }
 
-    private DownloadObjectStat getDownloadObjectStat(String targetName) {
+    @Override
+    public DownloadObjectStat getDownloadObjectStat(String targetName) {
         File file = new File(getKey(targetName, true));
         return new DownloadObjectStat()
                 .setSize(file.length())
@@ -291,7 +146,8 @@ public class LocalOssClient implements StandardOssClient {
                 .setDigest(DigestUtil.sha256Hex(Convert.toStr(file.lastModified())));
     }
 
-    private void prepareDownload(DownloadCheckPoint downloadCheckPoint, File localFile, String targetName, String checkpointFile) {
+    @Override
+    public void prepareDownload(DownloadCheckPoint downloadCheckPoint, File localFile, String targetName, String checkpointFile) {
         downloadCheckPoint.setMagic(DownloadCheckPoint.DOWNLOAD_MAGIC);
         downloadCheckPoint.setDownloadFile(localFile.getPath());
         downloadCheckPoint.setKey(getKey(targetName, false));
@@ -315,126 +171,16 @@ public class LocalOssClient implements StandardOssClient {
         createFixedFile(downloadCheckPoint.getTempDownloadFile(), downloadSize);
     }
 
-    private ArrayList<DownloadPart> splitDownloadFile(long start, long objectSize, long partSize) {
-        ArrayList<DownloadPart> parts = new ArrayList<>();
-
-        long partNum = objectSize / partSize;
-        if (partNum >= OssConstant.DEFAULT_PART_NUM) {
-            partSize = objectSize / (OssConstant.DEFAULT_PART_NUM - 1);
-        }
-
-        long offset = 0L;
-        for (int i = 0; offset < objectSize; offset += partSize, i++) {
-            DownloadPart part = new DownloadPart();
-            part.setIndex(i);
-            part.setStart(offset + start);
-            part.setEnd(getPartEnd(offset, objectSize, partSize) + start);
-            part.setFileStart(offset);
-            parts.add(part);
-        }
-
-        return parts;
-    }
-
-    private long getPartEnd(long begin, long total, long per) {
-        if (begin + per > total) {
-            return total - 1;
-        }
-        return begin + per - 1;
-    }
-
-    private ArrayList<DownloadPart> splitDownloadOneFile() {
-        ArrayList<DownloadPart> parts = new ArrayList<>();
-        DownloadPart part = new DownloadPart();
-        part.setIndex(0);
-        part.setStart(0);
-        part.setEnd(-1);
-        part.setFileStart(0);
-        parts.add(part);
-        return parts;
-    }
-
-    private long[] getSlice(long[] range, long totalSize) {
-        long start = 0;
-        long size = totalSize;
-
-        if ((range == null) ||
-                (range.length != 2) ||
-                (totalSize < 1) ||
-                (range[0] < 0 && range[1] < 0) ||
-                (range[0] > 0 && range[1] > 0 && range[0] > range[1])||
-                (range[0] >= totalSize)) {
-            //download all
-        } else {
-            //dwonload part by range & total size
-            long begin = range[0];
-            long end = range[1];
-            if (range[0] < 0) {
-                begin = 0;
-            }
-            if (range[1] < 0 || range[1] >= totalSize) {
-                end = totalSize -1;
-            }
-            start = begin;
-            size = end - begin + 1;
-        }
-
-        return new long[]{start, size};
-    }
-
-    public static void createFixedFile(String filePath, long length) {
-        File file = new File(filePath);
-        RandomAccessFile rf = null;
+    @Override
+    public InputStream downloadPart(String key, long start, long end) {
         try {
-            rf = new RandomAccessFile(file, "rw");
-            rf.setLength(length);
+            RandomAccessFile uploadFile = new RandomAccessFile(key, "r");
+            byte[] data = new byte[Convert.toInt(end)];
+            uploadFile.seek(start);
+            uploadFile.read(data);
+            return new ByteArrayInputStream(data);
         } catch (Exception e) {
-            throw new OssException("创建下载缓存文件失败");
-        } finally {
-            IoUtil.close(rf);
-        }
-    }
-
-    @Slf4j
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class DownloadPartTask implements Callable<DownloadPartResult> {
-
-        DownloadCheckPoint downloadCheckPoint;
-        int partNum;
-
-        @Override
-        public DownloadPartResult call() {
-            DownloadPartResult downloadPartResult = null;
-            try {
-                DownloadPart downloadPart = downloadCheckPoint.getDownloadParts().get(partNum);
-                long start = downloadPart.getStart();
-                long end = downloadPart.getEnd();
-                Integer partOffset = Convert.toInt(start);
-                Integer partSize = Convert.toInt(end);
-
-                downloadPartResult = new DownloadPartResult(partNum + 1, start, end);
-                downloadPartResult.setNumber(partNum);
-
-                RandomAccessFile uploadFile = new RandomAccessFile(downloadCheckPoint.getDownloadFile(), "r");
-                RandomAccessFile targetFile = new RandomAccessFile(downloadCheckPoint.getKey(), "rw");
-
-                byte[] data = new byte[partSize];
-                uploadFile.seek(start);
-                targetFile.seek(start);
-                int len = uploadFile.read(data);
-                log.info("partNum = {}, partOffset = {}, partSize = {}", partNum, partOffset, partSize);
-                targetFile.write(data, 0, len);
-
-                downloadCheckPoint.update(partNum, true);
-                downloadCheckPoint.dump();
-            } catch (Exception e) {
-                downloadPartResult.setFailed(true);
-                downloadPartResult.setException(e);
-            }
-
-            return downloadPartResult;
+            throw new OssException(e);
         }
     }
 

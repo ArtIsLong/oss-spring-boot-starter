@@ -17,29 +17,26 @@ import com.qcloud.cos.model.*;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.tencent.model.TencentOssConfig;
-import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.model.download.DownloadCheckPoint;
 import io.github.artislong.model.download.DownloadObjectStat;
-import io.github.artislong.model.download.DownloadPart;
-import io.github.artislong.model.download.DownloadPartResult;
 import io.github.artislong.model.upload.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.*;
 import java.util.stream.Collectors;
-
-import static com.aliyun.oss.internal.OSSConstants.DEFAULT_BUFFER_SIZE;
 
 /**
  * https://cloud.tencent.com/document/product/436
@@ -69,59 +66,12 @@ public class TencentOssClient implements StandardOssClient {
 
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
-        upLoadFile(file, targetName);
+        uploadFile(file, targetName, tencentOssConfig.getSliceConfig(), OssConstant.OssType.TENCENT);
         return getInfo(targetName);
     }
 
-    public void upLoadFile(File upLoadFile, String targetName) {
-
-        String checkpointFile = upLoadFile.getPath() + StrUtil.DOT + OssConstant.OssType.TENCENT;
-
-        UpLoadCheckPoint upLoadCheckPoint = new UpLoadCheckPoint();
-        try {
-            upLoadCheckPoint.load(checkpointFile);
-        } catch (Exception e) {
-            FileUtil.del(checkpointFile);
-        }
-
-        if (!upLoadCheckPoint.isValid()) {
-            prepareUpload(upLoadCheckPoint, upLoadFile, targetName, checkpointFile);
-            FileUtil.del(checkpointFile);
-        }
-
-        SliceConfig slice = tencentOssConfig.getSliceConfig();
-
-        ExecutorService executorService = Executors.newFixedThreadPool(slice.getTaskNum());
-        List<Future<UpLoadPartResult>> futures = new ArrayList<>();
-
-        for (int i = 0; i < upLoadCheckPoint.getUploadParts().size(); i++) {
-            if (!upLoadCheckPoint.getUploadParts().get(i).isCompleted()) {
-                futures.add(executorService.submit(new UploadPartTask(cosClient, upLoadCheckPoint, i)));
-            }
-        }
-
-        executorService.shutdown();
-
-        for (Future<UpLoadPartResult> future : futures) {
-            try {
-                UpLoadPartResult partResult = future.get();
-                if (partResult.isFailed()) {
-                    throw partResult.getException();
-                }
-            } catch (Exception e) {
-                throw new OssException(e);
-            }
-        }
-
-        try {
-            if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            throw new OssException("关闭线程池失败", e);
-        }
-
-        List<UpLoadPartEntityTag> partEntityTags = upLoadCheckPoint.getPartEntityTags();
+    @Override
+    public void completeUpload(UpLoadCheckPoint upLoadCheckPoint, List<UpLoadPartEntityTag> partEntityTags) {
         List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(UpLoadPartEntityTag::getPartNumber))
                 .map(partEntityTag -> new PartETag(partEntityTag.getPartNumber(), partEntityTag.getETag())).collect(Collectors.toList());
 
@@ -129,10 +79,11 @@ public class TencentOssClient implements StandardOssClient {
                 new CompleteMultipartUploadRequest(upLoadCheckPoint.getBucket(), upLoadCheckPoint.getKey(), upLoadCheckPoint.getUploadId(), eTags);
         cosClient.completeMultipartUpload(completeMultipartUploadRequest);
 
-        FileUtil.del(checkpointFile);
+        FileUtil.del(upLoadCheckPoint.getCheckpointFile());
     }
 
-    private void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile) {
+    @Override
+    public void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile, SliceConfig slice) {
         String bucket = getBucket();
         String key = getKey(targetName, false);
 
@@ -143,7 +94,7 @@ public class TencentOssClient implements StandardOssClient {
         uploadCheckPoint.setCheckpointFile(checkpointFile);
         uploadCheckPoint.setUploadFileStat(UpLoadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
-        long partSize = tencentOssConfig.getSliceConfig().getPartSize();
+        long partSize = slice.getPartSize();
         long fileLength = upLoadFile.length();
         int parts = (int) (fileLength / partSize);
         if (fileLength % partSize > 0) {
@@ -160,87 +111,45 @@ public class TencentOssClient implements StandardOssClient {
         uploadCheckPoint.setUploadId(result.getUploadId());
     }
 
-    private ArrayList<UploadPart> splitUploadFile(long fileSize, long partSize) {
-        ArrayList<UploadPart> parts = new ArrayList<>();
+    @Override
+    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum) {
+        UpLoadPartResult partResult = null;
+        InputStream inputStream = null;
+        try {
+            UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
 
-        long partNum = fileSize / partSize;
-        if (partNum >= OssConstant.DEFAULT_PART_NUM) {
-            partSize = fileSize / (OssConstant.DEFAULT_PART_NUM - 1);
-            partNum = fileSize / partSize;
+            partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), uploadPart.getSize());
+
+            File uploadFile = new File(upLoadCheckPoint.getUploadFile());
+
+            inputStream = new FileInputStream(uploadFile);
+            inputStream.skip(uploadPart.getOffset());
+
+            UploadPartRequest uploadPartRequest = new UploadPartRequest();
+            uploadPartRequest.setBucketName(upLoadCheckPoint.getBucket());
+            uploadPartRequest.setKey(upLoadCheckPoint.getKey());
+            uploadPartRequest.setUploadId(upLoadCheckPoint.getUploadId());
+            uploadPartRequest.setInputStream(inputStream);
+            uploadPartRequest.setPartSize(uploadPart.getSize());
+            uploadPartRequest.setPartNumber(uploadPart.getNumber());
+
+            UploadPartResult uploadPartResponse = cosClient.uploadPart(uploadPartRequest);
+
+            partResult.setNumber(uploadPartResponse.getPartNumber());
+
+            upLoadCheckPoint.update(partNum, new UpLoadPartEntityTag().setETag(uploadPartResponse.getETag())
+                    .setPartNumber(uploadPartResponse.getPartNumber()), true);
+            upLoadCheckPoint.dump();
+        } catch (Exception e) {
+            partResult.setFailed(true);
+            partResult.setException(e);
+        } finally {
+            IoUtil.close(inputStream);
         }
 
-        for (long i = 0; i < partNum; i++) {
-            UploadPart part = new UploadPart();
-            part.setNumber((int) (i + 1));
-            part.setOffset(i * partSize);
-            part.setSize(partSize);
-            part.setCompleted(false);
-            parts.add(part);
-        }
-
-        if (fileSize % partSize > 0) {
-            UploadPart part = new UploadPart();
-            part.setNumber(parts.size() + 1);
-            part.setOffset(parts.size() * partSize);
-            part.setSize(fileSize % partSize);
-            part.setCompleted(false);
-            parts.add(part);
-        }
-
-        return parts;
+        return partResult;
     }
 
-    public static class UploadPartTask implements Callable<UpLoadPartResult> {
-        COSClient cosClient;
-        UpLoadCheckPoint upLoadCheckPoint;
-        int partNum;
-
-        UploadPartTask(COSClient cosClient, UpLoadCheckPoint upLoadCheckPoint, int partNum) {
-            this.cosClient = cosClient;
-            this.upLoadCheckPoint = upLoadCheckPoint;
-            this.partNum = partNum;
-        }
-
-        @Override
-        public UpLoadPartResult call() {
-            UpLoadPartResult partResult = null;
-            InputStream inputStream = null;
-            try {
-                UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
-
-                partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), uploadPart.getSize());
-
-                File uploadFile = new File(upLoadCheckPoint.getUploadFile());
-
-                inputStream = new FileInputStream(uploadFile);
-                inputStream.skip(uploadPart.getOffset());
-
-                UploadPartRequest uploadPartRequest = new UploadPartRequest();
-                uploadPartRequest.setBucketName(upLoadCheckPoint.getBucket());
-                uploadPartRequest.setKey(upLoadCheckPoint.getKey());
-                uploadPartRequest.setUploadId(upLoadCheckPoint.getUploadId());
-                uploadPartRequest.setInputStream(inputStream);
-                uploadPartRequest.setPartSize(uploadPart.getSize());
-                uploadPartRequest.setPartNumber(uploadPart.getNumber());
-
-                UploadPartResult uploadPartResponse = cosClient.uploadPart(uploadPartRequest);
-
-                partResult.setNumber(uploadPartResponse.getPartNumber());
-
-                upLoadCheckPoint.update(partNum, new UpLoadPartEntityTag().setETag(uploadPartResponse.getETag())
-                        .setPartNumber(uploadPartResponse.getPartNumber()), true);
-                upLoadCheckPoint.dump();
-            } catch (Exception e) {
-                partResult.setFailed(true);
-                partResult.setException(e);
-            } finally {
-                IoUtil.close(inputStream);
-            }
-
-            return partResult;
-        }
-    }
-    
     @Override
     public void downLoad(OutputStream os, String targetName) {
         COSObject cosObject = cosClient.getObject(getBucket(), getKey(targetName, false));
@@ -249,59 +158,11 @@ public class TencentOssClient implements StandardOssClient {
 
     @Override
     public void downLoadCheckPoint(File localFile, String targetName) {
-
-        String checkpointFile = localFile.getPath() + StrUtil.DOT + OssConstant.OssType.TENCENT;
-
-        DownloadCheckPoint downloadCheckPoint = new DownloadCheckPoint();
-        try {
-            downloadCheckPoint.load(checkpointFile);
-        } catch (Exception e) {
-            FileUtil.del(checkpointFile);
-        }
-
-        DownloadObjectStat downloadObjectStat = getDownloadObjectStat(targetName);
-        if (!downloadCheckPoint.isValid(downloadObjectStat)) {
-            prepareDownload(downloadCheckPoint, localFile, targetName, checkpointFile);
-            FileUtil.del(checkpointFile);
-        }
-
-        SliceConfig slice = tencentOssConfig.getSliceConfig();
-
-        ExecutorService executorService = Executors.newFixedThreadPool(slice.getTaskNum());
-        List<Future<DownloadPartResult>> futures = new ArrayList<>();
-
-        for (int i = 0; i < downloadCheckPoint.getDownloadParts().size(); i++) {
-            if (!downloadCheckPoint.getDownloadParts().get(i).isCompleted()) {
-                futures.add(executorService.submit(new DownloadPartTask(cosClient, downloadCheckPoint, i)));
-            }
-        }
-
-        executorService.shutdown();
-
-        for (Future<DownloadPartResult> future : futures) {
-            try {
-                DownloadPartResult partResult = future.get();
-                if (partResult.isFailed()) {
-                    throw partResult.getException();
-                }
-            } catch (Exception e) {
-                throw new OssException(e);
-            }
-        }
-
-        try {
-            if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            throw new OssException("关闭线程池失败", e);
-        }
-
-        FileUtil.rename(new File(downloadCheckPoint.getTempDownloadFile()), downloadCheckPoint.getDownloadFile(), true);
-        FileUtil.del(downloadCheckPoint.getCheckPointFile());
+        downLoadFile(localFile, targetName, tencentOssConfig.getSliceConfig(), OssConstant.OssType.TENCENT);
     }
 
-    private DownloadObjectStat getDownloadObjectStat(String targetName) {
+    @Override
+    public DownloadObjectStat getDownloadObjectStat(String targetName) {
         ObjectMetadata objectMetadata = cosClient.getObjectMetadata(getBucket(), getKey(targetName, false));
         DateTime date = DateUtil.date(objectMetadata.getLastModified());
         long contentLength = objectMetadata.getContentLength();
@@ -309,7 +170,8 @@ public class TencentOssClient implements StandardOssClient {
         return new DownloadObjectStat().setSize(contentLength).setLastModified(date).setDigest(eTag);
     }
 
-    private void prepareDownload(DownloadCheckPoint downloadCheckPoint, File localFile, String targetName, String checkpointFile) {
+    @Override
+    public void prepareDownload(DownloadCheckPoint downloadCheckPoint, File localFile, String targetName, String checkpointFile) {
         downloadCheckPoint.setMagic(DownloadCheckPoint.DOWNLOAD_MAGIC);
         downloadCheckPoint.setDownloadFile(localFile.getPath());
         downloadCheckPoint.setBucketName(getBucket());
@@ -334,133 +196,12 @@ public class TencentOssClient implements StandardOssClient {
         createFixedFile(downloadCheckPoint.getTempDownloadFile(), downloadSize);
     }
 
-    private ArrayList<DownloadPart> splitDownloadFile(long start, long objectSize, long partSize) {
-        ArrayList<DownloadPart> parts = new ArrayList<>();
-
-        long partNum = objectSize / partSize;
-        if (partNum >= OssConstant.DEFAULT_PART_NUM) {
-            partSize = objectSize / (OssConstant.DEFAULT_PART_NUM - 1);
-        }
-
-        long offset = 0L;
-        for (int i = 0; offset < objectSize; offset += partSize, i++) {
-            DownloadPart part = new DownloadPart();
-            part.setIndex(i);
-            part.setStart(offset + start);
-            part.setEnd(getPartEnd(offset, objectSize, partSize) + start);
-            part.setFileStart(offset);
-            parts.add(part);
-        }
-
-        return parts;
-    }
-
-    private long getPartEnd(long begin, long total, long per) {
-        if (begin + per > total) {
-            return total - 1;
-        }
-        return begin + per - 1;
-    }
-
-    private ArrayList<DownloadPart> splitDownloadOneFile() {
-        ArrayList<DownloadPart> parts = new ArrayList<>();
-        DownloadPart part = new DownloadPart();
-        part.setIndex(0);
-        part.setStart(0);
-        part.setEnd(-1);
-        part.setFileStart(0);
-        parts.add(part);
-        return parts;
-    }
-
-    private long[] getSlice(long[] range, long totalSize) {
-        long start = 0;
-        long size = totalSize;
-
-        if ((range == null) ||
-                (range.length != 2) ||
-                (totalSize < 1) ||
-                (range[0] < 0 && range[1] < 0) ||
-                (range[0] > 0 && range[1] > 0 && range[0] > range[1])||
-                (range[0] >= totalSize)) {
-            //download all
-        } else {
-            //dwonload part by range & total size
-            long begin = range[0];
-            long end = range[1];
-            if (range[0] < 0) {
-                begin = 0;
-            }
-            if (range[1] < 0 || range[1] >= totalSize) {
-                end = totalSize -1;
-            }
-            start = begin;
-            size = end - begin + 1;
-        }
-
-        return new long[]{start, size};
-    }
-
-    public static void createFixedFile(String filePath, long length) {
-        File file = new File(filePath);
-        RandomAccessFile rf = null;
-        try {
-            rf = new RandomAccessFile(file, "rw");
-            rf.setLength(length);
-        } catch (Exception e) {
-            throw new OssException("创建下载缓存文件失败");
-        } finally {
-            IoUtil.close(rf);
-        }
-    }
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class DownloadPartTask implements Callable<DownloadPartResult> {
-
-        COSClient cosClient;
-        DownloadCheckPoint downloadCheckPoint;
-        int partNum;
-
-        @Override
-        public DownloadPartResult call() {
-            DownloadPartResult partResult = null;
-            RandomAccessFile output = null;
-            InputStream content = null;
-            try {
-                DownloadPart downloadPart = downloadCheckPoint.getDownloadParts().get(partNum);
-
-                partResult = new DownloadPartResult(partNum + 1, downloadPart.getStart(), downloadPart.getEnd());
-
-                output = new RandomAccessFile(downloadCheckPoint.getTempDownloadFile(), "rw");
-                output.seek(downloadPart.getFileStart());
-
-                GetObjectRequest request = new GetObjectRequest(downloadCheckPoint.getBucketName(), downloadCheckPoint.getKey());
-                request.setKey(downloadCheckPoint.getKey());
-                request.setBucketName(downloadCheckPoint.getBucketName());
-                request.setRange(downloadPart.getStart(), downloadPart.getEnd());
-                COSObject object = cosClient.getObject(request);
-                content = object.getObjectContent();
-
-                byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                int bytesRead = 0;
-                while ((bytesRead = content.read(buffer)) != -1) {
-                    output.write(buffer, 0, bytesRead);
-                }
-
-                partResult.setLength(downloadPart.getLength());
-                downloadCheckPoint.update(partNum, true);
-                downloadCheckPoint.dump();
-            } catch (Exception e) {
-                partResult.setException(e);
-                partResult.setFailed(true);
-            } finally {
-                IoUtil.close(output);
-                IoUtil.close(content);
-            }
-            return partResult;
-        }
+    @Override
+    public InputStream downloadPart(String key, long start, long end) {
+        GetObjectRequest request = new GetObjectRequest(getBucket(), key);
+        request.setRange(start, end);
+        COSObject object = cosClient.getObject(request);
+        return object.getObjectContent();
     }
 
     @Override
