@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -33,7 +33,7 @@ public class SftpOssConfiguration {
     @Autowired
     private SftpOssProperties sftpOssProperties;
 
-    @PostConstruct
+    @Bean
     public void init() {
         List<SftpOssConfig> sftpOssConfigs = sftpOssProperties.getOssConfigs();
         if (sftpOssConfigs.isEmpty()) {

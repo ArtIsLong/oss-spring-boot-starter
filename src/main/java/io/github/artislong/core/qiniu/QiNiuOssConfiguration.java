@@ -12,9 +12,9 @@ import io.github.artislong.core.qiniu.model.QiNiuOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -33,7 +33,7 @@ public class QiNiuOssConfiguration {
     @Autowired
     private QiNiuOssProperties qiNiuOssProperties;
 
-    @PostConstruct
+    @Bean
     public void init() {
         List<QiNiuOssConfig> qiNiuOssConfigs = qiNiuOssProperties.getOssConfigs();
         if (qiNiuOssConfigs.isEmpty()) {
