@@ -106,7 +106,25 @@ void downLoad(OutputStream os,String targetName);
 
 - 断点续传下载
 
-待实现
+```java
+/**
+ * 断点续传
+ * @param localFile 本地文件路径
+ * @param targetName 目标文件路径
+ * @return 文件信息
+ */
+default void downLoadCheckPoint(String localFile, String targetName) {
+    downLoadCheckPoint(new File(localFile), targetName);
+}
+
+/**
+ * 断点续传
+ * @param localFile 本地文件
+ * @param targetName 目标文件路径
+ * @return 文件信息
+ */
+void downLoadCheckPoint(File localFile, String targetName);
+```
 
 - 删除
 
@@ -266,8 +284,9 @@ oss:
 oss:
   local:
     enable: true  # 开启本地存储
-    oss-configs:
-      - base-path: /Study1
+    oss-config:
+      local1:
+        base-path: /Study1
         slice-config:
         task-num: 8  # 并发线程数,默认等于CPU的核数
         part-size: 104857600  # 1024*1024*100 断点续传分片大小
@@ -305,8 +324,9 @@ oss:
 oss:
   ftp:
     enable: true
-    oss-configs:
-      - host: FTP服务器IP
+    oss-config:
+      ftp1:
+        host: FTP服务器IP
         port: FTP服务端口
         user: 用户名
         password: 密码
@@ -351,8 +371,9 @@ oss:
 oss:
   sftp:
     enable: true
-    oss-configs:
-      - host: SFTP服务器IP
+    oss-config:
+      sftp1:
+        host: SFTP服务器IP
         port: SFTP服务端口
         user: 用户名
         password: 密码
@@ -394,8 +415,9 @@ oss:
 oss:
   ali:
     enable: true
-    oss-configs:
-      - access-key-id: accessKeyId
+    oss-config:
+      aliOssClient1:
+        access-key-id: accessKeyId
         access-key-secret: accessKeySecret
         endpoint: endpoint
         bucket-name: bucketName
@@ -414,8 +436,9 @@ oss:
     access-key-id: accessKeyId
     access-key-secret: accessKeySecret
     endpoint: endpoint
-    oss-configs:
-      - bucket-name: bucketName
+    oss-config:
+      aliOssClient1:
+        bucket-name: bucketName
         base-path: 阿里云存储根路径
         slice-config:
           task-num: 8
@@ -456,8 +479,9 @@ oss:
 oss:
   huawei:
     enable: true
-    oss-configs:
-      - endpoint: endpoint
+    oss-config:
+      huaweiOssClient1:
+        endpoint: endpoint
         access-key: accessKey
         secret-key: secretKey
         bucket-name: backetName
@@ -476,8 +500,9 @@ oss:
     endpoint: endpoint
     access-key: accessKey
     secret-key: secretKey
-    oss-configs:
-      - bucket-name: backetName
+    oss-config:
+      huaweiOssClient1:
+        bucket-name: backetName
         base-path: 华为云存储根路径
         slice-config:
           task-num: 8
@@ -519,8 +544,9 @@ oss:
 oss:
   jd:
     enable: true
-    oss-configs:
-      - endpoint: endpoint
+    oss-config:
+      jdOssClient1:
+        endpoint: endpoint
         region: region
         access-key: accessKey
         secret-key: secretKey
@@ -541,8 +567,9 @@ oss:
     region: region
     access-key: accessKey
     secret-key: secretKey
-    oss-configs:
-      - bucket-name: bucket
+    oss-config:
+      jdOssClient1:
+        bucket-name: bucket
         base-path: 京东云存储根路径
         slice-config:
           task-num: 8
@@ -588,8 +615,9 @@ oss:
 oss:
   qiniu:
     enable: true
-    oss-configs:
-      - region: region
+    oss-config:
+      qiNiuOssClient1:
+        region: region
         access-key: accessKey
     	secret-key: secretKey
         bucket-name: bucket
@@ -608,8 +636,9 @@ oss:
     region: region
     access-key: accessKey
     secret-key: secretKey
-    oss-configs:
-      - bucket-name: bucket
+    oss-config:
+      qiNiuOssClient1:
+        bucket-name: bucket
         base-path: 七牛云存储根路径
         slice-config:
           task-num: 8
@@ -650,8 +679,9 @@ oss:
 oss:
   tencent:
     enable: true
-    oss-configs:
-      - region: region
+    oss-config:
+      tencentOssClient1:
+        region: region
         secret-key: secretKey
         secret-id: secretId
         bucket-name: bucket
@@ -670,8 +700,9 @@ oss:
     region: region
     secret-key: secretKey
     secret-id: secretId
-    oss-configs:
-      - bucket-name: bucket
+    oss-config:
+      tencentOssClient1:
+        bucket-name: bucket
         base-path: 腾讯云存储根路径
         slice-config:
           task-num: 8
@@ -710,8 +741,9 @@ oss:
 oss:
   up:
     enable: true
-    oss-configs:
-      - user-name: 用户名
+    oss-config:
+      upOssClient1:
+        user-name: 用户名
         password: 密码
         bucket-name: bucketName
         base-path: 又拍云存储根路径
@@ -727,8 +759,9 @@ oss:
     enable: true
     user-name: 用户名
     password: 密码
-    oss-configs:
-      - bucket-name: bucketName
+    oss-config:
+      upOssClient1:
+        bucket-name: bucketName
         base-path: 又拍云存储根路径
         slice-config:
           task-num: 8
@@ -756,7 +789,7 @@ oss:
 
 ```yaml
 oss:
-  up:
+  minio:
     enable: true
     endpoint: 地址
     access-key: 用户名
@@ -769,10 +802,11 @@ oss:
 
 ```yaml
 oss:
-  up:
+  minio:
     enable: true
-    oss-configs:
-      - endpoint: 地址
+    oss-config:
+      minioOssClient1:
+        endpoint: 地址
         access-key: 用户名
         secret-key: 密码
         bucket-name: bucketName
@@ -783,13 +817,14 @@ oss:
 
 ```yaml
 oss:
-  up:
+  minio:
     enable: true
     endpoint: 地址
     access-key: 用户名
     secret-key: 密码
-    oss-configs:
-      - bucket-name: bucketName
+    oss-config:
+      minioOssClient1:
+        bucket-name: bucketName
         base-path: Minio存储根路径
 ```
 
