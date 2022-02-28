@@ -158,7 +158,7 @@ public class LocalOssClient implements StandardOssClient {
         long downloadSize;
         if (downloadCheckPoint.getObjectStat().getSize() > 0) {
             Long partSize = localOssConfig.getSliceConfig().getPartSize();
-            long[] slice = getSlice(new long[0], downloadCheckPoint.getObjectStat().getSize());
+            long[] slice = getDownloadSlice(new long[0], downloadCheckPoint.getObjectStat().getSize());
             downloadCheckPoint.setDownloadParts(splitDownloadFile(slice[0], slice[1], partSize));
             downloadSize = slice[1];
         } else {
@@ -168,14 +168,14 @@ public class LocalOssClient implements StandardOssClient {
         }
         downloadCheckPoint.setOriginPartSize(downloadCheckPoint.getDownloadParts().size());
         downloadCheckPoint.setVersionId(IdUtil.fastSimpleUUID());
-        createFixedFile(downloadCheckPoint.getTempDownloadFile(), downloadSize);
+        createDownloadTemp(downloadCheckPoint.getTempDownloadFile(), downloadSize);
     }
 
     @Override
     public InputStream downloadPart(String key, long start, long end) {
         try {
             RandomAccessFile uploadFile = new RandomAccessFile(key, "r");
-            byte[] data = new byte[Convert.toInt(end)];
+            byte[] data = new byte[Convert.toInt(end - start)];
             uploadFile.seek(start);
             uploadFile.read(data);
             return new ByteArrayInputStream(data);

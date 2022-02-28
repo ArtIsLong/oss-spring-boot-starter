@@ -69,7 +69,7 @@ public class AliOssClient implements StandardOssClient {
      *
      * @param file       本地文件
      * @param targetName 目标文件路径
-     * @return
+     * @return 文件信息
      */
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {

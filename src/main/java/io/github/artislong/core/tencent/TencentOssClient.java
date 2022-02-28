@@ -183,7 +183,7 @@ public class TencentOssClient implements StandardOssClient {
         long downloadSize;
         if (downloadCheckPoint.getObjectStat().getSize() > 0) {
             Long partSize = tencentOssConfig.getSliceConfig().getPartSize();
-            long[] slice = getSlice(new long[0], downloadCheckPoint.getObjectStat().getSize());
+            long[] slice = getDownloadSlice(new long[0], downloadCheckPoint.getObjectStat().getSize());
             downloadCheckPoint.setDownloadParts(splitDownloadFile(slice[0], slice[1], partSize));
             downloadSize = slice[1];
         } else {
@@ -193,7 +193,7 @@ public class TencentOssClient implements StandardOssClient {
         }
         downloadCheckPoint.setOriginPartSize(downloadCheckPoint.getDownloadParts().size());
         downloadCheckPoint.setVersionId(IdUtil.fastSimpleUUID());
-        createFixedFile(downloadCheckPoint.getTempDownloadFile(), downloadSize);
+        createDownloadTemp(downloadCheckPoint.getTempDownloadFile(), downloadSize);
     }
 
     @Override

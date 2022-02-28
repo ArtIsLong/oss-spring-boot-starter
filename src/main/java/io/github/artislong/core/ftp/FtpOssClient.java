@@ -57,13 +57,6 @@ public class FtpOssClient implements StandardOssClient {
         return getInfo(targetName);
     }
 
-    /**
-     * FTP协议不支持分块上传，通过追加实现断点上传
-     *
-     * @param file       本地文件
-     * @param targetName 目标文件路径
-     * @return
-     */
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
         String key = getKey(targetName, true);

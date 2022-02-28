@@ -55,13 +55,6 @@ public class HuaWeiOssClient implements StandardOssClient {
         return getInfo(targetName);
     }
 
-    /**
-     * 断点续传，通过分块上传实现
-     *
-     * @param file       本地文件
-     * @param targetName 目标文件路径
-     * @return
-     */
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
         String bucket = getBucket();

@@ -75,6 +75,14 @@ public interface StandardOssClient {
      */
     OssInfo upLoadCheckPoint(File file, String targetName);
 
+    /**
+     * 断点续传上传
+     * @param upLoadFile 上传文件
+     * @param targetName 目标对象路径
+     * @param slice 分片参数
+     * @param ossType OSS类型
+     * @return 上传文件信息
+     */
     default OssInfo uploadFile(File upLoadFile, String targetName, SliceConfig slice, String ossType) {
         String checkpointFile = upLoadFile.getPath() + StrUtil.DOT + ossType;
 
@@ -131,9 +139,15 @@ public interface StandardOssClient {
     }
 
     default void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile, SliceConfig slice) {
-
+        throw new OssException("初始化断点续传对象未实现，默认不支持此方法");
     }
 
+    /**
+     * 拆分上传分片
+     * @param fileSize 文件大小
+     * @param partSize 分片大小
+     * @return 所有分片对象
+     */
     default ArrayList<UploadPart> splitUploadFile(long fileSize, long partSize) {
         ArrayList<UploadPart> parts = new ArrayList<>();
 
@@ -164,12 +178,24 @@ public interface StandardOssClient {
         return parts;
     }
 
+    /**
+     * 分片上传Task
+     */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     class UploadPartTask implements Callable<UpLoadPartResult> {
+        /**
+         * OSS客户端
+         */
         private StandardOssClient ossClient;
+        /**
+         * 断点续传对象
+         */
         private UpLoadCheckPoint upLoadCheckPoint;
+        /**
+         * 分片索引
+         */
         private int partNum;
 
         @Override
@@ -178,6 +204,12 @@ public interface StandardOssClient {
         }
     }
 
+    /**
+     * 上传分片
+     * @param upLoadCheckPoint 断点续传对象
+     * @param partNum 分片索引
+     * @return 上传结果
+     */
     default UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum) {
         UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
         long partSize = uploadPart.getSize();
@@ -197,7 +229,6 @@ public interface StandardOssClient {
      * 断点续传
      * @param localFile 本地文件路径
      * @param targetName 目标文件路径
-     * @return 文件信息
      */
     default void downLoadCheckPoint(String localFile, String targetName) {
         downLoadCheckPoint(new File(localFile), targetName);
@@ -207,10 +238,16 @@ public interface StandardOssClient {
      * 断点续传
      * @param localFile 本地文件
      * @param targetName 目标文件路径
-     * @return 文件信息
      */
     void downLoadCheckPoint(File localFile, String targetName);
 
+    /**
+     * 断点续传下载
+     * @param localFile 本地文件
+     * @param targetName 目标对象
+     * @param slice 分片参数
+     * @param ossType OSS类型
+     */
     default void downLoadFile(File localFile, String targetName, SliceConfig slice, String ossType) {
 
         String checkpointFile = localFile.getPath() + StrUtil.DOT + ossType;
@@ -262,13 +299,25 @@ public interface StandardOssClient {
         FileUtil.del(downloadCheckPoint.getCheckPointFile());
     }
 
+    /**
+     * 分片下载Task
+     */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     public static class DownloadPartTask implements Callable<DownloadPartResult> {
 
+        /**
+         * Oss客户端
+         */
         StandardOssClient ossClient;
+        /**
+         * 断点续传对象
+         */
         DownloadCheckPoint downloadCheckPoint;
+        /**
+         * 分片索引
+         */
         int partNum;
 
         @Override
@@ -306,12 +355,33 @@ public interface StandardOssClient {
         }
     }
 
+    /**
+     * 获取目标文件状态
+     * @param targetName 目标对象路径
+     * @return 目标文件状态
+     */
     default DownloadObjectStat getDownloadObjectStat(String targetName) {
-        return new DownloadObjectStat();
+        throw new OssException("获取下载对象状态方法未实现，默认不支持此方法");
     }
 
-    default void prepareDownload(DownloadCheckPoint downloadCheckPoint, File localFile, String targetName, String checkpointFile) {}
+    /**
+     * 初始化断点续传下载对象
+     * @param downloadCheckPoint 断点对象
+     * @param localFile 本地文件
+     * @param targetName 目标对象路径
+     * @param checkpointFile 下载进度缓存文件
+     */
+    default void prepareDownload(DownloadCheckPoint downloadCheckPoint, File localFile, String targetName, String checkpointFile) {
+        throw new OssException("初始化断点续传下载对象方法未实现，默认不支持此方法");
+    }
 
+    /**
+     * 拆分文件分片
+     * @param start 开始字节数
+     * @param objectSize 对象大小
+     * @param partSize 预设分片大小
+     * @return 所有分片对象
+     */
     default ArrayList<DownloadPart> splitDownloadFile(long start, long objectSize, long partSize) {
         ArrayList<DownloadPart> parts = new ArrayList<>();
 
@@ -333,6 +403,13 @@ public interface StandardOssClient {
         return parts;
     }
 
+    /**
+     * 获取分片结束字节数
+     * @param begin 开始字节数
+     * @param total 目标对象大小
+     * @param per 预设分片大小
+     * @return 分片结束字节数
+     */
     default long getPartEnd(long begin, long total, long per) {
         if (begin + per > total) {
             return total - 1;
@@ -340,6 +417,10 @@ public interface StandardOssClient {
         return begin + per - 1;
     }
 
+    /**
+     * 拆分单独一个文件分片
+     * @return 一个文件分片
+     */
     default ArrayList<DownloadPart> splitDownloadOneFile() {
         ArrayList<DownloadPart> parts = new ArrayList<>();
         DownloadPart part = new DownloadPart();
@@ -351,7 +432,13 @@ public interface StandardOssClient {
         return parts;
     }
 
-    default long[] getSlice(long[] range, long totalSize) {
+    /**
+     * 获取下载分片范围
+     * @param range 分片
+     * @param totalSize 目标文件大小
+     * @return 返回分片范围
+     */
+    default long[] getDownloadSlice(long[] range, long totalSize) {
         long start = 0;
         long size = totalSize;
 
@@ -379,8 +466,13 @@ public interface StandardOssClient {
         return new long[]{start, size};
     }
 
-    default void createFixedFile(String filePath, long length) {
-        File file = new File(filePath);
+    /**
+     * 创建下载缓存文件
+     * @param downloadTempFile 下载缓存文件
+     * @param length 文件大小
+     */
+    default void createDownloadTemp(String downloadTempFile, long length) {
+        File file = new File(downloadTempFile);
         RandomAccessFile rf = null;
         try {
             rf = new RandomAccessFile(file, "rw");
@@ -394,13 +486,13 @@ public interface StandardOssClient {
 
     /**
      * 下载分片
-     * @param key
-     * @param start
-     * @param end
-     * @return
+     * @param key 目标文件
+     * @param start 文件开始字节
+     * @param end 文件结束字节
+     * @return 此范围的文件流
      */
     default InputStream downloadPart(String key, long start, long end) {
-        return null;
+        throw new OssException("下载文件分片方法未实现，默认不支持此方法");
     }
 
     /**

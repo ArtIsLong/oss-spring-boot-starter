@@ -69,13 +69,6 @@ public class JdOssClient implements StandardOssClient {
         return getInfo(targetName);
     }
 
-    /**
-     * 断点续传，通过分块上传实现
-     *
-     * @param file       本地文件
-     * @param targetName 目标文件路径
-     * @return
-     */
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
         return uploadFile(file, targetName, jdOssConfig.getSliceConfig(), OssConstant.OssType.JD);
@@ -165,7 +158,7 @@ public class JdOssClient implements StandardOssClient {
         long downloadSize;
         if (downloadCheckPoint.getObjectStat().getSize() > 0) {
             Long partSize = jdOssConfig.getSliceConfig().getPartSize();
-            long[] slice = getSlice(new long[0], downloadCheckPoint.getObjectStat().getSize());
+            long[] slice = getDownloadSlice(new long[0], downloadCheckPoint.getObjectStat().getSize());
             downloadCheckPoint.setDownloadParts(splitDownloadFile(slice[0], slice[1], partSize));
             downloadSize = slice[1];
         } else {
@@ -175,7 +168,7 @@ public class JdOssClient implements StandardOssClient {
         }
         downloadCheckPoint.setOriginPartSize(downloadCheckPoint.getDownloadParts().size());
         downloadCheckPoint.setVersionId(IdUtil.fastSimpleUUID());
-        createFixedFile(downloadCheckPoint.getTempDownloadFile(), downloadSize);
+        createDownloadTemp(downloadCheckPoint.getTempDownloadFile(), downloadSize);
     }
 
     @Override

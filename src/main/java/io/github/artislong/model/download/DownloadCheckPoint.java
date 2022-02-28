@@ -1,5 +1,6 @@
 package io.github.artislong.model.download;
 
+import cn.hutool.core.io.IoUtil;
 import com.aliyun.oss.common.utils.BinaryUtil;
 import lombok.Data;
 
@@ -54,14 +55,15 @@ public class DownloadCheckPoint implements Serializable {
 
     /**
      * Loads the checkpoint data from the checkpoint file.
+     * @param checkPointFile 断点续传进度记录文件
      */
-    public synchronized void load(String cpFile) throws IOException, ClassNotFoundException {
-        FileInputStream fileIn = new FileInputStream(cpFile);
-        ObjectInputStream in = new ObjectInputStream(fileIn);
-        DownloadCheckPoint dcp = (DownloadCheckPoint) in.readObject();
+    public synchronized void load(String checkPointFile) throws IOException, ClassNotFoundException {
+        FileInputStream fis = new FileInputStream(checkPointFile);
+        ObjectInputStream ois = new ObjectInputStream(fis);
+        DownloadCheckPoint dcp = (DownloadCheckPoint) ois.readObject();
         assign(dcp);
-        in.close();
-        fileIn.close();
+        IoUtil.close(ois);
+        IoUtil.close(fis);
     }
 
     /**
@@ -86,8 +88,8 @@ public class DownloadCheckPoint implements Serializable {
 
     /**
      * Updates the part's download status.
-     *
-     * @throws IOException
+     * @param index 分片索引
+     * @param completed 对应分片是否完成
      */
     public synchronized void update(int index, boolean completed) throws IOException {
         downloadParts.get(index).setCompleted(completed);
@@ -95,6 +97,8 @@ public class DownloadCheckPoint implements Serializable {
 
     /**
      * Check if the object matches the checkpoint information.
+     * @param objectStat 文件状态
+     * @return 校验是否通过
      */
     public synchronized boolean isValid(DownloadObjectStat objectStat) {
         // 比较checkpoint的magic和md5

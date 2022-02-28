@@ -64,6 +64,9 @@ public class UpLoadCheckPoint implements Serializable {
 
     /**
      * 更新分块状态
+     * @param partIndex 分片索引
+     * @param partEntityTag 分片Tag
+     * @param completed 分片是否完成
      */
     public synchronized void update(int partIndex, UpLoadPartEntityTag partEntityTag, boolean completed) {
         this.getPartEntityTags().add(partEntityTag);
@@ -72,6 +75,7 @@ public class UpLoadCheckPoint implements Serializable {
 
     /**
      * 检查断点缓存文件是否与断点一致
+     * @return 校验是否通过
      */
     public synchronized boolean isValid() {
         // 比较checkpoint的magic和md5
