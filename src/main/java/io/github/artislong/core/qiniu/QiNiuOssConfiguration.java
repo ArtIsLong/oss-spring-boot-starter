@@ -15,7 +15,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -35,22 +35,21 @@ public class QiNiuOssConfiguration {
 
     @Bean
     public void init() {
-        List<QiNiuOssConfig> qiNiuOssConfigs = qiNiuOssProperties.getOssConfigs();
-        if (qiNiuOssConfigs.isEmpty()) {
+        Map<String, QiNiuOssConfig> qiNiuOssConfigMap = qiNiuOssProperties.getOssConfig();
+        if (qiNiuOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(qiNiuOssProperties));
         } else {
             String accessKey = qiNiuOssProperties.getAccessKey();
             String secretKey = qiNiuOssProperties.getSecretKey();
-            for (int i = 0; i < qiNiuOssConfigs.size(); i++) {
-                QiNiuOssConfig qiNiuOssConfig = qiNiuOssConfigs.get(i);
+            qiNiuOssConfigMap.forEach((name, qiNiuOssConfig) -> {
                 if (ObjectUtil.isEmpty(qiNiuOssConfig.getAccessKey())) {
                     qiNiuOssConfig.setAccessKey(accessKey);
                 }
                 if (ObjectUtil.isEmpty(qiNiuOssConfig.getSecretKey())) {
                     qiNiuOssConfig.setSecretKey(secretKey);
                 }
-                SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(qiNiuOssConfig));
-            }
+                SpringUtil.registerBean(name, build(qiNiuOssConfig));
+            });
         }
     }
 

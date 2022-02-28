@@ -7,8 +7,8 @@ import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -21,14 +21,14 @@ public class FtpOssProperties extends FtpOssConfig implements InitializingBean {
 
     private Boolean enable = false;
 
-    private List<FtpOssConfig> ossConfigs = new ArrayList<>();
+    private Map<String, FtpOssConfig> ossConfig = new HashMap<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (ossConfigs.isEmpty()) {
+        if (ossConfig.isEmpty()) {
             this.init();
         } else {
-            ossConfigs.forEach(FtpOssConfig::init);
+            ossConfig.values().forEach(FtpOssConfig::init);
         }
     }
 }

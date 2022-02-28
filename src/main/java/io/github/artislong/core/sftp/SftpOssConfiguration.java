@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -35,14 +35,13 @@ public class SftpOssConfiguration {
 
     @Bean
     public void init() {
-        List<SftpOssConfig> sftpOssConfigs = sftpOssProperties.getOssConfigs();
-        if (sftpOssConfigs.isEmpty()) {
+        Map<String, SftpOssConfig> sftpOssConfigMap = sftpOssProperties.getOssConfig();
+        if (sftpOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, sftpOssClient(sftp(sftpOssProperties), sftpOssProperties));
         } else {
-            for (int i = 0; i < sftpOssConfigs.size(); i++) {
-                SftpOssConfig sftpOssConfig = sftpOssConfigs.get(i);
-                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), sftpOssClient(sftp(sftpOssConfig), sftpOssConfig));
-            }
+            sftpOssConfigMap.forEach((name, sftpOssConfig) -> {
+                SpringUtil.registerBean(name, sftpOssClient(sftp(sftpOssConfig), sftpOssConfig));
+            });
         }
     }
 

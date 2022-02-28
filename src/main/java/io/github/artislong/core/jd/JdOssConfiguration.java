@@ -23,7 +23,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -44,16 +44,15 @@ public class JdOssConfiguration {
 
     @Bean
     public void init() {
-        List<JdOssConfig> jdOssConfigs = jdOssProperties.getOssConfigs();
-        if (jdOssConfigs.isEmpty()) {
+        Map<String, JdOssConfig> jdOssConfigMap = jdOssProperties.getOssConfig();
+        if (jdOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(jdOssProperties));
         } else {
             String endpoint = jdOssProperties.getEndpoint();
             String accessKey = jdOssProperties.getAccessKey();
             String secretKey = jdOssProperties.getSecretKey();
             String region = jdOssProperties.getRegion();
-            for (int i = 0; i < jdOssConfigs.size(); i++) {
-                JdOssConfig jdOssConfig = jdOssConfigs.get(i);
+            jdOssConfigMap.forEach((name, jdOssConfig) -> {
                 if (ObjectUtil.isEmpty(jdOssConfig.getEndpoint())) {
                     jdOssConfig.setEndpoint(endpoint);
                 }
@@ -66,8 +65,8 @@ public class JdOssConfiguration {
                 if (ObjectUtil.isEmpty(jdOssConfig.getRegion())) {
                     jdOssConfig.setRegion(region);
                 }
-                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), build(jdOssConfig));
-            }
+                SpringUtil.registerBean(name, build(jdOssConfig));
+            });
         }
     }
 

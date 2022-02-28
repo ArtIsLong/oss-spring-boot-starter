@@ -16,7 +16,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -38,15 +38,14 @@ public class AliOssConfiguration {
     @Bean
     public void init() {
 
-        List<AliOssConfig> aliOssConfigs = aliOssProperties.getOssConfigs();
-        if (aliOssConfigs.isEmpty()) {
+        Map<String, AliOssConfig> aliOssConfigMap = aliOssProperties.getOssConfig();
+        if (aliOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, aliOssClient(ossClient(aliOssProperties), aliOssProperties));
         } else {
             String endpoint = aliOssProperties.getEndpoint();
             String accessKeyId = aliOssProperties.getAccessKeyId();
             String accessKeySecret = aliOssProperties.getAccessKeySecret();
-            for (int i = 0; i < aliOssConfigs.size(); i++) {
-                AliOssConfig aliOssConfig = aliOssConfigs.get(i);
+            aliOssConfigMap.forEach((name, aliOssConfig) -> {
                 if (ObjectUtil.isEmpty(aliOssConfig.getEndpoint())) {
                     aliOssConfig.setEndpoint(endpoint);
                 }
@@ -56,8 +55,8 @@ public class AliOssConfiguration {
                 if (ObjectUtil.isEmpty(aliOssConfig.getAccessKeySecret())) {
                     aliOssConfig.setAccessKeySecret(accessKeySecret);
                 }
-                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), aliOssClient(ossClient(aliOssConfig), aliOssConfig));
-            }
+                SpringUtil.registerBean(name, aliOssClient(ossClient(aliOssConfig), aliOssConfig));
+            });
         }
     }
 

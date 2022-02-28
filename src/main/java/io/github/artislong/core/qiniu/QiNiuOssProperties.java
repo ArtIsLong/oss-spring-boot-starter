@@ -7,8 +7,8 @@ import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -21,14 +21,14 @@ public class QiNiuOssProperties extends QiNiuOssConfig implements InitializingBe
 
     private Boolean enable = false;
 
-    private List<QiNiuOssConfig> ossConfigs = new ArrayList<>();
+    private Map<String, QiNiuOssConfig> ossConfig = new HashMap<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (ossConfigs.isEmpty()) {
+        if (ossConfig.isEmpty()) {
             this.init();
         } else {
-            ossConfigs.forEach(QiNiuOssConfig::init);
+            ossConfig.values().forEach(QiNiuOssConfig::init);
         }
     }
 

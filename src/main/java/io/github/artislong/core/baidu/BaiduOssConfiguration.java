@@ -16,8 +16,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -38,15 +37,14 @@ public class BaiduOssConfiguration {
 
     @Bean
     public void init() {
-        List<BaiduOssConfig> baiduOssConfigs = baiduOssProperties.getOssConfigs();
-        if (baiduOssConfigs.isEmpty()) {
+        Map<String, BaiduOssConfig> baiduOssConfigMap = baiduOssProperties.getOssConfig();
+        if (baiduOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, baiduOssClient(bosClient(bosClientConfiguration(baiduOssProperties)), baiduOssProperties));
         } else {
             String endPoint = baiduOssProperties.getEndPoint();
             String accessKeyId = baiduOssProperties.getAccessKeyId();
             String secretAccessKey = baiduOssProperties.getSecretAccessKey();
-            for (int i = 0; i < baiduOssConfigs.size(); i++) {
-                BaiduOssConfig baiduOssConfig = baiduOssConfigs.get(i);
+            baiduOssConfigMap.forEach((name, baiduOssConfig) -> {
                 if (ObjectUtil.isEmpty(baiduOssConfig.getEndPoint())) {
                     baiduOssConfig.setEndPoint(endPoint);
                 }
@@ -56,8 +54,8 @@ public class BaiduOssConfiguration {
                 if (ObjectUtil.isEmpty(baiduOssConfig.getSecretAccessKey())) {
                     baiduOssConfig.setSecretAccessKey(secretAccessKey);
                 }
-                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), baiduOssClient(bosClient(bosClientConfiguration(baiduOssConfig)), baiduOssConfig));
-            }
+                SpringUtil.registerBean(name, baiduOssClient(bosClient(bosClientConfiguration(baiduOssConfig)), baiduOssConfig));
+            });
         }
     }
 

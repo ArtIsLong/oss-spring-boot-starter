@@ -13,7 +13,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -34,14 +34,13 @@ public class LocalOssConfiguration {
 
     @Bean
     public void init() {
-        List<LocalOssConfig> localOssConfigs = localProperties.getOssConfigs();
-        if (localOssConfigs.isEmpty()) {
+        Map<String, LocalOssConfig> localOssConfigMap = localProperties.getOssConfig();
+        if (localOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, localOssClient(localProperties));
         } else {
-            for (int i = 0; i < localOssConfigs.size(); i++) {
-                LocalOssConfig localOssConfig = localOssConfigs.get(i);
-                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), localOssClient(localOssConfig));
-            }
+            localOssConfigMap.forEach((name, localOssConfig) -> {
+                SpringUtil.registerBean(name, localOssClient(localOssConfig));
+            });
         }
     }
 

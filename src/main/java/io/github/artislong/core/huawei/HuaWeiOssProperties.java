@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -23,14 +23,14 @@ public class HuaWeiOssProperties extends HuaweiOssConfig implements Initializing
 
     private Boolean enable = false;
     
-    private List<HuaweiOssConfig> ossConfigs = new ArrayList<>();
+    private Map<String, HuaweiOssConfig> ossConfig = new HashMap<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (ossConfigs.isEmpty()) {
+        if (ossConfig.isEmpty()) {
             this.init();
         } else {
-            ossConfigs.forEach(HuaweiOssConfig::init);
+            ossConfig.values().forEach(HuaweiOssConfig::init);
         }
     }
 }

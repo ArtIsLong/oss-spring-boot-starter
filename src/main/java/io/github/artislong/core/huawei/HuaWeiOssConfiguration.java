@@ -14,8 +14,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -36,15 +35,14 @@ public class HuaWeiOssConfiguration {
 
     @Bean
     public void init() {
-        List<HuaweiOssConfig> huaweiOssConfigs = huaWeiOssProperties.getOssConfigs();
-        if (huaweiOssConfigs.isEmpty()) {
+        Map<String, HuaweiOssConfig> huaweiOssConfigMap = huaWeiOssProperties.getOssConfig();
+        if (huaweiOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, huaWeiOssClient(obsClient(huaWeiOssProperties), huaWeiOssProperties));
         } else {
             String endpoint = huaWeiOssProperties.getEndpoint();
             String accessKey = huaWeiOssProperties.getAccessKey();
             String secretKey = huaWeiOssProperties.getSecretKey();
-            for (int i = 0; i < huaweiOssConfigs.size(); i++) {
-                HuaweiOssConfig huaweiOssConfig = huaweiOssConfigs.get(i);
+            huaweiOssConfigMap.forEach((name, huaweiOssConfig) -> {
                 if (ObjectUtil.isEmpty(huaweiOssConfig.getEndpoint())) {
                     huaweiOssConfig.setEndpoint(endpoint);
                 }
@@ -54,8 +52,8 @@ public class HuaWeiOssConfiguration {
                 if (ObjectUtil.isEmpty(huaweiOssConfig.getSecretKey())) {
                     huaweiOssConfig.setSecretKey(secretKey);
                 }
-                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), huaWeiOssClient(obsClient(huaweiOssConfig), huaweiOssConfig));
-            }
+                SpringUtil.registerBean(name, huaWeiOssClient(obsClient(huaweiOssConfig), huaweiOssConfig));
+            });
         }
     }
 

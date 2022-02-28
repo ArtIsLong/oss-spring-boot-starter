@@ -8,8 +8,8 @@ import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -23,14 +23,14 @@ public class AliOssProperties extends AliOssConfig implements InitializingBean {
 
     private Boolean enable = false;
 
-    private List<AliOssConfig> ossConfigs = new ArrayList<>();
+    private Map<String, AliOssConfig> ossConfig = new HashMap<>();
 
     @Override
     public void afterPropertiesSet() {
-        if (ossConfigs.isEmpty()) {
+        if (ossConfig.isEmpty()) {
             this.init();
         } else {
-            ossConfigs.forEach(AliOssConfig::init);
+            ossConfig.values().forEach(AliOssConfig::init);
         }
     }
 

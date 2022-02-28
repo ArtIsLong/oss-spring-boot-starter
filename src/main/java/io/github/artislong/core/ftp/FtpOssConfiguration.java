@@ -14,8 +14,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -36,14 +35,13 @@ public class FtpOssConfiguration {
 
     @Bean
     public void init() {
-        List<FtpOssConfig> ftpOssConfigs = ftpOssProperties.getOssConfigs();
-        if (ftpOssConfigs.isEmpty()) {
+        Map<String, FtpOssConfig> ftpOssConfigMap = ftpOssProperties.getOssConfig();
+        if (ftpOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, ftpOssClient(ftp(ftpOssProperties), ftpOssProperties));
         } else {
-            for (int i = 0; i < ftpOssConfigs.size(); i++) {
-                FtpOssConfig ftpOssConfig = ftpOssConfigs.get(i);
-                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), ftpOssClient(ftp(ftpOssConfig), ftpOssConfig));
-            }
+            ftpOssConfigMap.forEach((name, ftpOssConfig) -> {
+                SpringUtil.registerBean(name, ftpOssClient(ftp(ftpOssConfig), ftpOssConfig));
+            });
         }
     }
 

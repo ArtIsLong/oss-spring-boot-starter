@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -35,15 +35,14 @@ public class MinioOssConfiguration {
 
     @Bean
     public void init() {
-        List<MinioOssConfig> minioOssConfigs = minioOssProperties.getOssConfigs();
-        if (minioOssConfigs.isEmpty()) {
+        Map<String, MinioOssConfig> minioOssConfigMap = minioOssProperties.getOssConfig();
+        if (minioOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, minioOssClient(minioClient(minioOssProperties), minioOssProperties));
         } else {
             String endpoint = minioOssProperties.getEndpoint();
             String accessKey = minioOssProperties.getAccessKey();
             String secretKey = minioOssProperties.getSecretKey();
-            for (int i = 0; i < minioOssConfigs.size(); i++) {
-                MinioOssConfig minioOssConfig = minioOssConfigs.get(i);
+            minioOssConfigMap.forEach((name, minioOssConfig) -> {
                 if (ObjectUtil.isEmpty(minioOssConfig.getEndpoint())) {
                     minioOssConfig.setEndpoint(endpoint);
                 }
@@ -53,8 +52,8 @@ public class MinioOssConfiguration {
                 if (ObjectUtil.isEmpty(minioOssConfig.getSecretKey())) {
                     minioOssConfig.setSecretKey(secretKey);
                 }
-                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), minioOssClient(minioClient(minioOssConfig), minioOssConfig));
-            }
+                SpringUtil.registerBean(name, minioOssClient(minioClient(minioOssConfig), minioOssConfig));
+            });
         }
     }
 

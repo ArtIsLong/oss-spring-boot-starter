@@ -16,7 +16,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -37,22 +37,21 @@ public class UpOssConfiguration {
 
     @Bean
     public void init() {
-        List<UpOssConfig> upOssConfigs = upOssProperties.getOssConfigs();
-        if (upOssConfigs.isEmpty()) {
+        Map<String, UpOssConfig> upOssConfigMap = upOssProperties.getOssConfig();
+        if (upOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(upOssProperties));
         } else {
             String userName = upOssProperties.getUserName();
             String password = upOssProperties.getPassword();
-            for (int i = 0; i < upOssConfigs.size(); i++) {
-                UpOssConfig upOssConfig = upOssConfigs.get(i);
+            upOssConfigMap.forEach((name, upOssConfig) -> {
                 if (ObjectUtil.isEmpty(upOssConfig.getUserName())) {
                     upOssConfig.setUserName(userName);
                 }
                 if (ObjectUtil.isEmpty(upOssConfig.getPassword())) {
                     upOssConfig.setPassword(password);
                 }
-                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), build(upOssConfig));
-            }
+                SpringUtil.registerBean(name, build(upOssConfig));
+            });
         }
     }
 

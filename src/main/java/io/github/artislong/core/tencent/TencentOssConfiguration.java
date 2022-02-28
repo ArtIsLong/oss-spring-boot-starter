@@ -18,7 +18,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -39,15 +39,14 @@ public class TencentOssConfiguration {
 
     @Bean
     public void init() {
-        List<TencentOssConfig> tencentOssConfigs = tencentOssProperties.getOssConfigs();
-        if (tencentOssConfigs.isEmpty()) {
+        Map<String, TencentOssConfig> tencentOssConfigMap = tencentOssProperties.getOssConfig();
+        if (tencentOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(tencentOssProperties));
         } else {
             String region = tencentOssProperties.getRegion();
             String secretId = tencentOssProperties.getSecretId();
             String secretKey = tencentOssProperties.getSecretKey();
-            for (int i = 0; i < tencentOssConfigs.size(); i++) {
-                TencentOssConfig tencentOssConfig = tencentOssConfigs.get(i);
+            tencentOssConfigMap.forEach((name, tencentOssConfig) -> {
                 if (ObjectUtil.isEmpty(tencentOssConfig.getRegion())) {
                     tencentOssConfig.setRegion(region);
                 }
@@ -57,8 +56,8 @@ public class TencentOssConfiguration {
                 if (ObjectUtil.isEmpty(tencentOssConfig.getSecretKey())) {
                     tencentOssConfig.setSecretKey(secretKey);
                 }
-                SpringUtil.registerBean(DEFAULT_BEAN_NAME + (i + 1), build(tencentOssConfig));
-            }
+                SpringUtil.registerBean(name, build(tencentOssConfig));
+            });
         }
     }
 
