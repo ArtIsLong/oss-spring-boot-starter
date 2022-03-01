@@ -36,7 +36,7 @@
 
 ## 开始使用
 
-导入oss-spring-boot-starter依赖
+jar包已推送至maven中央仓库，可通过如下方式导入oss-spring-boot-starter依赖
 
 ```xml
 <dependencies>
@@ -619,9 +619,9 @@ oss:
       qiNiuOssClient1:
         region: region
         access-key: accessKey
-    	secret-key: secretKey
+        secret-key: secretKey
         bucket-name: bucket
-    	base-path: 七牛云存储根路径
+        base-path: 七牛云存储根路径
         slice-config:
           task-num: 8
           part-size: 104857600 # 1024*1024*100
