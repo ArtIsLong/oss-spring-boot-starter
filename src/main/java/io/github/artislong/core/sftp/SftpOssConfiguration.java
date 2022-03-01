@@ -34,7 +34,7 @@ public class SftpOssConfiguration {
     private SftpOssProperties sftpOssProperties;
 
     @Bean
-    public void init() {
+    public void sftpOssClient() {
         Map<String, SftpOssConfig> sftpOssConfigMap = sftpOssProperties.getOssConfig();
         if (sftpOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, sftpOssClient(sftp(sftpOssProperties), sftpOssProperties));

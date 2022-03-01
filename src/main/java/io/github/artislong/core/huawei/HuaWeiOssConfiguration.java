@@ -34,7 +34,7 @@ public class HuaWeiOssConfiguration {
     private HuaWeiOssProperties huaWeiOssProperties;
 
     @Bean
-    public void init() {
+    public void huaWeiOssClient() {
         Map<String, HuaweiOssConfig> huaweiOssConfigMap = huaWeiOssProperties.getOssConfig();
         if (huaweiOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, huaWeiOssClient(obsClient(huaWeiOssProperties), huaWeiOssProperties));

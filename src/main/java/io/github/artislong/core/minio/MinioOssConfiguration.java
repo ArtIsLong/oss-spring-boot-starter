@@ -34,7 +34,7 @@ public class MinioOssConfiguration {
     private MinioOssProperties minioOssProperties;
 
     @Bean
-    public void init() {
+    public void minioOssClient() {
         Map<String, MinioOssConfig> minioOssConfigMap = minioOssProperties.getOssConfig();
         if (minioOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, minioOssClient(minioClient(minioOssProperties), minioOssProperties));

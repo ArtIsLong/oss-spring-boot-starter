@@ -34,7 +34,7 @@ public class QiNiuOssConfiguration {
     private QiNiuOssProperties qiNiuOssProperties;
 
     @Bean
-    public void init() {
+    public void qiNiuOssClient() {
         Map<String, QiNiuOssConfig> qiNiuOssConfigMap = qiNiuOssProperties.getOssConfig();
         if (qiNiuOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(qiNiuOssProperties));

@@ -36,7 +36,7 @@ public class AliOssConfiguration {
     private AliOssProperties aliOssProperties;
 
     @Bean
-    public void init() {
+    public void aliOssClient() {
 
         Map<String, AliOssConfig> aliOssConfigMap = aliOssProperties.getOssConfig();
         if (aliOssConfigMap.isEmpty()) {

@@ -43,7 +43,7 @@ public class JdOssConfiguration {
     private JdOssProperties jdOssProperties;
 
     @Bean
-    public void init() {
+    public void jdOssClient() {
         Map<String, JdOssConfig> jdOssConfigMap = jdOssProperties.getOssConfig();
         if (jdOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(jdOssProperties));

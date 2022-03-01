@@ -34,7 +34,7 @@ public class FtpOssConfiguration {
     private FtpOssProperties ftpOssProperties;
 
     @Bean
-    public void init() {
+    public void ftpOssClient() {
         Map<String, FtpOssConfig> ftpOssConfigMap = ftpOssProperties.getOssConfig();
         if (ftpOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, ftpOssClient(ftp(ftpOssProperties), ftpOssProperties));
