@@ -24,7 +24,7 @@ import java.util.Map;
 @ConditionalOnClass(OSSClient.class)
 @EnableConfigurationProperties({LocalOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.LOCAL + CharPool.DOT + OssConstant.ENABLE,
-        havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
+        havingValue = OssConstant.DEFAULT_ENABLE_VALUE, matchIfMissing = true)
 public class LocalOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "localOssClient";
