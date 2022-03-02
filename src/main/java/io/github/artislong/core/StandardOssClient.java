@@ -201,7 +201,12 @@ public interface StandardOssClient {
 
         @Override
         public UpLoadPartResult call() {
-            return ossClient.uploadPart(upLoadCheckPoint, partNum);
+            UpLoadPartResult upLoadPartResult = ossClient.uploadPart(upLoadCheckPoint, partNum);
+            if (!upLoadPartResult.isFailed()) {
+                upLoadCheckPoint.update(partNum, upLoadPartResult.getEntityTag(), true);
+                upLoadCheckPoint.dump();
+            }
+            return upLoadPartResult;
         }
     }
 

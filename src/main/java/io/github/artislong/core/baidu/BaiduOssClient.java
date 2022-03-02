@@ -135,10 +135,7 @@ public class BaiduOssClient implements StandardOssClient {
 
             partResult.setNumber(uploadPartResponse.getPartNumber());
             PartETag eTag = uploadPartResponse.getPartETag();
-
-            upLoadCheckPoint.update(partNum, new UpLoadPartEntityTag().setETag(eTag.getETag())
-                    .setPartNumber(eTag.getPartNumber()), true);
-            upLoadCheckPoint.dump();
+            partResult.setEntityTag(new UpLoadPartEntityTag().setETag(eTag.getETag()).setPartNumber(eTag.getPartNumber()));
         } catch (Exception e) {
             partResult.setFailed(true);
             partResult.setException(e);

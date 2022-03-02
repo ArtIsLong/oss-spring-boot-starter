@@ -1,6 +1,7 @@
 package io.github.artislong.model.upload;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * 分块结果集
@@ -8,6 +9,7 @@ import lombok.Data;
  * @version PartResult.java, v 1.1 2022/2/10 10:01 chenmin Exp $
  * Created on 2022/2/10
  */
+@Accessors(chain = true)
 @Data
 public class UpLoadPartResult {
 
@@ -35,6 +37,8 @@ public class UpLoadPartResult {
      * 分块crc
      */
     private Long partCrc;
+
+    private UpLoadPartEntityTag entityTag;
 
     public UpLoadPartResult(int number, long offset, long length) {
         this.number = number;

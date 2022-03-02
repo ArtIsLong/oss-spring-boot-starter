@@ -135,10 +135,8 @@ public class TencentOssClient implements StandardOssClient {
             UploadPartResult uploadPartResponse = cosClient.uploadPart(uploadPartRequest);
 
             partResult.setNumber(uploadPartResponse.getPartNumber());
-
-            upLoadCheckPoint.update(partNum, new UpLoadPartEntityTag().setETag(uploadPartResponse.getETag())
-                    .setPartNumber(uploadPartResponse.getPartNumber()), true);
-            upLoadCheckPoint.dump();
+            partResult.setEntityTag(new UpLoadPartEntityTag().setETag(uploadPartResponse.getETag())
+                    .setPartNumber(uploadPartResponse.getPartNumber()));
         } catch (Exception e) {
             partResult.setFailed(true);
             partResult.setException(e);

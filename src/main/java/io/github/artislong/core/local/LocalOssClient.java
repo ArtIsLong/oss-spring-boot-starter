@@ -111,9 +111,7 @@ public class LocalOssClient implements StandardOssClient {
             targetFile.seek(offset);
             int len = uploadFile.read(data);
             targetFile.write(data, 0, len);
-
-            upLoadCheckPoint.update(partNum, new UpLoadPartEntityTag(), true);
-            upLoadCheckPoint.dump();
+            partResult.setEntityTag(new UpLoadPartEntityTag());
         } catch (Exception e) {
             partResult.setFailed(true);
             partResult.setException(e);
