@@ -16,19 +16,10 @@ import java.util.Date;
 public class DownloadObjectStat implements Serializable {
 
     private static final long serialVersionUID = -2883494783412999919L;
-    /**
-     * file size
-     */
-    private long size;
-    /**
-     * file's last modified time.
-     */
-    private Date lastModified;
-    /**
-     * The file's ETag.
-     */
-    private String digest;
 
+    private long size;
+    private Date lastModified;
+    private String digest;
 
     @Override
     public int hashCode() {

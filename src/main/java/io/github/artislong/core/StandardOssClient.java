@@ -27,6 +27,7 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 import static com.aliyun.oss.internal.OSSConstants.DEFAULT_BUFFER_SIZE;
@@ -606,6 +607,8 @@ public interface StandardOssClient {
     default Boolean isDirectory(String targetName) {
         return !isFile(targetName);
     }
+
+    Map<String, Object> getClientObject();
 
     /**
      * 路径转换

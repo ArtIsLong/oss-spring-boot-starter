@@ -8,7 +8,6 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -33,9 +32,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -50,6 +47,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BaiduOssClient implements StandardOssClient {
+
+    public static final String BOS_OBJECT_NAME = "bosClient";
 
     private BosClient bosClient;
     private BaiduOssConfig baiduOssConfig;
@@ -104,7 +103,7 @@ public class BaiduOssClient implements StandardOssClient {
             parts++;
         }
 
-        uploadCheckPoint.setUploadParts(splitUploadFile(uploadCheckPoint.getUploadFileStat().getSize(), parts));
+        uploadCheckPoint.setUploadParts(splitUploadFile(uploadCheckPoint.getUploadFileStat().getSize(), partSize));
         uploadCheckPoint.setPartEntityTags(new ArrayList<>());
         uploadCheckPoint.setOriginPartSize(parts);
 
@@ -191,7 +190,6 @@ public class BaiduOssClient implements StandardOssClient {
             downloadCheckPoint.setDownloadParts(splitDownloadOneFile());
         }
         downloadCheckPoint.setOriginPartSize(downloadCheckPoint.getDownloadParts().size());
-        downloadCheckPoint.setVersionId(IdUtil.fastSimpleUUID());
         createDownloadTemp(downloadCheckPoint.getTempDownloadFile(), downloadSize);
     }
 
@@ -274,6 +272,15 @@ public class BaiduOssClient implements StandardOssClient {
     @Override
     public String getBasePath() {
         return baiduOssConfig.getBasePath();
+    }
+
+    @Override
+    public Map<String, Object> getClientObject() {
+        return new HashMap<String, Object>() {
+            {
+                put(BOS_OBJECT_NAME, getBosClient());
+            }
+        };
     }
 
     private String getBucket() {

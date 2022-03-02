@@ -6,7 +6,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -33,9 +32,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * http://docs.minio.org.cn/docs/master/minio-monitoring-guide
@@ -50,6 +47,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MinioOssClient implements StandardOssClient {
+
+    public static final String MINIO_OBJECT_NAME = "minioClient";
 
     private MinioClient minioClient;
     private MinioOssConfig minioOssConfig;
@@ -138,7 +137,6 @@ public class MinioOssClient implements StandardOssClient {
             downloadCheckPoint.setDownloadParts(splitDownloadOneFile());
         }
         downloadCheckPoint.setOriginPartSize(downloadCheckPoint.getDownloadParts().size());
-        downloadCheckPoint.setVersionId(IdUtil.fastSimpleUUID());
         createDownloadTemp(downloadCheckPoint.getTempDownloadFile(), downloadSize);
     }
 
@@ -217,6 +215,15 @@ public class MinioOssClient implements StandardOssClient {
     @Override
     public String getBasePath() {
         return minioOssConfig.getBasePath();
+    }
+
+    @Override
+    public Map<String, Object> getClientObject() {
+        return new HashMap<String, Object>() {
+            {
+                put(MINIO_OBJECT_NAME, getMinioClient());
+            }
+        };
     }
 
     private String getBucket() {

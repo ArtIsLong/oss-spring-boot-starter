@@ -28,7 +28,9 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -40,6 +42,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FtpOssClient implements StandardOssClient {
+
+    public static final String FTP_OBJECT_NAME = "ftp";
 
     private Ftp ftp;
     private FtpOssConfig ftpOssConfig;
@@ -231,6 +235,15 @@ public class FtpOssClient implements StandardOssClient {
     @Override
     public String getBasePath() {
         return ftpOssConfig.getBasePath();
+    }
+
+    @Override
+    public Map<String, Object> getClientObject() {
+        return new HashMap<String, Object>() {
+            {
+                put(FTP_OBJECT_NAME, getFtp());
+            }
+        };
     }
 
     private OssInfo getBaseInfo(String targetName) {

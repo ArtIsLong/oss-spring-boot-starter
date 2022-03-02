@@ -1,11 +1,12 @@
 package io.github.artislong.model.download;
 
 import cn.hutool.core.io.IoUtil;
-import com.aliyun.oss.common.utils.BinaryUtil;
 import lombok.Data;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -18,43 +19,18 @@ public class DownloadCheckPoint implements Serializable {
     private static final long serialVersionUID = 4682293344365787077L;
     public static final String DOWNLOAD_MAGIC = "92611BED-89E2-46B6-89E5-72F273D4B0A3";
 
-    /**
-     * magic
-     */
     private String magic;
-    /**
-     * the md5 of checkpoint data.
-     */
     private int md5;
-    /**
-     * local path for the download.
-     */
     private String downloadFile;
-    /**
-     * bucket name
-     */
     private String bucketName;
-    /**
-     * object key
-     */
     private String key;
-
     private String checkPointFile;
-    /**
-     * object state
-     */
     private DownloadObjectStat objectStat;
-    /**
-     * download parts list.
-     */
-    private ArrayList<DownloadPart> downloadParts;
-
+    private List<DownloadPart> downloadParts = Collections.synchronizedList(new ArrayList<>());
     private long originPartSize;
 
-    private String versionId;
-
     /**
-     * Loads the checkpoint data from the checkpoint file.
+     * 从缓存文件中加载断点数据
      * @param checkPointFile 断点续传进度记录文件
      */
     public synchronized void load(String checkPointFile) throws IOException, ClassNotFoundException {
@@ -67,27 +43,27 @@ public class DownloadCheckPoint implements Serializable {
     }
 
     /**
-     * Writes the checkpoint data to the checkpoint file.
+     * 将断点信息写入到断点缓存文件
      */
     public synchronized void dump() throws IOException {
         this.md5 = hashCode();
-        FileOutputStream fileOut = new FileOutputStream(checkPointFile);
-        ObjectOutputStream outStream = new ObjectOutputStream(fileOut);
-        outStream.writeObject(this);
-        outStream.close();
-        fileOut.close();
-    }
-
-    public String getTempDownloadFile() {
-        if (getVersionId() != null) {
-            return downloadFile + "." + BinaryUtil.encodeMD5(getVersionId().getBytes()) + ".tmp";
-        } else {
-            return downloadFile + ".tmp";
-        }
+        FileOutputStream outputStream = new FileOutputStream(checkPointFile);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+        objectOutputStream.writeObject(this);
+        IoUtil.close(objectOutputStream);
+        IoUtil.close(outputStream);
     }
 
     /**
-     * Updates the part's download status.
+     * 获取下载缓存文件名称
+     * @return 缓存文件名
+     */
+    public String getTempDownloadFile() {
+        return downloadFile + ".tmp";
+    }
+
+    /**
+     * 更新分片状态
      * @param index 分片索引
      * @param completed 对应分片是否完成
      */
@@ -96,7 +72,7 @@ public class DownloadCheckPoint implements Serializable {
     }
 
     /**
-     * Check if the object matches the checkpoint information.
+     * 校验下载文件与断点信息是否一致
      * @param objectStat 文件状态
      * @return 校验是否通过
      */
@@ -106,8 +82,7 @@ public class DownloadCheckPoint implements Serializable {
             return false;
         }
 
-        // Object's size, last modified time or ETAG are not same as the one
-        // in the checkpoint.
+        // 比较文件大小及最新修改时间
         if (this.objectStat.getSize() != objectStat.getSize() || !this.objectStat.getLastModified().equals(objectStat.getLastModified())
                 || !this.objectStat.getDigest().equals(objectStat.getDigest())) {
             return false;
@@ -127,7 +102,6 @@ public class DownloadCheckPoint implements Serializable {
         result = prime * result + ((key == null) ? 0 : key.hashCode());
         result = prime * result + ((objectStat == null) ? 0 : objectStat.hashCode());
         result = prime * result + ((downloadParts == null) ? 0 : downloadParts.hashCode());
-        result = prime * result + ((versionId == null) ? 0 : versionId.hashCode());
         return result;
     }
 
@@ -141,7 +115,6 @@ public class DownloadCheckPoint implements Serializable {
         this.setObjectStat(dcp.getObjectStat());
         this.setDownloadParts(dcp.getDownloadParts());
         this.setOriginPartSize(dcp.getOriginPartSize());
-        this.setVersionId(dcp.getVersionId());
     }
 
 }

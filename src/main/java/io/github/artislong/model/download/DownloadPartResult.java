@@ -10,35 +10,13 @@ import lombok.Data;
 @Data
 public class DownloadPartResult {
 
-    /**
-     * part number, starting from 1.
-      */
     private int number;
-    /**
-     * start index in the part.
-      */
     private long start;
-    /**
-     * end index in the part.
-      */
     private long end;
-    /**
-     * flag of part upload failure.
-      */
     private boolean failed = false;
-    /**
-     * Exception during part upload.
-      */
     private Exception exception;
-    /**
-     * client crc of this part
-      */
     private Long clientCrc;
-    /**
-     * server crc of this file
-      */
     private Long serverCrc;
-
     private long length;
 
     public DownloadPartResult(int number, long start, long end) {

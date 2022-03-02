@@ -6,7 +6,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.io.file.PathUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
@@ -33,10 +32,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.UserPrincipal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * 本地文件操作客户端
@@ -91,7 +87,7 @@ public class LocalOssClient implements StandardOssClient {
             parts++;
         }
 
-        uploadCheckPoint.setUploadParts(splitUploadFile(uploadCheckPoint.getUploadFileStat().getSize(), parts));
+        uploadCheckPoint.setUploadParts(splitUploadFile(uploadCheckPoint.getUploadFileStat().getSize(), partSize));
         uploadCheckPoint.setOriginPartSize(parts);
     }
 
@@ -106,7 +102,6 @@ public class LocalOssClient implements StandardOssClient {
         partResult = new UpLoadPartResult(partNum + 1, offset, size);
         partResult.setNumber(partNum);
         try {
-            uploadPart(upLoadCheckPoint, partNum);
 
             RandomAccessFile uploadFile = new RandomAccessFile(upLoadCheckPoint.getUploadFile(), "r");
             RandomAccessFile targetFile = new RandomAccessFile(upLoadCheckPoint.getKey(), "rw");
@@ -167,7 +162,6 @@ public class LocalOssClient implements StandardOssClient {
             downloadCheckPoint.setDownloadParts(splitDownloadOneFile());
         }
         downloadCheckPoint.setOriginPartSize(downloadCheckPoint.getDownloadParts().size());
-        downloadCheckPoint.setVersionId(IdUtil.fastSimpleUUID());
         createDownloadTemp(downloadCheckPoint.getTempDownloadFile(), downloadSize);
     }
 
@@ -282,4 +276,8 @@ public class LocalOssClient implements StandardOssClient {
         return basePath;
     }
 
+    @Override
+    public Map<String, Object> getClientObject() {
+        return new HashMap<>();
+    }
 }

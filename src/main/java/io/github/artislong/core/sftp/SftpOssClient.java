@@ -28,7 +28,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author 陈敏
@@ -40,6 +42,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SftpOssClient implements StandardOssClient {
+
+    public static final String SFTP_OBJECT_NAME = "sftp";
 
     private Sftp sftp;
     private SftpOssConfig sftpOssConfig;
@@ -161,6 +165,15 @@ public class SftpOssClient implements StandardOssClient {
     @Override
     public String getBasePath() {
         return sftpOssConfig.getBasePath();
+    }
+
+    @Override
+    public Map<String, Object> getClientObject() {
+        return new HashMap<String, Object>() {
+            {
+                put(SFTP_OBJECT_NAME, getSftp());
+            }
+        };
     }
 
     private OssInfo getBaseInfo(String targetName) {

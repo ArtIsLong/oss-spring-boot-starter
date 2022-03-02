@@ -14,33 +14,12 @@ public class DownloadPart implements Serializable {
 
     private static final long serialVersionUID = -3655925846487976207L;
 
-    /**
-     * part index (starting from 0).
-     */
     private int index;
-    /**
-     * start index;
-     */
     private long start;
-    /**
-     * end index;
-     */
     private long end;
-    /**
-     * flag of part download finished or not;
-     */
     private boolean isCompleted;
-    /**
-     * length of part
-     */
     private long length;
-    /**
-     * part crc.
-     */
     private long crc;
-    /**
-     *  start index in file, for range get
-     */
     private long fileStart;
 
     @Override

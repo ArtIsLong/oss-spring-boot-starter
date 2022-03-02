@@ -28,7 +28,9 @@ import okhttp3.Response;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * https://github.com/upyun/java-sdk
@@ -41,6 +43,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpOssClient implements StandardOssClient {
+
+    public static final String REST_OBJECT_NAME = "restManager";
+    public static final String PARALLEL_OBJECT_NAME = "parallelUploader";
 
     private RestManager restManager;
     private ParallelUploader parallelUploader;
@@ -179,6 +184,16 @@ public class UpOssClient implements StandardOssClient {
     @Override
     public String getBasePath() {
         return upOssConfig.getBasePath();
+    }
+
+    @Override
+    public Map<String, Object> getClientObject() {
+        return new HashMap<String, Object>() {
+            {
+                put(REST_OBJECT_NAME, getRestManager());
+                put(PARALLEL_OBJECT_NAME, getParallelUploader());
+            }
+        };
     }
 
     private OssInfo getBaseInfo(String key) throws UpException, IOException {

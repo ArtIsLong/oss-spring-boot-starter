@@ -8,7 +8,6 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -36,9 +35,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +50,9 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 public class JdOssClient implements StandardOssClient {
+
+    public static final String AMAZONS3_OBJECT_NAME = "amazonS3";
+    public static final String TRANSFER_OBJECT_NAME = "transferManager";
 
     private AmazonS3 amazonS3;
     private TransferManager transferManager;
@@ -167,7 +167,6 @@ public class JdOssClient implements StandardOssClient {
             downloadCheckPoint.setDownloadParts(splitDownloadOneFile());
         }
         downloadCheckPoint.setOriginPartSize(downloadCheckPoint.getDownloadParts().size());
-        downloadCheckPoint.setVersionId(IdUtil.fastSimpleUUID());
         createDownloadTemp(downloadCheckPoint.getTempDownloadFile(), downloadSize);
     }
 
@@ -244,6 +243,16 @@ public class JdOssClient implements StandardOssClient {
     @Override
     public String getBasePath() {
         return jdOssConfig.getBasePath();
+    }
+
+    @Override
+    public Map<String, Object> getClientObject() {
+        return new HashMap<String, Object>() {
+            {
+                put(AMAZONS3_OBJECT_NAME, getAmazonS3());
+                put(TRANSFER_OBJECT_NAME, getTransferManager());
+            }
+        };
     }
 
     private String getBucket() {

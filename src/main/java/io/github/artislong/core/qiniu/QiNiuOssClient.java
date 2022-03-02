@@ -4,7 +4,6 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -40,7 +39,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * https://developer.qiniu.com/kodo
@@ -54,6 +55,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class QiNiuOssClient implements StandardOssClient {
+
+    public static final String AUTH_OBJECT_NAME = "auth";
+    public static final String UPLOAD_OBJECT_NAME = "uploadManager";
+    public static final String BUCKET_OBJECT_NAME = "bucketManager";
 
     private Auth auth;
     private UploadManager uploadManager;
@@ -149,7 +154,6 @@ public class QiNiuOssClient implements StandardOssClient {
             downloadCheckPoint.setDownloadParts(splitDownloadOneFile());
         }
         downloadCheckPoint.setOriginPartSize(downloadCheckPoint.getDownloadParts().size());
-        downloadCheckPoint.setVersionId(IdUtil.fastSimpleUUID());
         createDownloadTemp(downloadCheckPoint.getTempDownloadFile(), downloadSize);
     }
 
@@ -249,6 +253,17 @@ public class QiNiuOssClient implements StandardOssClient {
     @Override
     public String getBasePath() {
         return qiNiuOssConfig.getBasePath();
+    }
+
+    @Override
+    public Map<String, Object> getClientObject() {
+        return new HashMap<String, Object>() {
+            {
+                put(AUTH_OBJECT_NAME, getAuth());
+                put(UPLOAD_OBJECT_NAME, getUploadManager());
+                put(BUCKET_OBJECT_NAME, getBucketManager());
+            }
+        };
     }
 
     private String getUpToken() {

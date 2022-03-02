@@ -29,9 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * https://help.aliyun.com/product/31815.html
@@ -45,6 +43,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AliOssClient implements StandardOssClient {
+
+    public static final String OSS_OBJECT_NAME = "oss";
 
     private OSS oss;
     private AliOssConfig aliOssConfig;
@@ -198,6 +198,15 @@ public class AliOssClient implements StandardOssClient {
         return aliOssConfig.getBasePath();
     }
 
+    @Override
+    public Map<String, Object> getClientObject() {
+        return new HashMap<String, Object>() {
+            {
+                put(OSS_OBJECT_NAME, getOss());
+            }
+        };
+    }
+
     public String getBucketName() {
         return aliOssConfig.getBucketName();
     }
@@ -217,24 +226,6 @@ public class AliOssClient implements StandardOssClient {
             }
         } else {
             ossInfo = new DirectoryOssInfo();
-        }
-        return ossInfo;
-    }
-
-    private OssInfo getDirectoryBaseInfo(String bucketName, String key) {
-        ListObjectsRequest listObjectsRequest = new ListObjectsRequest(bucketName);
-        listObjectsRequest.setDelimiter("/");
-        String prefix = convertPath(key, false);
-        listObjectsRequest.setPrefix(prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH);
-        ObjectListing listing = oss.listObjects(listObjectsRequest);
-
-        OssInfo ossInfo = new DirectoryOssInfo();
-        for (OSSObjectSummary ossObjectSummary : listing.getObjectSummaries()) {
-            if (FileNameUtil.getName(ossObjectSummary.getKey()).equals(FileNameUtil.getName(key))) {
-                ossInfo.setLastUpdateTime(DateUtil.date(ossObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                ossInfo.setCreateTime(DateUtil.date(ossObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                ossInfo.setSize(Convert.toStr(ossObjectSummary.getSize()));
-            }
         }
         return ossInfo;
     }

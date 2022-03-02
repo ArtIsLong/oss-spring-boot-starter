@@ -27,7 +27,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * https://support.huaweicloud.com/obs/index.html
@@ -41,6 +43,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class HuaWeiOssClient implements StandardOssClient {
+
+    public static final String OBS_OBJECT_NAME = "obsClient";
 
     private ObsClient obsClient;
     private HuaweiOssConfig huaweiOssConfig;
@@ -166,6 +170,15 @@ public class HuaWeiOssClient implements StandardOssClient {
     @Override
     public String getBasePath() {
         return huaweiOssConfig.getBasePath();
+    }
+
+    @Override
+    public Map<String, Object> getClientObject() {
+        return new HashMap<String, Object>() {
+            {
+                put(OBS_OBJECT_NAME, getObsClient());
+            }
+        };
     }
 
     private String getBucket() {
