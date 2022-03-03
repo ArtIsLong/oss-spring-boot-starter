@@ -166,6 +166,7 @@ public class QiNiuOssClient implements StandardOssClient {
                     .timeout(-1)
                     .header("Range", "bytes=" + start + "-" + end)
                     .execute();
+            log.debug("start={}, end={}", start, end);
             return new ByteArrayInputStream(response.bodyBytes());
         } catch (Exception e) {
             throw new OssException(e);

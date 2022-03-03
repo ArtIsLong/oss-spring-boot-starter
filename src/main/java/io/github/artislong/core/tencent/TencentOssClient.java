@@ -29,7 +29,6 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
@@ -111,17 +110,12 @@ public class TencentOssClient implements StandardOssClient {
     }
 
     @Override
-    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum) {
+    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
         UpLoadPartResult partResult = null;
-        InputStream inputStream = null;
+        UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+        long partSize = uploadPart.getSize();
+        partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
         try {
-            UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
-
-            partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), uploadPart.getSize());
-
-            File uploadFile = new File(upLoadCheckPoint.getUploadFile());
-
-            inputStream = new FileInputStream(uploadFile);
             inputStream.skip(uploadPart.getOffset());
 
             UploadPartRequest uploadPartRequest = new UploadPartRequest();
@@ -129,7 +123,7 @@ public class TencentOssClient implements StandardOssClient {
             uploadPartRequest.setKey(upLoadCheckPoint.getKey());
             uploadPartRequest.setUploadId(upLoadCheckPoint.getUploadId());
             uploadPartRequest.setInputStream(inputStream);
-            uploadPartRequest.setPartSize(uploadPart.getSize());
+            uploadPartRequest.setPartSize(partSize);
             uploadPartRequest.setPartNumber(uploadPart.getNumber());
 
             UploadPartResult uploadPartResponse = cosClient.uploadPart(uploadPartRequest);

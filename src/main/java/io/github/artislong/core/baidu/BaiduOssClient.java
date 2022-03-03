@@ -29,7 +29,6 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
@@ -114,14 +113,12 @@ public class BaiduOssClient implements StandardOssClient {
     }
 
     @Override
-    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum) {
+    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
         UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
         long partSize = uploadPart.getSize();
         UpLoadPartResult partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
 
-        InputStream inputStream = null;
         try {
-            inputStream = new FileInputStream(upLoadCheckPoint.getUploadFile());
             inputStream.skip(uploadPart.getOffset());
 
             UploadPartRequest uploadPartRequest = new UploadPartRequest();

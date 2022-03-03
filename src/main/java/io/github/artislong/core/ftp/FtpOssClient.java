@@ -3,6 +3,7 @@ package io.github.artislong.core.ftp;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
@@ -71,7 +72,7 @@ public class FtpOssClient implements StandardOssClient {
         FTPClient ftpClient = ftp.getClient();
         InputStream inputStream = null;
         try {
-            inputStream = new FileInputStream(file);
+            inputStream = FileUtil.getInputStream(file);
             ftpClient.changeWorkingDirectory(convertPath(Paths.get(key).getParent().toString(), true));
             ftpClient.setBufferSize(1024);
             ftpClient.setControlEncoding(StandardCharsets.UTF_8.name());

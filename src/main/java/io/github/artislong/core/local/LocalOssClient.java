@@ -92,7 +92,7 @@ public class LocalOssClient implements StandardOssClient {
     }
 
     @Override
-    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum) {
+    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
         UpLoadPartResult partResult = null;
         UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
         long offset = uploadPart.getOffset();
@@ -103,13 +103,12 @@ public class LocalOssClient implements StandardOssClient {
         partResult.setNumber(partNum);
         try {
 
-            RandomAccessFile uploadFile = new RandomAccessFile(upLoadCheckPoint.getUploadFile(), "r");
             RandomAccessFile targetFile = new RandomAccessFile(upLoadCheckPoint.getKey(), "rw");
 
             byte[] data = new byte[partSize];
-            uploadFile.seek(offset);
+            inputStream.skip(offset);
             targetFile.seek(offset);
-            int len = uploadFile.read(data);
+            int len = targetFile.read(data);
             targetFile.write(data, 0, len);
             partResult.setEntityTag(new UpLoadPartEntityTag());
         } catch (Exception e) {

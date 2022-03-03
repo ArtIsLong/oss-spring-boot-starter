@@ -1,5 +1,6 @@
 package io.github.artislong.model.download;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import lombok.Data;
 
@@ -34,12 +35,12 @@ public class DownloadCheckPoint implements Serializable {
      * @param checkPointFile 断点续传进度记录文件
      */
     public synchronized void load(String checkPointFile) throws IOException, ClassNotFoundException {
-        FileInputStream fis = new FileInputStream(checkPointFile);
-        ObjectInputStream ois = new ObjectInputStream(fis);
-        DownloadCheckPoint dcp = (DownloadCheckPoint) ois.readObject();
+        InputStream inputStream = FileUtil.getInputStream(checkPointFile);
+        ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+        DownloadCheckPoint dcp = (DownloadCheckPoint) objectInputStream.readObject();
         assign(dcp);
-        IoUtil.close(ois);
-        IoUtil.close(fis);
+        IoUtil.close(objectInputStream);
+        IoUtil.close(inputStream);
     }
 
     /**
@@ -67,7 +68,7 @@ public class DownloadCheckPoint implements Serializable {
      * @param index 分片索引
      * @param completed 对应分片是否完成
      */
-    public synchronized void update(int index, boolean completed) throws IOException {
+    public synchronized void update(int index, boolean completed) {
         downloadParts.get(index).setCompleted(completed);
     }
 

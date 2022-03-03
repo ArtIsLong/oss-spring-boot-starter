@@ -3,6 +3,7 @@ package io.github.artislong.core.minio;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
@@ -29,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
@@ -71,7 +71,7 @@ public class MinioOssClient implements StandardOssClient {
 
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
-        try (InputStream inputStream = new FileInputStream(file)) {
+        try (InputStream inputStream = FileUtil.getInputStream(file)) {
             upLoad(inputStream, targetName, true);
         } catch (Exception e) {
             throw new OssException(e);
@@ -138,6 +138,17 @@ public class MinioOssClient implements StandardOssClient {
         }
         downloadCheckPoint.setOriginPartSize(downloadCheckPoint.getDownloadParts().size());
         createDownloadTemp(downloadCheckPoint.getTempDownloadFile(), downloadSize);
+    }
+
+    @Override
+    public InputStream downloadPart(String key, long start, long end) throws Exception {
+        GetObjectArgs getObjectArgs = GetObjectArgs.builder()
+                .bucket(getBucket())
+                .object(key)
+                .offset(start) // 起始字节的位置
+                .length(end)  // 要读取的长度 (可选，如果无值则代表读到文件结尾)。
+                .build();
+        return minioClient.getObject(getObjectArgs);
     }
 
     @Override

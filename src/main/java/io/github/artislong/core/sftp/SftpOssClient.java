@@ -68,7 +68,7 @@ public class SftpOssClient implements StandardOssClient {
         if (!sftp.exist(parentPath)) {
             sftp.mkDirs(parentPath);
         }
-        sftp.put(file.getPath(), parentPath, new DefaultSftpProgressMonitor(), Sftp.Mode.RESUME);
+        sftp.put(file.getPath(), parentPath, new DefaultSftpProgressMonitor(file.length()), Sftp.Mode.RESUME);
         return getInfo(targetName);
     }
 
@@ -80,10 +80,11 @@ public class SftpOssClient implements StandardOssClient {
     @Override
     public void downLoadCheckPoint(File localFile, String targetName) {
         try {
+            OssInfo ossInfo = getInfo(targetName, false);
             long skip = localFile.exists() ? localFile.length() : 0;
             OutputStream os = new FileOutputStream(localFile);
             ChannelSftp sftpClient = sftp.getClient();
-            sftpClient.get(getKey(targetName, true), os, new DefaultSftpProgressMonitor(), Sftp.Mode.RESUME.ordinal(), skip);
+            sftpClient.get(getKey(targetName, true), os, new DefaultSftpProgressMonitor(Convert.toLong(ossInfo.getSize())), Sftp.Mode.RESUME.ordinal(), skip);
         } catch (Exception e) {
             throw new OssException(e);
         }

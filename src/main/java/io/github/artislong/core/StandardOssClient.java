@@ -1,5 +1,6 @@
 package io.github.artislong.core;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
@@ -21,16 +22,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
-
-import static com.aliyun.oss.internal.OSSConstants.DEFAULT_BUFFER_SIZE;
 
 /**
  * @author 陈敏
@@ -201,7 +197,8 @@ public interface StandardOssClient {
 
         @Override
         public UpLoadPartResult call() {
-            UpLoadPartResult upLoadPartResult = ossClient.uploadPart(upLoadCheckPoint, partNum);
+            InputStream inputStream = FileUtil.getInputStream(upLoadCheckPoint.getUploadFile());
+            UpLoadPartResult upLoadPartResult = ossClient.uploadPart(upLoadCheckPoint, partNum, inputStream);
             if (!upLoadPartResult.isFailed()) {
                 upLoadCheckPoint.update(partNum, upLoadPartResult.getEntityTag(), true);
                 upLoadCheckPoint.dump();
@@ -216,7 +213,7 @@ public interface StandardOssClient {
      * @param partNum 分片索引
      * @return 上传结果
      */
-    default UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum) {
+    default UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
         UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
         long partSize = uploadPart.getSize();
         UpLoadPartResult partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
@@ -341,7 +338,8 @@ public interface StandardOssClient {
 
                 content = ossClient.downloadPart(downloadCheckPoint.getKey(), downloadPart.getStart(), downloadPart.getEnd());
 
-                byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+                long partSize = downloadPart.getEnd() - downloadPart.getStart();
+                byte[] buffer = new byte[Convert.toInt(partSize)];
                 int bytesRead = 0;
                 while ((bytesRead = content.read(buffer)) != -1) {
                     output.write(buffer, 0, bytesRead);
@@ -497,7 +495,7 @@ public interface StandardOssClient {
      * @param end 文件结束字节
      * @return 此范围的文件流
      */
-    default InputStream downloadPart(String key, long start, long end) {
+    default InputStream downloadPart(String key, long start, long end) throws Exception {
         throw new OssException("下载文件分片方法未实现，默认不支持此方法");
     }
 

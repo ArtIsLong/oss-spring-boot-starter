@@ -11,10 +11,15 @@ public class OssConstant {
     public static final String ENABLE = "enable";
     public static final String DEFAULT_ENABLE_VALUE = "true";
 
+    public static final int KB = 1024;
     /**
      * 默认分片大小
      */
-    public static final Long DEFAULT_PART_SIZE = 1024 * 1024 * 5L;
+    public static final Long DEFAULT_PART_SIZE = 5L * 1024 * KB;
+    /**
+     * 默认缓冲区大小
+     */
+    public static final int DEFAULT_BUFFER_SIZE = 8 * KB;
     /**
      * 默认最大分片数
      */
