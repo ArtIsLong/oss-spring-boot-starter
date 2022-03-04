@@ -285,7 +285,7 @@ UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, Inpu
 InputStream downloadPart(String key, long start, long end);
 ```
 
-更多API可通过[在线API文档](apidoc.gitee.com/spring-boot-starter/oss-spring-boot-starter)查看。
+更多API可通过[在线API文档](https://apidoc.gitee.com/spring-boot-starter/oss-spring-boot-starter/)查看。
 
 具体使用可根据实际业务需求及所采用的存储平台灵活使用。
 
