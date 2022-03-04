@@ -39,7 +39,7 @@ public class BaiduOssConfiguration {
     public void baiduOssClient() {
         Map<String, BaiduOssConfig> baiduOssConfigMap = baiduOssProperties.getOssConfig();
         if (baiduOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, baiduOssClient(bosClient(bosClientConfiguration(baiduOssProperties)), baiduOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, baiduOssClient(baiduOssProperties));
         } else {
             String endPoint = baiduOssProperties.getEndPoint();
             String accessKeyId = baiduOssProperties.getAccessKeyId();
@@ -54,13 +54,13 @@ public class BaiduOssConfiguration {
                 if (ObjectUtil.isEmpty(baiduOssConfig.getSecretAccessKey())) {
                     baiduOssConfig.setSecretAccessKey(secretAccessKey);
                 }
-                SpringUtil.registerBean(name, baiduOssClient(bosClient(bosClientConfiguration(baiduOssConfig)), baiduOssConfig));
+                SpringUtil.registerBean(name, baiduOssClient(baiduOssConfig));
             });
         }
     }
 
-    public StandardOssClient baiduOssClient(BosClient bosClient, BaiduOssConfig baiduOssConfig) {
-        return new BaiduOssClient(bosClient, baiduOssConfig);
+    public StandardOssClient baiduOssClient(BaiduOssConfig baiduOssConfig) {
+        return new BaiduOssClient(bosClient(bosClientConfiguration(baiduOssConfig)), baiduOssConfig);
     }
 
     public BosClientConfiguration bosClientConfiguration(BaiduOssConfig baiduOssConfig) {

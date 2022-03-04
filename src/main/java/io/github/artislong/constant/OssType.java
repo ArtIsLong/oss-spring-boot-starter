@@ -65,7 +65,12 @@ public enum OssType {
     /**
      * 金山云
      */
-    JINSHAN(OssConstant.OssType.JINSHAN);
+    JINSHAN(OssConstant.OssType.JINSHAN),
+
+    /**
+     * 网易数帆
+     */
+    WANGYI(OssConstant.OssType.WANGYI);
 
     private final String value;
 

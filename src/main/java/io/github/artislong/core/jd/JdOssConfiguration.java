@@ -46,7 +46,7 @@ public class JdOssConfiguration {
     public void jdOssClient() {
         Map<String, JdOssConfig> jdOssConfigMap = jdOssProperties.getOssConfig();
         if (jdOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(jdOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, jdOssClient(jdOssProperties));
         } else {
             String endpoint = jdOssProperties.getEndpoint();
             String accessKey = jdOssProperties.getAccessKey();
@@ -65,12 +65,12 @@ public class JdOssConfiguration {
                 if (ObjectUtil.isEmpty(jdOssConfig.getRegion())) {
                     jdOssConfig.setRegion(region);
                 }
-                SpringUtil.registerBean(name, build(jdOssConfig));
+                SpringUtil.registerBean(name, jdOssClient(jdOssConfig));
             });
         }
     }
 
-    private StandardOssClient build(JdOssConfig jdOssConfig) {
+    private StandardOssClient jdOssClient(JdOssConfig jdOssConfig) {
         ClientConfiguration clientConfig = clientConfig();
         AwsClientBuilder.EndpointConfiguration endpointConfig = endpointConfig(jdOssConfig);
         AWSCredentials awsCredentials = awsCredentials(jdOssConfig);
