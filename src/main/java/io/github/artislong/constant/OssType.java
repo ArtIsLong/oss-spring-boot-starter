@@ -60,7 +60,12 @@ public enum OssType {
     /**
      * 又拍云存储
      */
-    UP(OssConstant.OssType.UP);
+    UP(OssConstant.OssType.UP),
+
+    /**
+     * 金山云
+     */
+    JINSHAN(OssConstant.OssType.JINSHAN);
 
     private final String value;
 

@@ -32,6 +32,8 @@
 
 [Minio](http://www.minio.org.cn/)
 
+[金山云](https://docs.ksyun.com/documents/38731)
+
 特别说明：本地存储、SFTP、FTP三种实现方式主要基于[hutool](https://hutool.cn/)提供的`FileUtil`、`FileNameUtil`、`AbstractFtp`相关的工具。
 
 ## 开始使用
@@ -258,9 +260,36 @@ default Boolean isDirectory(String targetName) {
 Boolean isExist(String targetName);
 ```
 
-可根据实际业务需求及所采用的存储平台灵活使用。
+- 分片上传
 
-**注意：** 在开启多个存储平台后，在注入操作客户端时，需通过`@Qualifier`注解指定Bean名称，同时，每个存储平台配置多实例时，将按照配置顺序命名。具体注入方式可通过test包路径中查看。
+```java
+/**
+ * 上传分片
+ * @param upLoadCheckPoint 断点续传对象
+ * @param partNum 分片索引
+ * @return 上传结果
+ */
+UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream);
+```
+
+- 分片下载
+
+```java
+/**
+ * 下载分片
+ * @param key 目标文件
+ * @param start 文件开始字节
+ * @param end 文件结束字节
+ * @return 此范围的文件流
+ */
+InputStream downloadPart(String key, long start, long end);
+```
+
+更多API可通过[在线API文档](apidoc.gitee.com/spring-boot-starter/oss-spring-boot-starter)查看。
+
+具体使用可根据实际业务需求及所采用的存储平台灵活使用。
+
+**注意：** 在开启多个存储平台后，在注入操作客户端时，需通过`@Qualifier`注解指定Bean名称，同时，每个存储平台配置多实例时，将按照自定义名称注入。具体注入方式可通过test包路径中查看。
 
 ### 本地存储
 
@@ -826,6 +855,76 @@ oss:
       minioOssClient1:
         bucket-name: bucketName
         base-path: Minio存储根路径
+```
+
+### 金山云
+
+```xml
+<dependency>
+    <groupId>com.ksyun</groupId>
+    <artifactId>ks3-kss-java-sdk</artifactId>
+    <version>1.0.2</version>
+    <exclusions>
+        <exclusion>
+            <artifactId>commons-logging</artifactId>
+            <groupId>commons-logging</groupId>
+        </exclusion>
+    </exclusions>
+</dependency>
+```
+
+在application.yml中增加如下配置：
+
+- 单个配置
+
+```yaml
+oss:
+  jinshan:
+    enable: true
+    endpoint: Endpoint
+    access-key-id: accessKeyId
+    access-key-secret: accessKeySecret
+    bucket-name: bucket
+    base-path: 根路径
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+```
+
+- 批量配置
+
+```yaml
+oss:
+  jinshan:
+    enable: true
+    oss-config:
+      jinshanOssClient1:
+        endpoint: Endpoint
+        access-key-id: accessKeyId
+        access-key-secret: accessKeySecret
+        bucket-name: bucket
+        base-path: 根路径
+        slice-config:
+          task-num: 8
+          part-size: 104857600
+```
+
+**注：** 对于批量配置，如endpoint、access-key、secret-key可复用，基础配置中配置这三个参数，批量配置中配置其他如bucket-name等参数即可，示例如下：
+
+```yaml
+oss:
+  jinshan:
+    enable: true
+    endpoint: Endpoint
+    access-key-id: accessKeyId
+    access-key-secret: accessKeySecret
+    oss-config:
+      jinshanOssClient1:
+        bucket-name: bucket
+        base-path: 根路径
+        slice-config:
+          task-num: 8
+          part-size: 104857600
 ```
 
 新功能持续增加中，敬请期待！！！

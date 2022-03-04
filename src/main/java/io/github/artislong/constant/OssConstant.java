@@ -44,6 +44,7 @@ public class OssConstant {
         String HUAWEI = "huawei";
         String JD = "jd";
         String UP = "up";
+        String JINSHAN = "jinshan";
     }
 
 
