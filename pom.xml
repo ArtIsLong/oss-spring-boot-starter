@@ -194,7 +194,7 @@
             </exclusions>
         </dependency>
 
-        <!-- 网易云 -->
+        <!-- 网易数帆 -->
         <dependency>
             <groupId>com.netease.cloud</groupId>
             <artifactId>nos-sdk-java-publiccloud</artifactId>
