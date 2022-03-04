@@ -37,16 +37,14 @@ public class FtpOssConfiguration {
     public void ftpOssClient() {
         Map<String, FtpOssConfig> ftpOssConfigMap = ftpOssProperties.getOssConfig();
         if (ftpOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, ftpOssClient(ftp(ftpOssProperties), ftpOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, ftpOssClient(ftpOssProperties));
         } else {
-            ftpOssConfigMap.forEach((name, ftpOssConfig) -> {
-                SpringUtil.registerBean(name, ftpOssClient(ftp(ftpOssConfig), ftpOssConfig));
-            });
+            ftpOssConfigMap.forEach((name, ftpOssConfig) -> SpringUtil.registerBean(name, ftpOssClient(ftpOssConfig)));
         }
     }
 
-    public StandardOssClient ftpOssClient(Ftp ftp, FtpOssConfig ftpOssConfig) {
-        return new FtpOssClient(ftp, ftpOssConfig);
+    public StandardOssClient ftpOssClient(FtpOssConfig ftpOssConfig) {
+        return new FtpOssClient(ftp(ftpOssConfig), ftpOssConfig);
     }
 
     public Ftp ftp(FtpOssConfig ftpOssConfig) {

@@ -37,7 +37,7 @@ public class MinioOssConfiguration {
     public void minioOssClient() {
         Map<String, MinioOssConfig> minioOssConfigMap = minioOssProperties.getOssConfig();
         if (minioOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, minioOssClient(minioClient(minioOssProperties), minioOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, minioOssClient(minioOssProperties));
         } else {
             String endpoint = minioOssProperties.getEndpoint();
             String accessKey = minioOssProperties.getAccessKey();
@@ -52,13 +52,13 @@ public class MinioOssConfiguration {
                 if (ObjectUtil.isEmpty(minioOssConfig.getSecretKey())) {
                     minioOssConfig.setSecretKey(secretKey);
                 }
-                SpringUtil.registerBean(name, minioOssClient(minioClient(minioOssConfig), minioOssConfig));
+                SpringUtil.registerBean(name, minioOssClient(minioOssConfig));
             });
         }
     }
 
-    public StandardOssClient minioOssClient(MinioClient minioClient, MinioOssConfig minioOssConfig) {
-        return new MinioOssClient(minioClient, minioOssConfig);
+    public StandardOssClient minioOssClient(MinioOssConfig minioOssConfig) {
+        return new MinioOssClient(minioClient(minioOssConfig), minioOssConfig);
     }
 
     public MinioClient minioClient(MinioOssConfig minioOssConfig) {

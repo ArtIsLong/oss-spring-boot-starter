@@ -39,7 +39,7 @@ public class UpOssConfiguration {
     public void upOssClient() {
         Map<String, UpOssConfig> upOssConfigMap = upOssProperties.getOssConfig();
         if (upOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(upOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, upOssClient(upOssProperties));
         } else {
             String userName = upOssProperties.getUserName();
             String password = upOssProperties.getPassword();
@@ -50,12 +50,12 @@ public class UpOssConfiguration {
                 if (ObjectUtil.isEmpty(upOssConfig.getPassword())) {
                     upOssConfig.setPassword(password);
                 }
-                SpringUtil.registerBean(name, build(upOssConfig));
+                SpringUtil.registerBean(name, upOssClient(upOssConfig));
             });
         }
     }
 
-    private StandardOssClient build(UpOssConfig upOssConfig) {
+    private StandardOssClient upOssClient(UpOssConfig upOssConfig) {
         RestManager restManager = restManager(upOssConfig);
         ParallelUploader parallelUploader = parallelUploader(upOssConfig);
         return upOssClient(restManager, parallelUploader, upOssConfig);

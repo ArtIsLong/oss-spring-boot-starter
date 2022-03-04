@@ -37,7 +37,7 @@ public class QiNiuOssConfiguration {
     public void qiNiuOssClient() {
         Map<String, QiNiuOssConfig> qiNiuOssConfigMap = qiNiuOssProperties.getOssConfig();
         if (qiNiuOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(qiNiuOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, qiNiuOssClient(qiNiuOssProperties));
         } else {
             String accessKey = qiNiuOssProperties.getAccessKey();
             String secretKey = qiNiuOssProperties.getSecretKey();
@@ -48,12 +48,12 @@ public class QiNiuOssConfiguration {
                 if (ObjectUtil.isEmpty(qiNiuOssConfig.getSecretKey())) {
                     qiNiuOssConfig.setSecretKey(secretKey);
                 }
-                SpringUtil.registerBean(name, build(qiNiuOssConfig));
+                SpringUtil.registerBean(name, qiNiuOssClient(qiNiuOssConfig));
             });
         }
     }
 
-    private StandardOssClient build(QiNiuOssConfig qiNiuOssConfig) {
+    private StandardOssClient qiNiuOssClient(QiNiuOssConfig qiNiuOssConfig) {
         Auth auth = auth(qiNiuOssConfig);
         com.qiniu.storage.Configuration configuration = configuration(qiNiuOssConfig);
         UploadManager uploadManager = uploadManager(configuration);

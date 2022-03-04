@@ -7,6 +7,7 @@ import com.ksyun.ks3.service.Ks3;
 import com.ksyun.ks3.service.Ks3Client;
 import com.ksyun.ks3.service.Ks3ClientConfig;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jinshan.model.JinShanOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -38,7 +39,7 @@ public class JinShanOssConfiguration {
     public void jinShanOssClient() {
         Map<String, JinShanOssConfig> ossConfigMap = jinShanOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(jinShanOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, jinShanOssClient(jinShanOssProperties));
         } else {
             String endpoint = jinShanOssProperties.getEndpoint();
             String accessKeyId = jinShanOssProperties.getAccessKeyId();
@@ -53,12 +54,12 @@ public class JinShanOssConfiguration {
                 if (ObjectUtil.isEmpty(jinShanOssConfig.getAccessKeySecret())) {
                     jinShanOssConfig.setAccessKeySecret(accessKeySecret);
                 }
-                SpringUtil.registerBean(name, build(jinShanOssConfig));
+                SpringUtil.registerBean(name, jinShanOssClient(jinShanOssConfig));
             });
         }
     }
 
-    public JinShanOssClient build(JinShanOssConfig jinShanOssConfig) {
+    public StandardOssClient jinShanOssClient(JinShanOssConfig jinShanOssConfig) {
         return new JinShanOssClient(ks3(jinShanOssConfig), jinShanOssConfig);
     }
 

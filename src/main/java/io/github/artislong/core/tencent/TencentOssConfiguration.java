@@ -41,7 +41,7 @@ public class TencentOssConfiguration {
     public void tencentOssClient() {
         Map<String, TencentOssConfig> tencentOssConfigMap = tencentOssProperties.getOssConfig();
         if (tencentOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, build(tencentOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, tencentOssClient(tencentOssProperties));
         } else {
             String region = tencentOssProperties.getRegion();
             String secretId = tencentOssProperties.getSecretId();
@@ -56,12 +56,12 @@ public class TencentOssConfiguration {
                 if (ObjectUtil.isEmpty(tencentOssConfig.getSecretKey())) {
                     tencentOssConfig.setSecretKey(secretKey);
                 }
-                SpringUtil.registerBean(name, build(tencentOssConfig));
+                SpringUtil.registerBean(name, tencentOssClient(tencentOssConfig));
             });
         }
     }
 
-    private StandardOssClient build(TencentOssConfig tencentOssConfig) {
+    private StandardOssClient tencentOssClient(TencentOssConfig tencentOssConfig) {
         Region region = region(tencentOssConfig);
         ClientConfig clientConfig = config(region);
         COSCredentials cosCredentials = cosCredentials(tencentOssConfig);

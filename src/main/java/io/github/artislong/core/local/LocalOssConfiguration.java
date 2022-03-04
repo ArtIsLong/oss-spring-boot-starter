@@ -38,9 +38,7 @@ public class LocalOssConfiguration {
         if (localOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, localOssClient(localProperties));
         } else {
-            localOssConfigMap.forEach((name, localOssConfig) -> {
-                SpringUtil.registerBean(name, localOssClient(localOssConfig));
-            });
+            localOssConfigMap.forEach((name, localOssConfig) -> SpringUtil.registerBean(name, localOssClient(localOssConfig)));
         }
     }
 

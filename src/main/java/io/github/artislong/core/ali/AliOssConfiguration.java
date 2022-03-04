@@ -40,7 +40,7 @@ public class AliOssConfiguration {
 
         Map<String, AliOssConfig> aliOssConfigMap = aliOssProperties.getOssConfig();
         if (aliOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, aliOssClient(ossClient(aliOssProperties), aliOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, aliOssClient(aliOssProperties));
         } else {
             String endpoint = aliOssProperties.getEndpoint();
             String accessKeyId = aliOssProperties.getAccessKeyId();
@@ -55,13 +55,13 @@ public class AliOssConfiguration {
                 if (ObjectUtil.isEmpty(aliOssConfig.getAccessKeySecret())) {
                     aliOssConfig.setAccessKeySecret(accessKeySecret);
                 }
-                SpringUtil.registerBean(name, aliOssClient(ossClient(aliOssConfig), aliOssConfig));
+                SpringUtil.registerBean(name, aliOssClient(aliOssConfig));
             });
         }
     }
 
-    public StandardOssClient aliOssClient(OSS oss, AliOssConfig aliOssConfig) {
-        return new AliOssClient(oss, aliOssConfig);
+    public StandardOssClient aliOssClient(AliOssConfig aliOssConfig) {
+        return new AliOssClient(ossClient(aliOssConfig), aliOssConfig);
     }
 
     public OSS ossClient(AliOssConfig aliOssConfig) {
