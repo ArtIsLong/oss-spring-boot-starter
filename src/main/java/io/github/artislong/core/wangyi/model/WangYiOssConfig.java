@@ -1,0 +1,1 @@
+/** * $Id: WangYiOssConfig.java,v 1.0 2022/3/4 9:54 PM chenmin Exp $ * */package io.github.artislong.core.wangyi.model;/** * @author 陈敏 * @version $Id: WangYiOssConfig.java,v 1.1 2022/3/4 9:54 PM chenmin Exp $ * Created on 2022/3/4 9:54 PM * My blog： https://www.chenmin.info */public class WangYiOssConfig {}

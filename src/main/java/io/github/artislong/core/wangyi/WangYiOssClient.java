@@ -1,0 +1,1 @@
+/** * $Id: WangYiOssClient.java,v 1.0 2022/3/4 9:49 PM chenmin Exp $ * */package io.github.artislong.core.wangyi;/** * @author 陈敏 * @version $Id: WangYiOssClient.java,v 1.1 2022/3/4 9:49 PM chenmin Exp $ * Created on 2022/3/4 9:49 PM * My blog： https://www.chenmin.info */public class WangYiOssClient {}
