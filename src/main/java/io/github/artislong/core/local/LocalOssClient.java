@@ -20,6 +20,7 @@ import io.github.artislong.model.SliceConfig;
 import io.github.artislong.model.download.DownloadCheckPoint;
 import io.github.artislong.model.download.DownloadObjectStat;
 import io.github.artislong.model.upload.*;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -60,7 +61,7 @@ public class LocalOssClient implements StandardOssClient {
         OssInfo ossInfo = getBaseInfo(file.getPath());
 
         ossInfo.setName(file.getName());
-        ossInfo.setPath(replaceKey(targetName, file.getName(), true));
+        ossInfo.setPath(OssPathUtil.replaceKey(targetName, file.getName(), true));
         return ossInfo;
     }
 
@@ -202,14 +203,14 @@ public class LocalOssClient implements StandardOssClient {
         File file = FileUtil.file(key);
         OssInfo ossInfo = getBaseInfo(file.getPath());
         ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
-        ossInfo.setPath(replaceKey(targetName, file.getName(), true));
+        ossInfo.setPath(OssPathUtil.replaceKey(targetName, file.getName(), true));
 
         if (isRecursion && FileUtil.isDirectory(key)) {
             List<File> files = PathUtil.loopFiles(Paths.get(key), 1, pathname -> true);
             List<OssInfo> fileOssInfos = new ArrayList<>();
             List<OssInfo> directoryInfos = new ArrayList<>();
             for (File childFile : files) {
-                String target = replaceKey(childFile.getPath(), getBasePath(), true);
+                String target = OssPathUtil.replaceKey(childFile.getPath(), getBasePath(), true);
                 if (childFile.isFile()) {
                     fileOssInfos.add(getInfo(target, false));
                 } else if (childFile.isDirectory()) {

@@ -2,7 +2,7 @@ package io.github.artislong.core.ftp.model;
 
 import cn.hutool.extra.ftp.FtpConfig;
 import cn.hutool.extra.ftp.FtpMode;
-import io.github.artislong.utils.PathUtil;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +26,7 @@ public class FtpOssConfig extends FtpConfig {
     private boolean backToPwd = false;
 
     public void init() {
-        basePath = PathUtil.valid(basePath);
+        basePath = OssPathUtil.valid(basePath);
     }
 
 }

@@ -17,6 +17,7 @@ import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -51,7 +52,7 @@ public class SftpOssClient implements StandardOssClient {
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
         String key = getKey(targetName, true);
-        String parentPath = convertPath(Paths.get(key).getParent().toString(), true);
+        String parentPath = OssPathUtil.convertPath(Paths.get(key).getParent().toString(), true);
         if (!sftp.exist(parentPath)) {
             sftp.mkDirs(parentPath);
         }
@@ -64,7 +65,7 @@ public class SftpOssClient implements StandardOssClient {
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
         String key = getKey(targetName, true);
-        String parentPath = convertPath(Paths.get(key).getParent().toString(), true);
+        String parentPath = OssPathUtil.convertPath(Paths.get(key).getParent().toString(), true);
         if (!sftp.exist(parentPath)) {
             sftp.mkDirs(parentPath);
         }
@@ -135,7 +136,7 @@ public class SftpOssClient implements StandardOssClient {
             List<OssInfo> directoryInfos = new ArrayList<>();
             for (ChannelSftp.LsEntry lsEntry : lsEntries) {
                 SftpATTRS attrs = lsEntry.getAttrs();
-                String target = convertPath(targetName + CharPool.SLASH + lsEntry.getFilename(), true);
+                String target = OssPathUtil.convertPath(targetName + CharPool.SLASH + lsEntry.getFilename(), true);
                 if (attrs.isDir()) {
                     directoryInfos.add(getInfo(target, true));
                 } else {
@@ -179,12 +180,12 @@ public class SftpOssClient implements StandardOssClient {
 
     private OssInfo getBaseInfo(String targetName) {
         String name = FileNameUtil.getName(targetName);
-        String path = replaceKey(name, getBasePath(), true);
+        String path = OssPathUtil.replaceKey(name, getBasePath(), true);
         ChannelSftp.LsEntry targetLsEntry = null;
         OssInfo ossInfo;
         if (sftp.isDir(targetName)) {
             ossInfo = new DirectoryOssInfo();
-            List<ChannelSftp.LsEntry> lsEntries = sftp.lsEntries(convertPath(Paths.get(targetName).getParent().toString(), true));
+            List<ChannelSftp.LsEntry> lsEntries = sftp.lsEntries(OssPathUtil.convertPath(Paths.get(targetName).getParent().toString(), true));
             for (ChannelSftp.LsEntry lsEntry : lsEntries) {
                 if (lsEntry.getFilename().equals(name)) {
                     targetLsEntry = lsEntry;

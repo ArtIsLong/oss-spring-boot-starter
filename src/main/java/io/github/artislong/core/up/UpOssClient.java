@@ -19,6 +19,7 @@ import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -136,7 +137,7 @@ public class UpOssClient implements StandardOssClient {
         try {
             OssInfo ossInfo = getBaseInfo(key);
             ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
-            ossInfo.setPath(replaceKey(targetName, ossInfo.getName(), true));
+            ossInfo.setPath(OssPathUtil.replaceKey(targetName, ossInfo.getName(), true));
             if (isRecursion && isDirectory(key)) {
                 List<OssInfo> fileOssInfos = new ArrayList<>();
                 List<OssInfo> directoryInfos = new ArrayList<>();
@@ -144,9 +145,9 @@ public class UpOssClient implements StandardOssClient {
                 IoUtil.readUtf8Lines(response.body().byteStream(), (LineHandler) line -> {
                     List<String> fields = StrUtil.split(line, "\t");  // vim.png N 164026 1638536314
                     if (UpConstant.FILE_TYPE.equals(fields.get(1))) {
-                        fileOssInfos.add(getInfo(replaceKey(key + StrUtil.SLASH + fields.get(0), getBasePath(), true), true));
+                        fileOssInfos.add(getInfo(OssPathUtil.replaceKey(key + StrUtil.SLASH + fields.get(0), getBasePath(), true), true));
                     } else {
-                        directoryInfos.add(getInfo(replaceKey(key + StrUtil.SLASH + fields.get(0), getBasePath(), true), true));
+                        directoryInfos.add(getInfo(OssPathUtil.replaceKey(key + StrUtil.SLASH + fields.get(0), getBasePath(), true), true));
                     }
                 });
                 if (ObjectUtil.isNotEmpty(fileOssInfos) && fileOssInfos.get(0) instanceof FileOssInfo) {
@@ -213,7 +214,7 @@ public class UpOssClient implements StandardOssClient {
 
     private DirectoryOssInfo getDirectoryOssInfo(String key) throws UpException, IOException {
         String name = FileNameUtil.getName(key);
-        String newKey = replaceKey(key, name, true);
+        String newKey = OssPathUtil.replaceKey(key, name, true);
 
         Response response = restManager.readDirIter(newKey, null);
 
@@ -222,7 +223,7 @@ public class UpOssClient implements StandardOssClient {
             List<String> fields = StrUtil.split(line, "\t");  // test Y 164026 1638536314
             if (name.equals(fields.get(0))) {
                 ossInfo.setName(fields.get(0));
-                ossInfo.setPath(replaceKey(newKey, getBasePath(), true));
+                ossInfo.setPath(OssPathUtil.replaceKey(newKey, getBasePath(), true));
                 ossInfo.setSize(fields.get(2));
                 ossInfo.setCreateTime(DateUtil.date(Convert.toLong(fields.get(3)) * 1000).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setLastUpdateTime(DateUtil.date(Convert.toLong(fields.get(3)) * 1000).toString(DatePattern.NORM_DATETIME_PATTERN));

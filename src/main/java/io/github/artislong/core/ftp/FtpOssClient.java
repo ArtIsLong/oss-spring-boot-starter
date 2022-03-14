@@ -18,6 +18,7 @@ import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -52,7 +53,7 @@ public class FtpOssClient implements StandardOssClient {
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
         String key = getKey(targetName, true);
-        String parentPath = convertPath(Paths.get(key).getParent().toString(), true);
+        String parentPath = OssPathUtil.convertPath(Paths.get(key).getParent().toString(), true);
         if (!ftp.exist(parentPath)) {
             ftp.mkDirs(parentPath);
         }
@@ -73,7 +74,7 @@ public class FtpOssClient implements StandardOssClient {
         InputStream inputStream = null;
         try {
             inputStream = FileUtil.getInputStream(file);
-            ftpClient.changeWorkingDirectory(convertPath(Paths.get(key).getParent().toString(), true));
+            ftpClient.changeWorkingDirectory(OssPathUtil.convertPath(Paths.get(key).getParent().toString(), true));
             ftpClient.setBufferSize(1024);
             ftpClient.setControlEncoding(StandardCharsets.UTF_8.name());
             ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
@@ -112,7 +113,7 @@ public class FtpOssClient implements StandardOssClient {
     @Override
     public void downLoad(OutputStream os, String targetName) {
         String key = getKey(targetName, true);
-        ftp.download(convertPath(Paths.get(key).getParent().toString(), true), key, os);
+        ftp.download(OssPathUtil.convertPath(Paths.get(key).getParent().toString(), true), key, os);
     }
 
     @Override
@@ -249,12 +250,12 @@ public class FtpOssClient implements StandardOssClient {
 
     private OssInfo getBaseInfo(String targetName) {
         String name = FileNameUtil.getName(targetName);
-        String path = replaceKey(targetName, name, true);
+        String path = OssPathUtil.replaceKey(targetName, name, true);
         FTPFile targetFtpFile = null;
         OssInfo ossInfo;
         if (ftp.isDir(targetName)) {
             ossInfo = new DirectoryOssInfo();
-            FTPFile[] ftpFiles = ftp.lsFiles(convertPath(Paths.get(targetName).getParent().toString(), true));
+            FTPFile[] ftpFiles = ftp.lsFiles(OssPathUtil.convertPath(Paths.get(targetName).getParent().toString(), true));
             for (FTPFile ftpFile : ftpFiles) {
                 if (ftpFile.getName().equals(name)) {
                     targetFtpFile = ftpFile;

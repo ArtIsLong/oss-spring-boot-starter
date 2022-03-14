@@ -5,7 +5,7 @@ package io.github.artislong.exception;
  * @version NotSupportException.java, v 1.1 2021/12/3 15:04 chenmin Exp $
  * Created on 2021/12/3
  */
-public class NotSupportException extends RuntimeException {
+public class NotSupportException extends OssException {
     public NotSupportException() {
         super();
     }

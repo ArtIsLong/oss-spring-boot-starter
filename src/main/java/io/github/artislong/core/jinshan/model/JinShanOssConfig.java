@@ -2,7 +2,7 @@ package io.github.artislong.core.jinshan.model;
 
 import com.ksyun.ks3.service.Ks3ClientConfig;
 import io.github.artislong.model.SliceConfig;
-import io.github.artislong.utils.PathUtil;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
 
 /**
@@ -29,7 +29,7 @@ public class JinShanOssConfig {
 
     public void init() {
         this.sliceConfig.init();
-        basePath = PathUtil.valid(basePath);
+        basePath = OssPathUtil.valid(basePath);
     }
 
 }

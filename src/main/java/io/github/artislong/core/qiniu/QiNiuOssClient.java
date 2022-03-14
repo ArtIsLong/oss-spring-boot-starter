@@ -28,6 +28,7 @@ import io.github.artislong.model.OssInfo;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.model.download.DownloadCheckPoint;
 import io.github.artislong.model.download.DownloadObjectStat;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -231,13 +232,13 @@ public class QiNiuOssClient implements StandardOssClient {
             List<OssInfo> directoryInfos = new ArrayList<>();
             if (ObjectUtil.isNotEmpty(listFiles.items)) {
                 for (FileInfo fileInfo : listFiles.items) {
-                    fileOssInfos.add(getInfo(replaceKey(fileInfo.key, getBasePath(), false), false));
+                    fileOssInfos.add(getInfo(OssPathUtil.replaceKey(fileInfo.key, getBasePath(), false), false));
                 }
             }
 
             if (ObjectUtil.isNotEmpty(listFiles.commonPrefixes)) {
                 for (String commonPrefix : listFiles.commonPrefixes) {
-                    String target = replaceKey(commonPrefix, getBasePath(), true);
+                    String target = OssPathUtil.replaceKey(commonPrefix, getBasePath(), true);
                     directoryInfos.add(getInfo(target, true));
                 }
             }
@@ -296,7 +297,7 @@ public class QiNiuOssClient implements StandardOssClient {
         }
 
         ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
-        ossInfo.setPath(replaceKey(targetName, ossInfo.getName(), true));
+        ossInfo.setPath(OssPathUtil.replaceKey(targetName, ossInfo.getName(), true));
 
         return ossInfo;
     }

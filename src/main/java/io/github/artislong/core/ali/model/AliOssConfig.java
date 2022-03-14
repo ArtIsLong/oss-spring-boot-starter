@@ -1,7 +1,7 @@
 package io.github.artislong.core.ali.model;
 
 import io.github.artislong.model.SliceConfig;
-import io.github.artislong.utils.PathUtil;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -41,7 +41,7 @@ public class AliOssConfig {
 
     public void init() {
         this.sliceConfig.init();
-        basePath = PathUtil.valid(basePath);
+        basePath = OssPathUtil.valid(basePath);
     }
 
 }

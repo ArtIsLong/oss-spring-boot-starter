@@ -18,6 +18,7 @@ import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
 import io.github.artislong.model.SliceConfig;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -121,12 +122,12 @@ public class HuaWeiOssClient implements StandardOssClient {
 
         OssInfo ossInfo = getBaseInfo(key);
         ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
-        ossInfo.setPath(replaceKey(targetName, ossInfo.getName(), true));
+        ossInfo.setPath(OssPathUtil.replaceKey(targetName, ossInfo.getName(), true));
 
         if (isRecursion && isDirectory(key)) {
             ListObjectsRequest listObjectsRequest = new ListObjectsRequest(getBucket());
             listObjectsRequest.setDelimiter("/");
-            String prefix = convertPath(key, false);
+            String prefix = OssPathUtil.convertPath(key, false);
             listObjectsRequest.setPrefix(prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH);
 
             ObjectListing listObjects = obsClient.listObjects(listObjectsRequest);
@@ -139,12 +140,12 @@ public class HuaWeiOssClient implements StandardOssClient {
                     ossInfo.setCreateTime(DateUtil.date(obsObject.getMetadata().getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setSize(Convert.toStr(obsObject.getMetadata().getContentLength()));
                 } else {
-                    fileOssInfos.add(getInfo(replaceKey(obsObject.getObjectKey(), getBasePath(), false), false));
+                    fileOssInfos.add(getInfo(OssPathUtil.replaceKey(obsObject.getObjectKey(), getBasePath(), false), false));
                 }
             }
 
             for (String commonPrefix : listObjects.getCommonPrefixes()) {
-                String target = replaceKey(commonPrefix, getBasePath(), false);
+                String target = OssPathUtil.replaceKey(commonPrefix, getBasePath(), false);
                 if (isDirectory(commonPrefix)) {
                     directoryInfos.add(getInfo(target, true));
                 } else {

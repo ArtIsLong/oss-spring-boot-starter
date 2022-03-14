@@ -70,7 +70,27 @@ public enum OssType {
     /**
      * 网易数帆
      */
-    WANGYI(OssConstant.OssType.WANGYI);
+    WANGYI(OssConstant.OssType.WANGYI),
+
+    /**
+     * UCloud
+     */
+    UCLOUD(OssConstant.OssType.UCLOUD),
+
+    /**
+     * 平安云
+     */
+    PINGAN(OssConstant.OssType.PINGAN),
+
+    /**
+     * 青云
+     */
+    QINGYUN(OssConstant.OssType.QINGYUN),
+
+    /**
+     * JDBC
+     */
+    JDBC(OssConstant.OssType.JDBC);
 
     private final String value;
 

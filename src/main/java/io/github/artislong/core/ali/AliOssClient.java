@@ -20,6 +20,7 @@ import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
 import io.github.artislong.model.SliceConfig;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -59,7 +60,7 @@ public class AliOssClient implements StandardOssClient {
         }
         OssInfo ossInfo = getBaseInfo(bucketName, key);
         ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
-        ossInfo.setPath(replaceKey(targetName, ossInfo.getName(), true));
+        ossInfo.setPath(OssPathUtil.replaceKey(targetName, ossInfo.getName(), true));
 
         return ossInfo;
     }
@@ -148,12 +149,12 @@ public class AliOssClient implements StandardOssClient {
 
         OssInfo ossInfo = getBaseInfo(bucketName, key);
         ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
-        ossInfo.setPath(replaceKey(targetName, ossInfo.getName(), true));
+        ossInfo.setPath(OssPathUtil.replaceKey(targetName, ossInfo.getName(), true));
 
         if (isRecursion && isDirectory(key)) {
             ListObjectsRequest listObjectsRequest = new ListObjectsRequest(bucketName);
             listObjectsRequest.setDelimiter("/");
-            String prefix = convertPath(key, false);
+            String prefix = OssPathUtil.convertPath(key, false);
             listObjectsRequest.setPrefix(prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH);
             ObjectListing listing = oss.listObjects(listObjectsRequest);
 
@@ -165,12 +166,12 @@ public class AliOssClient implements StandardOssClient {
                     ossInfo.setCreateTime(DateUtil.date(ossObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setSize(Convert.toStr(ossObjectSummary.getSize()));
                 } else {
-                    fileOssInfos.add(getInfo(replaceKey(ossObjectSummary.getKey(), getBasePath(), false), false));
+                    fileOssInfos.add(getInfo(OssPathUtil.replaceKey(ossObjectSummary.getKey(), getBasePath(), false), false));
                 }
             }
 
             for (String commonPrefix : listing.getCommonPrefixes()) {
-                String target = replaceKey(commonPrefix, getBasePath(), false);
+                String target = OssPathUtil.replaceKey(commonPrefix, getBasePath(), false);
                 if (isDirectory(commonPrefix)) {
                     directoryInfos.add(getInfo(target, true));
                 } else {
@@ -217,7 +218,7 @@ public class AliOssClient implements StandardOssClient {
         if (isFile(key)) {
             ossInfo = new FileOssInfo();
             try {
-                ObjectMetadata objectMetadata = oss.getObjectMetadata(bucketName, replaceKey(key, "", false));
+                ObjectMetadata objectMetadata = oss.getObjectMetadata(bucketName, OssPathUtil.replaceKey(key, "", false));
                 ossInfo.setLastUpdateTime(DateUtil.date((Date) objectMetadata.getRawMetadata().get(HttpHeaders.LAST_MODIFIED)).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.date((Date) objectMetadata.getRawMetadata().get(HttpHeaders.DATE)).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setSize(Convert.toStr(objectMetadata.getContentLength()));

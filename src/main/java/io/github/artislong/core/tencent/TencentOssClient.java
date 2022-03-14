@@ -23,6 +23,7 @@ import io.github.artislong.model.SliceConfig;
 import io.github.artislong.model.download.DownloadCheckPoint;
 import io.github.artislong.model.download.DownloadObjectStat;
 import io.github.artislong.model.upload.*;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -214,10 +215,10 @@ public class TencentOssClient implements StandardOssClient {
 
         OssInfo ossInfo = getBaseInfo(key);
         ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
-        ossInfo.setPath(replaceKey(targetName, ossInfo.getName(), true));
+        ossInfo.setPath(OssPathUtil.replaceKey(targetName, ossInfo.getName(), true));
 
         if (isRecursion && isDirectory(key)) {
-            String prefix = convertPath(key, false);
+            String prefix = OssPathUtil.convertPath(key, false);
             ObjectListing listObjects = cosClient.listObjects(getBucket(), prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH);
 
             List<OssInfo> fileOssInfos = new ArrayList<>();
@@ -228,12 +229,12 @@ public class TencentOssClient implements StandardOssClient {
                     ossInfo.setCreateTime(DateUtil.date(cosObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setSize(Convert.toStr(cosObjectSummary.getSize()));
                 } else {
-                    fileOssInfos.add(getInfo(replaceKey(cosObjectSummary.getKey(), getBasePath(), false), false));
+                    fileOssInfos.add(getInfo(OssPathUtil.replaceKey(cosObjectSummary.getKey(), getBasePath(), false), false));
                 }
             }
 
             for (String commonPrefix : listObjects.getCommonPrefixes()) {
-                String target = replaceKey(commonPrefix, getBasePath(), false);
+                String target = OssPathUtil.replaceKey(commonPrefix, getBasePath(), false);
                 if (isDirectory(commonPrefix)) {
                     directoryInfos.add(getInfo(target, true));
                 } else {
@@ -280,7 +281,7 @@ public class TencentOssClient implements StandardOssClient {
         if (isFile(key)) {
             ossInfo = new FileOssInfo();
             try {
-                ObjectMetadata objectMetadata = cosClient.getObjectMetadata(getBucket(), replaceKey(key, "", false));
+                ObjectMetadata objectMetadata = cosClient.getObjectMetadata(getBucket(), OssPathUtil.replaceKey(key, getBasePath(), false));
                 ossInfo.setLastUpdateTime(DateUtil.date(objectMetadata.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.date(objectMetadata.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setSize(Convert.toStr(objectMetadata.getContentLength()));

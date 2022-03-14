@@ -46,6 +46,10 @@ public class OssConstant {
         String UP = "up";
         String JINSHAN = "jinshan";
         String WANGYI = "wangyi";
+        String UCLOUD = "ucloud";
+        String PINGAN = "pingan";
+        String QINGYUN = "qingyun";
+        String JDBC = "jdbc";
     }
 
 

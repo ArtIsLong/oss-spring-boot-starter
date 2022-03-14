@@ -1,8 +1,9 @@
 package io.github.artislong;
 
-import cn.hutool.system.SystemUtil;
-import cn.hutool.system.UserInfo;
+import cn.hutool.core.util.StrUtil;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 /**
  * @author 陈敏
@@ -14,7 +15,17 @@ public class OssApplicationTests {
 
     @Test
     public void context() {
-        UserInfo userInfo = SystemUtil.getUserInfo();
-        System.out.println(userInfo);
+        mkdir("/Study/test/test1/test2");
+    }
+
+    public void mkdir(String path) {
+        List<String> paths = StrUtil.split(path, StrUtil.SLASH, true, true);
+        StringBuilder fullPath = new StringBuilder();
+        for (String p : paths) {
+            fullPath.append(StrUtil.SLASH + p);
+            System.out.println(p);
+        }
+        System.out.println(fullPath);
+
     }
 }

@@ -1,7 +1,7 @@
 package io.github.artislong.core.minio.model;
 
 import io.github.artislong.model.SliceConfig;
-import io.github.artislong.utils.PathUtil;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
 
 /**
@@ -25,6 +25,6 @@ public class MinioOssConfig {
 
     public void init() {
         this.sliceConfig.init();
-        basePath = PathUtil.valid(basePath);
+        basePath = OssPathUtil.valid(basePath);
     }
 }

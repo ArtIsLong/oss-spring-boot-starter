@@ -21,6 +21,7 @@ import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
 import io.github.artislong.model.download.DownloadCheckPoint;
 import io.github.artislong.model.download.DownloadObjectStat;
+import io.github.artislong.utils.OssPathUtil;
 import io.minio.*;
 import io.minio.messages.Item;
 import lombok.AllArgsConstructor;
@@ -189,7 +190,7 @@ public class MinioOssClient implements StandardOssClient {
             OssInfo ossInfo = getBaseInfo(targetName);
             if (isRecursion && isDirectory(key)) {
 
-                String prefix = convertPath(key, true);
+                String prefix = OssPathUtil.convertPath(key, true);
                 ListObjectsArgs listObjectsArgs = ListObjectsArgs.builder()
                         .bucket(getBucket())
                         .delimiter("/")
@@ -202,7 +203,7 @@ public class MinioOssClient implements StandardOssClient {
 
                 for (Result<Item> result : results) {
                     Item item = result.get();
-                    String childKey = replaceKey(item.objectName(), getBasePath(), true);
+                    String childKey = OssPathUtil.replaceKey(item.objectName(), getBasePath(), true);
                     if (item.isDir()) {
                         directoryInfos.add(getInfo(childKey, true));
                     } else {
@@ -262,7 +263,7 @@ public class MinioOssClient implements StandardOssClient {
             ossInfo = new DirectoryOssInfo();
         }
         ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
-        ossInfo.setPath(replaceKey(targetName, ossInfo.getName(), true));
+        ossInfo.setPath(OssPathUtil.replaceKey(targetName, ossInfo.getName(), true));
         return ossInfo;
     }
 

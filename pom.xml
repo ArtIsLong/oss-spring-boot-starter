@@ -138,7 +138,7 @@
         <dependency>
             <groupId>com.baidubce</groupId>
             <artifactId>bce-java-sdk</artifactId>
-            <version>0.10.192</version>
+            <version>0.10.196</version>
             <scope>provided</scope>
         </dependency>
 
@@ -146,7 +146,7 @@
         <dependency>
             <groupId>com.qcloud</groupId>
             <artifactId>cos_api</artifactId>
-            <version>5.6.68</version>
+            <version>5.6.69</version>
             <scope>provided</scope>
         </dependency>
 
@@ -162,7 +162,7 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
-            <version>1.12.159</version>
+            <version>1.12.167</version>
             <scope>provided</scope>
         </dependency>
 
@@ -200,6 +200,40 @@
             <artifactId>nos-sdk-java-publiccloud</artifactId>
             <version>1.3.1</version>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- UCloud -->
+        <dependency>
+            <groupId>cn.ucloud.ufile</groupId>
+            <artifactId>ufile-client-java</artifactId>
+            <version>2.6.6</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- 平安云 -->
+        <dependency>
+            <groupId>com.pingan.obs</groupId>
+            <artifactId>fincloud-pingan-obs-java-sdk</artifactId>
+            <version>3.9.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- 青云 -->
+        <dependency>
+            <groupId>com.yunify</groupId>
+            <artifactId>qingstor.sdk.java</artifactId>
+            <version>2.5.2</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Jdbc -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
         </dependency>
     </dependencies>
 

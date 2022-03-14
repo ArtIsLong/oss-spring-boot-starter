@@ -1,7 +1,7 @@
 package io.github.artislong.core.sftp.model;
 
 import cn.hutool.extra.ftp.FtpConfig;
-import io.github.artislong.utils.PathUtil;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
 
 /**
@@ -15,7 +15,7 @@ public class SftpOssConfig extends FtpConfig {
     private String basePath;
 
     public void init() {
-        basePath = PathUtil.valid(basePath);
+        basePath = OssPathUtil.valid(basePath);
     }
 
 }

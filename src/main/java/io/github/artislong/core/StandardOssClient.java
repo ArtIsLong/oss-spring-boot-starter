@@ -18,6 +18,7 @@ import io.github.artislong.model.upload.UpLoadCheckPoint;
 import io.github.artislong.model.upload.UpLoadPartEntityTag;
 import io.github.artislong.model.upload.UpLoadPartResult;
 import io.github.artislong.model.upload.UploadPart;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -614,24 +615,6 @@ public interface StandardOssClient {
     Map<String, Object> getClientObject();
 
     /**
-     * 路径转换
-     *  将路径分隔符转为统一的 / 分隔
-     * @param key 路径
-     * @param isAbsolute 是否绝对路径
-     *                    true：绝对路径；false：相对路径
-     * @return 以 / 为分隔的路径
-     */
-    default String convertPath(String key, Boolean isAbsolute) {
-        key = key.replaceAll("\\\\", StrUtil.SLASH).replaceAll("//", StrUtil.SLASH);
-        if (isAbsolute && !key.startsWith(StrUtil.SLASH)) {
-            key = StrUtil.SLASH + key;
-        } else if (!isAbsolute && key.startsWith(StrUtil.SLASH)) {
-            key = key.replaceFirst(StrUtil.SLASH, "");
-        }
-        return key;
-    }
-
-    /**
      * 获取完整Key
      * @param targetName 目标地址
      * @param isAbsolute 是否绝对路径
@@ -639,31 +622,13 @@ public interface StandardOssClient {
      * @return 完整路径
      */
     default String getKey(String targetName, Boolean isAbsolute) {
-        String key = convertPath(getBasePath() + targetName, isAbsolute);
+        String key = OssPathUtil.convertPath(getBasePath() + targetName, isAbsolute);
         if (FileUtil.isWindows() && isAbsolute) {
             if (key.contains(StrUtil.COLON) && key.startsWith(StrUtil.SLASH)) {
                 key = key.substring(1);
             }
         }
         return key;
-    }
-
-    /**
-     * 获取相对根路径的绝对路径
-     * @param path 全路径
-     * @param basePath  根路径
-     * @param isAbsolute  是否绝对路径
-     *                   true：绝对路径；false：相对路径
-     * @return 完整路径
-     */
-    default String replaceKey(String path, String basePath, Boolean isAbsolute) {
-        String newPath;
-        if (StrUtil.SLASH.equals(basePath)) {
-            newPath = convertPath(path, isAbsolute);
-        } else {
-            newPath = convertPath(path, isAbsolute).replaceAll(convertPath(basePath, isAbsolute), "");
-        }
-        return convertPath(newPath, isAbsolute);
     }
 
     /**
