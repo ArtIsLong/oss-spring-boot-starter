@@ -30,7 +30,6 @@ import java.util.Map;
 @Configuration
 @ConditionalOnClass(JdbcTemplate.class)
 @EnableConfigurationProperties({JdbcOssProperties.class})
-//@EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)  // 项目本身不使用数据库时，需增加此注解，移除数据源默认配置，仅需配置对象存储数据源即可
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JDBC + CharPool.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class JdbcOssConfiguration implements ApplicationContextAware {
@@ -48,7 +47,7 @@ public class JdbcOssConfiguration implements ApplicationContextAware {
         Map<String, JdbcOssConfig> ossConfigMap = jdbcOssProperties.getOssConfig();
         if (ObjectUtil.isEmpty(jdbcOssProperties.getDriver()) && ObjectUtil.isEmpty(jdbcOssProperties.getType()) &&
                 ObjectUtil.isEmpty(jdbcOssProperties.getUrl()) && ObjectUtil.isEmpty(jdbcOssProperties.getUsername()) &&
-                ObjectUtil.isEmpty(jdbcOssProperties.getPassword())) {
+                ObjectUtil.isEmpty(jdbcOssProperties.getPassword()) && ossConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, jdbcOssClient(jdbcTemplate(applicationContext.getBean(DataSource.class)), jdbcOssProperties));
             return;
         }

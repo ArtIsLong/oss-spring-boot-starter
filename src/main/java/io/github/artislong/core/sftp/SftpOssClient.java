@@ -85,7 +85,7 @@ public class SftpOssClient implements StandardOssClient {
             long skip = localFile.exists() ? localFile.length() : 0;
             OutputStream os = new FileOutputStream(localFile);
             ChannelSftp sftpClient = sftp.getClient();
-            sftpClient.get(getKey(targetName, true), os, new DefaultSftpProgressMonitor(Convert.toLong(ossInfo.getSize())), Sftp.Mode.RESUME.ordinal(), skip);
+            sftpClient.get(getKey(targetName, true), os, new DefaultSftpProgressMonitor(Convert.toLong(ossInfo.getLength())), Sftp.Mode.RESUME.ordinal(), skip);
         } catch (Exception e) {
             throw new OssException(e);
         }
@@ -204,7 +204,7 @@ public class SftpOssClient implements StandardOssClient {
             }
             ossInfo.setName(name);
             ossInfo.setPath(path);
-            ossInfo.setSize(Convert.toStr(sftpattrs.getSize()));
+            ossInfo.setLength(Convert.toStr(sftpattrs.getSize()));
             ossInfo.setCreateTime(DateUtil.date(sftpattrs.getMTime() * 1000L).toString(DatePattern.NORM_DATETIME_PATTERN));
             ossInfo.setLastUpdateTime(DateUtil.date(sftpattrs.getATime() * 1000L).toString(DatePattern.NORM_DATETIME_PATTERN));
         }

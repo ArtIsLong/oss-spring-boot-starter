@@ -203,7 +203,7 @@ public class JdOssClient implements StandardOssClient {
                 if (FileNameUtil.getName(s3ObjectSummary.getKey()).equals(FileNameUtil.getName(key))) {
                     ossInfo.setLastUpdateTime(DateUtil.date(s3ObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setCreateTime(DateUtil.date(s3ObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                    ossInfo.setSize(Convert.toStr(s3ObjectSummary.getSize()));
+                    ossInfo.setLength(Convert.toStr(s3ObjectSummary.getSize()));
                 } else {
                     fileOssInfos.add(getInfo(OssPathUtil.replaceKey(s3ObjectSummary.getKey(), getBasePath(), false), false));
                 }
@@ -261,7 +261,7 @@ public class JdOssClient implements StandardOssClient {
                 ObjectMetadata objectMetadata = amazonS3.getObjectMetadata(getBucket(), OssPathUtil.replaceKey(key, "", false));
                 ossInfo.setLastUpdateTime(DateUtil.date(objectMetadata.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.date(objectMetadata.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                ossInfo.setSize(Convert.toStr(objectMetadata.getContentLength()));
+                ossInfo.setLength(Convert.toStr(objectMetadata.getContentLength()));
             } catch (Exception e) {
                 log.error("获取{}文件属性失败", key, e);
             }

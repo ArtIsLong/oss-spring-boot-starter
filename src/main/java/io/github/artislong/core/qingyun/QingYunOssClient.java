@@ -288,7 +288,7 @@ public class QingYunOssClient implements StandardOssClient {
                         if (FileNameUtil.getName(keyModel.getKey()).equals(FileNameUtil.getName(key))) {
                             ossInfo.setLastUpdateTime(DateUtil.parse(keyModel.getCreated()).toString(DatePattern.NORM_DATETIME_PATTERN));
                             ossInfo.setCreateTime(DateUtil.parse(keyModel.getCreated()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                            ossInfo.setSize(Convert.toStr(keyModel.getSize()));
+                            ossInfo.setLength(Convert.toStr(keyModel.getSize()));
                         } else {
                             fileOssInfos.add(getInfo(OssPathUtil.replaceKey(keyModel.getKey(), getBasePath(), false), false));
                         }
@@ -322,7 +322,7 @@ public class QingYunOssClient implements StandardOssClient {
     @Override
     public Boolean isExist(String targetName) {
         OssInfo info = getInfo(targetName);
-        return Convert.toLong(info.getSize()) > 0;
+        return Convert.toLong(info.getLength()) > 0;
     }
 
     @Override
@@ -352,7 +352,7 @@ public class QingYunOssClient implements StandardOssClient {
                 Bucket.GetObjectOutput object = bucketClient.getObject(key, new Bucket.GetObjectInput());
                 ossInfo.setLastUpdateTime(DateUtil.parse(object.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.parse(object.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                ossInfo.setSize(Convert.toStr(object.getContentLength()));
+                ossInfo.setLength(Convert.toStr(object.getContentLength()));
             } catch (Exception e) {
                 log.error("获取{}文件属性失败", key, e);
             }

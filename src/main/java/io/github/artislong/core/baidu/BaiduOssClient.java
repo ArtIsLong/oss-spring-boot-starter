@@ -231,7 +231,7 @@ public class BaiduOssClient implements StandardOssClient {
                     if (FileNameUtil.getName(bosObjectSummary.getKey()).equals(FileNameUtil.getName(key))) {
                         ossInfo.setLastUpdateTime(DateUtil.date(bosObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                         ossInfo.setCreateTime(DateUtil.date(bosObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                        ossInfo.setSize(Convert.toStr(bosObjectSummary.getSize()));
+                        ossInfo.setLength(Convert.toStr(bosObjectSummary.getSize()));
                     } else {
                         fileOssInfos.add(getInfo(OssPathUtil.replaceKey(bosObjectSummary.getKey(), getBasePath(), false), false));
                     }
@@ -291,7 +291,7 @@ public class BaiduOssClient implements StandardOssClient {
                 ObjectMetadata objectMetadata = bosClient.getObjectMetadata(getBucket(), key);
                 ossInfo.setLastUpdateTime(DateUtil.date(objectMetadata.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.date(objectMetadata.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                ossInfo.setSize(Convert.toStr(objectMetadata.getContentLength()));
+                ossInfo.setLength(Convert.toStr(objectMetadata.getContentLength()));
             } catch (Exception e) {
                 log.error("获取{}文件属性失败", key, e);
             }

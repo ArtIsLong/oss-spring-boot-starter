@@ -177,7 +177,7 @@ public class PingAnOssClient implements StandardOssClient {
                 if (FileNameUtil.getName(s3Object.getKey()).equals(FileNameUtil.getName(key))) {
                     ossInfo.setLastUpdateTime(DateUtil.date(s3Object.getCreateTimestamp()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setCreateTime(DateUtil.date(s3Object.getCreateTimestamp()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                    ossInfo.setSize(Convert.toStr(s3Object.getObjectMetadata().getContentLength()));
+                    ossInfo.setLength(Convert.toStr(s3Object.getObjectMetadata().getContentLength()));
                 } else {
                     fileOssInfos.add(getInfo(OssPathUtil.replaceKey(s3Object.getKey(), getBasePath(), false), false));
                 }
@@ -205,7 +205,7 @@ public class PingAnOssClient implements StandardOssClient {
     @Override
     public Boolean isExist(String targetName) {
         OssInfo info = getInfo(targetName);
-        return Convert.toLong(info.getSize()) > 0;
+        return Convert.toLong(info.getLength()) > 0;
     }
 
     @Override
@@ -236,7 +236,7 @@ public class PingAnOssClient implements StandardOssClient {
                 ObjectMetadata objectMetadata = s3Object.getObjectMetadata();
                 ossInfo.setLastUpdateTime(DateUtil.parse(objectMetadata.getMetadata().get(HttpHeaders.LAST_MODIFIED)).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.parse(objectMetadata.getMetadata().get(HttpHeaders.DATE)).toString(DatePattern.NORM_DATETIME_PATTERN));
-                ossInfo.setSize(Convert.toStr(objectMetadata.getContentLength()));
+                ossInfo.setLength(Convert.toStr(objectMetadata.getContentLength()));
             } catch (Exception e) {
                 log.error("获取{}文件属性失败", key, e);
             }

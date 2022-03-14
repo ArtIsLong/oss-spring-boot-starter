@@ -272,7 +272,7 @@ public class UCloudOssClient implements StandardOssClient {
                 if (FileNameUtil.getName(fileName).equals(FileNameUtil.getName(key))) {
                     ossInfo.setLastUpdateTime(DateUtil.date(objectInfoBean.getModifyTime()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setCreateTime(DateUtil.date(objectInfoBean.getCreateTime()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                    ossInfo.setSize(Convert.toStr(objectInfoBean.getSize()));
+                    ossInfo.setLength(Convert.toStr(objectInfoBean.getSize()));
                 } else if (isDirectory(fileName)) {
                     directoryInfos.add(getInfo(OssPathUtil.replaceKey(fileName, getBasePath(), false), true));
                 } else {
@@ -329,7 +329,7 @@ public class UCloudOssClient implements StandardOssClient {
                 ObjectProfile objectProfile = getObjectApiBuilder().objectProfile(OssPathUtil.replaceKey(key, getBasePath(), false), getBucket()).execute();
                 ossInfo.setLastUpdateTime(DateUtil.parse(objectProfile.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.parse(objectProfile.getCreateTime()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                ossInfo.setSize(Convert.toStr(objectProfile.getContentLength()));
+                ossInfo.setLength(Convert.toStr(objectProfile.getContentLength()));
             } catch (Exception e) {
                 log.error("获取{}文件属性失败", key, e);
             }

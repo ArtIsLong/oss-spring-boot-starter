@@ -259,7 +259,7 @@ public class JdbcOssClient implements StandardOssClient {
         jdbcOssInfo.setType(type);
         jdbcOssInfo.setDataId(dateId);
 
-        jdbcTemplate.update("INSERT INTO OSS_STORE (ID, NAME, PATH, SIZE, CREATE_TIME, LAST_UPDATE_TIME, PARENT_ID, TYPE, DATA_ID)" +
+        jdbcTemplate.update("INSERT INTO OSS_STORE (ID, NAME, PATH, LENGTH, CREATE_TIME, LAST_UPDATE_TIME, PARENT_ID, TYPE, DATA_ID)" +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", ps -> {
             ps.setString(1, jdbcOssInfo.getId());
             ps.setString(2, jdbcOssInfo.getName());
@@ -282,7 +282,7 @@ public class JdbcOssClient implements StandardOssClient {
         String name = StrUtil.equals(key, StrUtil.SLASH) ? key : FileNameUtil.getName(key);
         DateTime now = DateUtil.date();
         String path = OssPathUtil.replaceKey(key, name, true);
-        jdbcTemplate.update("UPDATE OSS_STORE T SET T.NAME = ?, T.PATH = ?, T.SIZE = ?, T.LAST_UPDATE_TIME = ?, T.PARENT_ID = ? WHERE T.ID = ?", ps -> {
+        jdbcTemplate.update("UPDATE OSS_STORE T SET T.NAME = ?, T.PATH = ?, T.LENGTH = ?, T.LAST_UPDATE_TIME = ?, T.PARENT_ID = ? WHERE T.ID = ?", ps -> {
             ps.setString(1, name);
             ps.setString(2, path);
             ps.setLong(3, size);
@@ -312,7 +312,7 @@ public class JdbcOssClient implements StandardOssClient {
         String name = StrUtil.equals(targetKey, StrUtil.SLASH) ? targetKey : FileNameUtil.getName(targetKey);
         String targetPath = OssPathUtil.replaceKey(targetKey, name, true);
         DateTime now = DateUtil.date();
-        jdbcTemplate.update("INSERT INTO OSS_STORE (ID, NAME, PATH, SIZE, CREATE_TIME, LAST_UPDATE_TIME, PARENT_ID, TYPE, DATA_ID) " +
+        jdbcTemplate.update("INSERT INTO OSS_STORE (ID, NAME, PATH, LENGTH, CREATE_TIME, LAST_UPDATE_TIME, PARENT_ID, TYPE, DATA_ID) " +
                 "SELECT ?, ?, ?, SIZE, ?, ?, PARENT_ID, TYPE, ? FROM OSS_STORE T WHERE T.ID = ?",
                 targetId, name, targetPath, now.toSqlDate(), now.toSqlDate(), targetDataId, sourceId);
         return targetId;

@@ -255,7 +255,7 @@ public class MinioOssClient implements StandardOssClient {
 
                 ossInfo.setCreateTime(DateUtil.date(headers.getDate(HttpHeaders.DATE)).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setLastUpdateTime(DateUtil.date(headers.getDate(HttpHeaders.LAST_MODIFIED)).toString(DatePattern.NORM_DATETIME_PATTERN));
-                ossInfo.setSize(Convert.toStr(headers.get(HttpHeaders.CONTENT_LENGTH)));
+                ossInfo.setLength(Convert.toStr(headers.get(HttpHeaders.CONTENT_LENGTH)));
             } catch (Exception e) {
                 log.error("获取{}文件属性失败", key, e);
             }

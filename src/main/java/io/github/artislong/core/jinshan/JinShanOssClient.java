@@ -230,7 +230,7 @@ public class JinShanOssClient implements StandardOssClient {
                     if (FileNameUtil.getName(ks3ObjectSummary.getKey()).equals(FileNameUtil.getName(key))) {
                         ossInfo.setLastUpdateTime(DateUtil.date(ks3ObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                         ossInfo.setCreateTime(DateUtil.date(ks3ObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                        ossInfo.setSize(Convert.toStr(ks3ObjectSummary.getSize()));
+                        ossInfo.setLength(Convert.toStr(ks3ObjectSummary.getSize()));
                     } else {
                         fileOssInfos.add(getInfo(OssPathUtil.replaceKey(ks3ObjectSummary.getKey(), getBasePath(), false), false));
                     }
@@ -291,7 +291,7 @@ public class JinShanOssClient implements StandardOssClient {
                 ObjectMetadata objectMetadata = objectResult.getObject().getObjectMetadata();
                 ossInfo.setLastUpdateTime(DateUtil.date(objectMetadata.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.date(objectMetadata.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                ossInfo.setSize(Convert.toStr(objectMetadata.getContentLength()));
+                ossInfo.setLength(Convert.toStr(objectMetadata.getContentLength()));
             } catch (Exception e) {
                 log.error("获取{}文件属性失败", key, e);
             }

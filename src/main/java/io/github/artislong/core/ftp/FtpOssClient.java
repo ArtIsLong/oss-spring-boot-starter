@@ -273,7 +273,7 @@ public class FtpOssClient implements StandardOssClient {
             }
             ossInfo.setName(name);
             ossInfo.setPath(path);
-            ossInfo.setSize(Convert.toStr(targetFtpFile.getSize()));
+            ossInfo.setLength(Convert.toStr(targetFtpFile.getSize()));
             ossInfo.setCreateTime(DateUtil.date(targetFtpFile.getTimestamp()).toString(DatePattern.NORM_DATETIME_PATTERN));
             ossInfo.setLastUpdateTime(DateUtil.date(targetFtpFile.getTimestamp()).toString(DatePattern.NORM_DATETIME_PATTERN));
         }

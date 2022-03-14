@@ -21,7 +21,7 @@ public class OssInfo {
     /**
      * 对象大小
      */
-    private String size;
+    private String length;
     /**
      * 创建时间
      */

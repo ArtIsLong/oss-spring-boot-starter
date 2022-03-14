@@ -46,7 +46,7 @@ public class JdbcOssInfo {
             case JdbcOssConstant.OSS_TYPE.FILE:
                 ossInfo = new FileOssInfo();
                 ossInfo.setPath(path);
-                ossInfo.setSize(Convert.toStr(this.getSize()));
+                ossInfo.setLength(Convert.toStr(this.getSize()));
                 break;
             case JdbcOssConstant.OSS_TYPE.DIRECTORY:
                 ossInfo = new DirectoryOssInfo();

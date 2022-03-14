@@ -164,7 +164,7 @@ public class AliOssClient implements StandardOssClient {
                 if (FileNameUtil.getName(ossObjectSummary.getKey()).equals(FileNameUtil.getName(key))) {
                     ossInfo.setLastUpdateTime(DateUtil.date(ossObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setCreateTime(DateUtil.date(ossObjectSummary.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                    ossInfo.setSize(Convert.toStr(ossObjectSummary.getSize()));
+                    ossInfo.setLength(Convert.toStr(ossObjectSummary.getSize()));
                 } else {
                     fileOssInfos.add(getInfo(OssPathUtil.replaceKey(ossObjectSummary.getKey(), getBasePath(), false), false));
                 }
@@ -221,7 +221,7 @@ public class AliOssClient implements StandardOssClient {
                 ObjectMetadata objectMetadata = oss.getObjectMetadata(bucketName, OssPathUtil.replaceKey(key, "", false));
                 ossInfo.setLastUpdateTime(DateUtil.date((Date) objectMetadata.getRawMetadata().get(HttpHeaders.LAST_MODIFIED)).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.date((Date) objectMetadata.getRawMetadata().get(HttpHeaders.DATE)).toString(DatePattern.NORM_DATETIME_PATTERN));
-                ossInfo.setSize(Convert.toStr(objectMetadata.getContentLength()));
+                ossInfo.setLength(Convert.toStr(objectMetadata.getContentLength()));
             } catch (Exception e) {
                 log.error("获取{}文件属性失败", key, e);
             }

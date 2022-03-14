@@ -138,7 +138,7 @@ public class HuaWeiOssClient implements StandardOssClient {
                 if (FileNameUtil.getName(obsObject.getObjectKey()).equals(FileNameUtil.getName(key))) {
                     ossInfo.setLastUpdateTime(DateUtil.date(obsObject.getMetadata().getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                     ossInfo.setCreateTime(DateUtil.date(obsObject.getMetadata().getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                    ossInfo.setSize(Convert.toStr(obsObject.getMetadata().getContentLength()));
+                    ossInfo.setLength(Convert.toStr(obsObject.getMetadata().getContentLength()));
                 } else {
                     fileOssInfos.add(getInfo(OssPathUtil.replaceKey(obsObject.getObjectKey(), getBasePath(), false), false));
                 }
@@ -195,7 +195,7 @@ public class HuaWeiOssClient implements StandardOssClient {
                 ObjectMetadata objectMetadata = obsClient.getObjectMetadata(getBucket(), key);
                 ossInfo.setLastUpdateTime(DateUtil.date(objectMetadata.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.date(objectMetadata.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                ossInfo.setSize(Convert.toStr(objectMetadata.getContentLength()));
+                ossInfo.setLength(Convert.toStr(objectMetadata.getContentLength()));
             } catch (Exception e) {
                 log.error("获取{}文件属性失败", key, e);
             }
