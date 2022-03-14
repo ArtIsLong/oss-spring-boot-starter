@@ -103,13 +103,11 @@ public class SftpOssClient implements StandardOssClient {
 
     @Override
     public void copy(String sourceName, String targetName, Boolean isOverride) {
-        // TODO sftp协议不支持copy命令
         log.warn("sftp协议不支持copy命令");
     }
 
     @Override
     public void move(String sourceName, String targetName, Boolean isOverride) {
-        // TODO sftp协议不支持move命令
         log.warn("sftp协议不支持move命令");
     }
 

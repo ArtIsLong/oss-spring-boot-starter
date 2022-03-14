@@ -34,6 +34,10 @@
 
 [金山云](https://docs.ksyun.com/documents/38731)
 
+[网易数帆](https://sf.163.com/help/documents/68792520222625792)
+
+[JDBC](https://gitee.com/spring-boot-starter/oss-spring-boot-starter#%E9%87%91%E5%B1%B1%E4%BA%91)
+
 特别说明：本地存储、SFTP、FTP三种实现方式主要基于[hutool](https://hutool.cn/)提供的`FileUtil`、`FileNameUtil`、`AbstractFtp`相关的工具。
 
 ## 开始使用
@@ -925,6 +929,128 @@ oss:
         slice-config:
           task-num: 8
           part-size: 104857600
+```
+
+### 网易数帆
+
+```xml
+<dependency>
+    <groupId>com.netease.cloud</groupId>
+    <artifactId>nos-sdk-java-publiccloud</artifactId>
+    <version>1.3.1</version>
+</dependency>
+```
+
+在application.yml中增加如下配置：
+
+- 单个配置
+
+```yaml
+oss:
+  wangyi:
+    enable: true
+    endpoint: endpoint
+    access-key: accessKey
+    secret-key: secretKey
+    bucket-name: bucket
+    base-path: 根路径
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+```
+
+- 批量配置
+
+```yaml
+oss:
+  wangyi:
+    enable: true
+    oss-config:
+      wangyiOssClient1:
+        endpoint: endpoint
+        access-key: accessKey
+        secret-key: secretKey
+        bucket-name: bucket
+        base-path: 根路径
+        slice-config:
+          task-num: 8
+          part-size: 104857600
+```
+
+**注：** 对于批量配置，如endpoint、access-key、secret-key可复用，基础配置中配置这三个参数，批量配置中配置其他如bucket-name等参数即可，示例如下：
+
+```yaml
+oss:
+  wangyi:
+    enable: true
+    endpoint: endpoint
+    access-key: accessKey
+    secret-key: secretKey
+    oss-config:
+      wangyiOssClient1:
+        bucket-name: bucket
+        base-path: 根路径
+        slice-config:
+          task-num: 8
+          part-size: 104857600
+```
+
+### Jdbc
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jdbc</artifactId>
+</dependency>
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+</dependency>
+```
+
+在application.yml中增加如下配置：
+
+- 单个配置
+
+```yaml
+oss:
+  jdbc:
+    enable: true
+    base-path: /Study
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://localhost:3306/oss?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    driver: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+```
+
+- 批量配置
+
+```yaml
+oss:
+  jdbc:
+    enable: true
+    oss-config:
+      jdbcOssClient1:
+        base-path: /Study
+        type: com.zaxxer.hikari.HikariDataSource
+        url: jdbc:mysql://localhost:3306/oss?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+        driver: com.mysql.cj.jdbc.Driver
+        username: root
+        password: root
+```
+
+**注：** 
+
+1、当项目本身不使用数据库时，需增加此注解`@EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)`，移除数据源默认配置，仅需配置对象存储数据源即可
+2、若想直接使用项目本身配置的数据源作为对象存储库时，则不需要增加如上注解，同时在配置好默认数据源的同时，OSS的配置可参考下面配置。
+3、存储表结构建表脚本见jar包中的jdbc目录下
+
+```yaml
+oss:
+  jdbc:
+    enable: true
+    base-path: /Study
 ```
 
 新功能持续增加中，敬请期待！！！

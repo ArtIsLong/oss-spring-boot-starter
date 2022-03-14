@@ -7,13 +7,14 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jdbc.model.JdbcOssConfig;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -29,12 +30,15 @@ import java.util.Map;
 @Configuration
 @ConditionalOnClass(JdbcTemplate.class)
 @EnableConfigurationProperties({JdbcOssProperties.class})
-@EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)
+//@EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)  // 项目本身不使用数据库时，需增加此注解，移除数据源默认配置，仅需配置对象存储数据源即可
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JDBC + CharPool.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class JdbcOssConfiguration {
+public class JdbcOssConfiguration implements ApplicationContextAware {
 
     public static final String DEFAULT_BEAN_NAME = "jdbcOssClient";
+
+    @Setter
+    private ApplicationContext applicationContext;
 
     @Autowired
     private JdbcOssProperties jdbcOssProperties;
@@ -42,15 +46,25 @@ public class JdbcOssConfiguration {
     @Bean
     public void jdbcOssClient() {
         Map<String, JdbcOssConfig> ossConfigMap = jdbcOssProperties.getOssConfig();
+        if (ObjectUtil.isEmpty(jdbcOssProperties.getDriver()) && ObjectUtil.isEmpty(jdbcOssProperties.getType()) &&
+                ObjectUtil.isEmpty(jdbcOssProperties.getUrl()) && ObjectUtil.isEmpty(jdbcOssProperties.getUsername()) &&
+                ObjectUtil.isEmpty(jdbcOssProperties.getPassword())) {
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, jdbcOssClient(jdbcTemplate(applicationContext.getBean(DataSource.class)), jdbcOssProperties));
+            return;
+        }
         if (ossConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, jdbcOssClient(jdbcOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, jdbcOssClient(jdbcTemplate(jdbcOssProperties), jdbcOssProperties));
         } else {
-            ossConfigMap.forEach((name, ossConfig) -> SpringUtil.registerBean(name, jdbcOssClient(ossConfig)));
+            ossConfigMap.forEach((name, ossConfig) -> SpringUtil.registerBean(name, jdbcOssClient(jdbcTemplate(ossConfig), ossConfig)));
         }
     }
 
-    public StandardOssClient jdbcOssClient(JdbcOssConfig jdbcOssConfig) {
-        return new JdbcOssClient(jdbcTemplate(jdbcOssConfig), jdbcOssConfig);
+    public StandardOssClient jdbcOssClient(JdbcTemplate jdbcTemplate, JdbcOssConfig jdbcOssConfig) {
+        return new JdbcOssClient(jdbcTemplate, jdbcOssConfig);
+    }
+
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
     }
 
     public JdbcTemplate jdbcTemplate(JdbcOssConfig jdbcOssConfig) {
@@ -66,6 +80,6 @@ public class JdbcOssConfiguration {
                 .password(jdbcOssConfig.getPassword())
                 .build();
 
-        return new JdbcTemplate(dataSource);
+        return jdbcTemplate(dataSource);
     }
 }

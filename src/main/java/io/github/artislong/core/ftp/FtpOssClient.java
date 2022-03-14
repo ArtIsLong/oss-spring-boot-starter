@@ -174,13 +174,11 @@ public class FtpOssClient implements StandardOssClient {
 
     @Override
     public void copy(String sourceName, String targetName, Boolean isOverride) {
-        // TODO ftp协议不支持copy命令，暂不实现
         log.warn("ftp协议不支持copy命令，暂不实现");
     }
 
     @Override
     public void move(String sourceName, String targetName, Boolean isOverride) {
-        // TODO ftp协议不支持move命令，暂不实现
         log.warn("ftp协议不支持move命令，暂不实现");
     }
 
