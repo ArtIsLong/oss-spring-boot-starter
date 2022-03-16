@@ -43,7 +43,7 @@ public class JdOssConfiguration {
     private JdOssProperties jdOssProperties;
 
     @Bean
-    public void jdOssClient() {
+    public StandardOssClient jdOssClient() {
         Map<String, JdOssConfig> jdOssConfigMap = jdOssProperties.getOssConfig();
         if (jdOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, jdOssClient(jdOssProperties));
@@ -68,6 +68,7 @@ public class JdOssConfiguration {
                 SpringUtil.registerBean(name, jdOssClient(jdOssConfig));
             });
         }
+        return null;
     }
 
     private StandardOssClient jdOssClient(JdOssConfig jdOssConfig) {

@@ -41,7 +41,7 @@ public class UCloudOssConfiguration {
     private UCloudOssProperties uCloudOssProperties;
 
     @Bean
-    public void uCloudOssClient() {
+    public StandardOssClient uCloudOssClient() {
         Map<String, UCloudOssConfig> ossConfigMap = uCloudOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, uCloudOssClient(uCloudOssProperties));
@@ -66,6 +66,7 @@ public class UCloudOssConfiguration {
                 SpringUtil.registerBean(name, uCloudOssClient(ossConfig));
             });
         }
+        return null;
     }
 
     public StandardOssClient uCloudOssClient(UCloudOssConfig uCloudOssConfig) {

@@ -37,7 +37,7 @@ public class PingAnOssConfiguration {
     private PingAnOssProperties pingAnOssProperties;
 
     @Bean
-    public void pingAnOssClient() {
+    public StandardOssClient pingAnOssClient() {
         Map<String, PingAnOssConfig> ossConfigMap = pingAnOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, pingAnOssClient(pingAnOssProperties));
@@ -62,6 +62,7 @@ public class PingAnOssConfiguration {
                 SpringUtil.registerBean(name, pingAnOssClient(ossConfig));
             });
         }
+        return null;
     }
 
     public StandardOssClient pingAnOssClient(PingAnOssConfig pingAnOssConfig) {

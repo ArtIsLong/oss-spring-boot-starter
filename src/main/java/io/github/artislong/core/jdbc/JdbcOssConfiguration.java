@@ -43,19 +43,20 @@ public class JdbcOssConfiguration implements ApplicationContextAware {
     private JdbcOssProperties jdbcOssProperties;
 
     @Bean
-    public void jdbcOssClient() {
+    public StandardOssClient jdbcOssClient() {
         Map<String, JdbcOssConfig> ossConfigMap = jdbcOssProperties.getOssConfig();
         if (ObjectUtil.isEmpty(jdbcOssProperties.getDriver()) && ObjectUtil.isEmpty(jdbcOssProperties.getType()) &&
                 ObjectUtil.isEmpty(jdbcOssProperties.getUrl()) && ObjectUtil.isEmpty(jdbcOssProperties.getUsername()) &&
                 ObjectUtil.isEmpty(jdbcOssProperties.getPassword()) && ossConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, jdbcOssClient(jdbcTemplate(applicationContext.getBean(DataSource.class)), jdbcOssProperties));
-            return;
+            return null;
         }
         if (ossConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, jdbcOssClient(jdbcTemplate(jdbcOssProperties), jdbcOssProperties));
         } else {
             ossConfigMap.forEach((name, ossConfig) -> SpringUtil.registerBean(name, jdbcOssClient(jdbcTemplate(ossConfig), ossConfig)));
         }
+        return null;
     }
 
     public StandardOssClient jdbcOssClient(JdbcTemplate jdbcTemplate, JdbcOssConfig jdbcOssConfig) {

@@ -34,13 +34,14 @@ public class SftpOssConfiguration {
     private SftpOssProperties sftpOssProperties;
 
     @Bean
-    public void sftpOssClient() {
+    public StandardOssClient sftpOssClient() {
         Map<String, SftpOssConfig> sftpOssConfigMap = sftpOssProperties.getOssConfig();
         if (sftpOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, sftpOssClient(sftpOssProperties));
         } else {
             sftpOssConfigMap.forEach((name, sftpOssConfig) -> SpringUtil.registerBean(name, sftpOssClient(sftpOssConfig)));
         }
+        return null;
     }
 
     public StandardOssClient sftpOssClient(SftpOssConfig sftpOssConfig) {

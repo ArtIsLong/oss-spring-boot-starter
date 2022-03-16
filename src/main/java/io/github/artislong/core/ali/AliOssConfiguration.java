@@ -36,8 +36,7 @@ public class AliOssConfiguration {
     private AliOssProperties aliOssProperties;
 
     @Bean
-    public void aliOssClient() {
-
+    public StandardOssClient aliOssClient() {
         Map<String, AliOssConfig> aliOssConfigMap = aliOssProperties.getOssConfig();
         if (aliOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, aliOssClient(aliOssProperties));
@@ -58,6 +57,7 @@ public class AliOssConfiguration {
                 SpringUtil.registerBean(name, aliOssClient(aliOssConfig));
             });
         }
+        return null;
     }
 
     public StandardOssClient aliOssClient(AliOssConfig aliOssConfig) {

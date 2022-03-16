@@ -1,0 +1,19 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  io.github.artislong.OssAutoConfiguration,\
+  io.github.artislong.core.ali.AliOssConfiguration,\
+  io.github.artislong.core.baidu.BaiduOssConfiguration,\
+  io.github.artislong.core.ftp.FtpOssConfiguration,\
+  io.github.artislong.core.huawei.HuaWeiOssConfiguration,\
+  io.github.artislong.core.jd.JdOssConfiguration,\
+  io.github.artislong.core.jdbc.JdbcOssConfiguration,\
+  io.github.artislong.core.jinshan.JinShanOssConfiguration,\
+  io.github.artislong.core.local.LocalOssConfiguration,\
+  io.github.artislong.core.minio.MinioOssConfiguration,\
+  io.github.artislong.core.pingan.PingAnOssConfiguration,\
+  io.github.artislong.core.qingyun.QingYunOssConfiguration,\
+  io.github.artislong.core.qiniu.QiNiuOssConfiguration,\
+  io.github.artislong.core.sftp.SftpOssConfiguration,\
+  io.github.artislong.core.tencent.TencentOssConfiguration,\
+  io.github.artislong.core.ucloud.UCloudOssConfiguration,\
+  io.github.artislong.core.up.UpOssConfiguration,\
+  io.github.artislong.core.wangyi.WangYiOssConfiguration

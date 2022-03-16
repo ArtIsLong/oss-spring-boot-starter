@@ -34,7 +34,7 @@ public class QiNiuOssConfiguration {
     private QiNiuOssProperties qiNiuOssProperties;
 
     @Bean
-    public void qiNiuOssClient() {
+    public StandardOssClient qiNiuOssClient() {
         Map<String, QiNiuOssConfig> qiNiuOssConfigMap = qiNiuOssProperties.getOssConfig();
         if (qiNiuOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, qiNiuOssClient(qiNiuOssProperties));
@@ -51,6 +51,7 @@ public class QiNiuOssConfiguration {
                 SpringUtil.registerBean(name, qiNiuOssClient(qiNiuOssConfig));
             });
         }
+        return null;
     }
 
     private StandardOssClient qiNiuOssClient(QiNiuOssConfig qiNiuOssConfig) {

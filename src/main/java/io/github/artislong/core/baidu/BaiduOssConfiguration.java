@@ -36,7 +36,7 @@ public class BaiduOssConfiguration {
     private BaiduOssProperties baiduOssProperties;
 
     @Bean
-    public void baiduOssClient() {
+    public StandardOssClient baiduOssClient() {
         Map<String, BaiduOssConfig> baiduOssConfigMap = baiduOssProperties.getOssConfig();
         if (baiduOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, baiduOssClient(baiduOssProperties));
@@ -57,6 +57,7 @@ public class BaiduOssConfiguration {
                 SpringUtil.registerBean(name, baiduOssClient(baiduOssConfig));
             });
         }
+        return null;
     }
 
     public StandardOssClient baiduOssClient(BaiduOssConfig baiduOssConfig) {

@@ -36,7 +36,7 @@ public class JinShanOssConfiguration {
     private JinShanOssProperties jinShanOssProperties;
 
     @Bean
-    public void jinShanOssClient() {
+    public StandardOssClient jinShanOssClient() {
         Map<String, JinShanOssConfig> ossConfigMap = jinShanOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, jinShanOssClient(jinShanOssProperties));
@@ -57,6 +57,7 @@ public class JinShanOssConfiguration {
                 SpringUtil.registerBean(name, jinShanOssClient(jinShanOssConfig));
             });
         }
+        return null;
     }
 
     public StandardOssClient jinShanOssClient(JinShanOssConfig jinShanOssConfig) {

@@ -36,7 +36,7 @@ public class UpOssConfiguration {
     private UpOssProperties upOssProperties;
 
     @Bean
-    public void upOssClient() {
+    public StandardOssClient upOssClient() {
         Map<String, UpOssConfig> upOssConfigMap = upOssProperties.getOssConfig();
         if (upOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, upOssClient(upOssProperties));
@@ -53,6 +53,7 @@ public class UpOssConfiguration {
                 SpringUtil.registerBean(name, upOssClient(upOssConfig));
             });
         }
+        return null;
     }
 
     private StandardOssClient upOssClient(UpOssConfig upOssConfig) {

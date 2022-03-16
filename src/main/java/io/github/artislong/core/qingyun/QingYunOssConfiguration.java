@@ -37,7 +37,7 @@ public class QingYunOssConfiguration {
     private QingYunOssProperties qingYunOssProperties;
 
     @Bean
-    public void qingYunOssClient() {
+    public StandardOssClient qingYunOssClient() {
         Map<String, QingYunOssConfig> ossConfigMap = qingYunOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, qingYunOssClient(qingYunOssProperties));
@@ -54,6 +54,7 @@ public class QingYunOssConfiguration {
                 SpringUtil.registerBean(name, qingYunOssClient(ossConfig));
             });
         }
+        return null;
     }
 
     public StandardOssClient qingYunOssClient(QingYunOssConfig qingYunOssConfig) {

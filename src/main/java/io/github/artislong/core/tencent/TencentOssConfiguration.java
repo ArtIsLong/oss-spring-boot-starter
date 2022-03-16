@@ -38,7 +38,7 @@ public class TencentOssConfiguration {
     private TencentOssProperties tencentOssProperties;
 
     @Bean
-    public void tencentOssClient() {
+    public StandardOssClient tencentOssClient() {
         Map<String, TencentOssConfig> tencentOssConfigMap = tencentOssProperties.getOssConfig();
         if (tencentOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, tencentOssClient(tencentOssProperties));
@@ -59,6 +59,7 @@ public class TencentOssConfiguration {
                 SpringUtil.registerBean(name, tencentOssClient(tencentOssConfig));
             });
         }
+        return null;
     }
 
     private StandardOssClient tencentOssClient(TencentOssConfig tencentOssConfig) {
