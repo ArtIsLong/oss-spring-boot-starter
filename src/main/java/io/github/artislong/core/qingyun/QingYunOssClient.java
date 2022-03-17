@@ -58,13 +58,12 @@ public class QingYunOssClient implements StandardOssClient {
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
-        String bucket = getBucket();
         String key = getKey(targetName, false);
         if (isOverride || !isExist(targetName)) {
             Bucket.PutObjectInput input = new Bucket.PutObjectInput();
             input.setBodyInputStream(is);
             try {
-                bucketClient.putObject(bucket, input);
+                bucketClient.putObject(key, input);
             } catch (Exception e) {
                 throw new OssException(e);
             }
@@ -241,7 +240,7 @@ public class QingYunOssClient implements StandardOssClient {
         if (isOverride || !isExist(targetName)) {
             try {
                 Bucket.PutObjectInput input = new Bucket.PutObjectInput();
-                input.setXQSCopySource("/" + bucket + "/" + newSourceName);
+                input.setXQSCopySource(StrUtil.SLASH + bucket + StrUtil.SLASH + newSourceName);
                 bucketClient.putObject(newTargetName, input);
             } catch (Exception e) {
                 throw new OssException(e);
@@ -257,7 +256,7 @@ public class QingYunOssClient implements StandardOssClient {
         if (isOverride || !isExist(targetName)) {
             try {
                 Bucket.PutObjectInput input = new Bucket.PutObjectInput();
-                input.setXQSMoveSource("/" + bucket + "/" + newSourceName);
+                input.setXQSMoveSource(StrUtil.SLASH + bucket + StrUtil.SLASH + newSourceName);
                 bucketClient.putObject(newTargetName, input);
             } catch (Exception e) {
                 throw new OssException(e);
@@ -280,10 +279,11 @@ public class QingYunOssClient implements StandardOssClient {
             try {
                 String prefix = OssPathUtil.convertPath(key, false);
                 Bucket.ListObjectsInput input = new Bucket.ListObjectsInput();
-                input.setPrefix(prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH);
+                input.setPrefix(prefix.endsWith(StrUtil.SLASH) ? prefix : prefix + CharPool.SLASH);
                 Bucket.ListObjectsOutput listObjects = bucketClient.listObjects(input);
 
                 if (ObjectUtil.isNotEmpty(listObjects.getKeys())) {
+                    // TODO 优化目录层级
                     for (Types.KeyModel keyModel : listObjects.getKeys()) {
                         if (FileNameUtil.getName(keyModel.getKey()).equals(FileNameUtil.getName(key))) {
                             ossInfo.setLastUpdateTime(DateUtil.parse(keyModel.getCreated()).toString(DatePattern.NORM_DATETIME_PATTERN));
@@ -322,7 +322,7 @@ public class QingYunOssClient implements StandardOssClient {
     @Override
     public Boolean isExist(String targetName) {
         OssInfo info = getInfo(targetName);
-        return Convert.toLong(info.getLength()) > 0;
+        return ObjectUtil.isNotEmpty(info.getLength()) && Convert.toLong(info.getLength()) > 0;
     }
 
     @Override
@@ -350,8 +350,8 @@ public class QingYunOssClient implements StandardOssClient {
             ossInfo = new FileOssInfo();
             try {
                 Bucket.GetObjectOutput object = bucketClient.getObject(key, new Bucket.GetObjectInput());
-                ossInfo.setLastUpdateTime(DateUtil.parse(object.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
-                ossInfo.setCreateTime(DateUtil.parse(object.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
+                ossInfo.setLastUpdateTime(DateUtil.date(Date.parse(object.getLastModified())).toString(DatePattern.NORM_DATETIME_PATTERN));
+                ossInfo.setCreateTime(DateUtil.date(Date.parse(object.getLastModified())).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setLength(Convert.toStr(object.getContentLength()));
             } catch (Exception e) {
                 log.error("获取{}文件属性失败", key, e);
