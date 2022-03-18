@@ -44,12 +44,16 @@ public class QingYunOssConfiguration {
         } else {
             String accessKey = qingYunOssProperties.getAccessKey();
             String accessSecret = qingYunOssProperties.getAccessSecret();
+            String zone = qingYunOssProperties.getZone();
             ossConfigMap.forEach((name, ossConfig) -> {
                 if (ObjectUtil.isEmpty(ossConfig.getAccessKey())) {
                     ossConfig.setAccessKey(accessKey);
                 }
                 if (ObjectUtil.isEmpty(ossConfig.getAccessSecret())) {
                     ossConfig.setAccessSecret(accessSecret);
+                }
+                if (ObjectUtil.isEmpty(ossConfig.getZone())) {
+                    ossConfig.setZone(zone);
                 }
                 SpringUtil.registerBean(name, qingYunOssClient(ossConfig));
             });

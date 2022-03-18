@@ -38,6 +38,8 @@
 
 [JDBC](https://gitee.com/spring-boot-starter/oss-spring-boot-starter#%E9%87%91%E5%B1%B1%E4%BA%91)
 
+[青云](https://docsv3.qingcloud.com/storage/object-storage/intro/object-storage/)
+
 特别说明：本地存储、SFTP、FTP三种实现方式主要基于[hutool](https://hutool.cn/)提供的`FileUtil`、`FileNameUtil`、`AbstractFtp`相关的工具。
 
 ## 开始使用
@@ -1051,6 +1053,70 @@ oss:
   jdbc:
     enable: true
     base-path: /Study
+```
+
+### 青云
+
+```xml
+<dependency>
+    <groupId>com.yunify</groupId>
+    <artifactId>qingstor.sdk.java</artifactId>
+    <version>2.5.2</version>
+</dependency>
+```
+
+在application.yml中增加如下配置：
+
+- 单个配置
+
+```yaml
+oss:
+  qingyun:
+    enable: true
+    zone: zone
+    access-key: accessKey
+    access-secret: accessSecret
+    bucket-name: bucketName
+    base-path: 根路径
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+```
+
+- 批量配置
+
+```yaml
+oss:
+  qingyun:
+    enable: true
+    oss-config:
+      qingYunOssClient1:
+        zone: zone
+        access-key: accessKey
+        access-secret: accessSecret
+        bucket-name: bucketName
+        base-path: 根路径
+        slice-config:
+          task-num: 8
+          part-size: 104857600
+```
+
+**注：** 对于批量配置，如zone、access-key、secret-key可复用，基础配置中配置这三个参数，批量配置中配置其他如bucket-name等参数即可，示例如下：
+
+```yaml
+oss:
+  qingyun:
+    enable: true
+    zone: zone
+    access-key: accessKey
+    access-secret: accessSecret
+    oss-config:
+      qingYunOssClient1:
+        bucket-name: bucketName
+        base-path: 根路径
+        slice-config:
+          task-num: 8
+          part-size: 104857600
 ```
 
 新功能持续增加中，敬请期待！！！
