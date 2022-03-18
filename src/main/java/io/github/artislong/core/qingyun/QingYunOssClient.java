@@ -11,7 +11,6 @@ import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baidubce.services.bos.model.PartETag;
 import com.qingstor.sdk.exception.QSException;
 import com.qingstor.sdk.service.Bucket;
 import com.qingstor.sdk.service.QingStor;
@@ -37,7 +36,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author 陈敏
@@ -50,7 +48,8 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class QingYunOssClient implements StandardOssClient {
 
-    public static final String QING_OBJECT_NAME = "oss";
+    public static final String QINGSTORE_OBJECT_NAME = "qingStor";
+    public static final String BUCKET_OBJECT_NAME = "bucketClient";
 
     private QingStor qingStor;
     private Bucket bucketClient;
@@ -78,22 +77,24 @@ public class QingYunOssClient implements StandardOssClient {
 
     @Override
     public void completeUpload(UpLoadCheckPoint upLoadCheckPoint, List<UpLoadPartEntityTag> partEntityTags) {
-        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(UpLoadPartEntityTag::getPartNumber))
-                .map(partEntityTag -> {
-                    PartETag p = new PartETag();
-                    p.setETag(partEntityTag.getETag());
-                    p.setPartNumber(partEntityTag.getPartNumber());
-                    return p;
-                }).collect(Collectors.toList());
-
-        Bucket.CompleteMultipartUploadInput input = new Bucket.CompleteMultipartUploadInput();
-        input.setUploadID(upLoadCheckPoint.getUploadId());
         try {
-            bucketClient.completeMultipartUpload(upLoadCheckPoint.getKey(), input);
+            String uploadId = upLoadCheckPoint.getUploadId();
+            String key = upLoadCheckPoint.getKey();
+
+            Bucket.ListMultipartInput listMultipartInput = new Bucket.ListMultipartInput();
+            listMultipartInput.setUploadID(uploadId);
+            Bucket.ListMultipartOutput output = bucketClient.listMultipart(key, listMultipartInput);
+            List<Types.ObjectPartModel> objectParts = output.getObjectParts();
+
+            Bucket.CompleteMultipartUploadInput multipartUploadInput = new Bucket.CompleteMultipartUploadInput();
+            multipartUploadInput.setUploadID(uploadId);
+            multipartUploadInput.setObjectParts(objectParts);
+
+            bucketClient.completeMultipartUpload(key, multipartUploadInput);
+            FileUtil.del(upLoadCheckPoint.getCheckpointFile());
         } catch (QSException e) {
             throw new OssException(e);
         }
-        FileUtil.del(upLoadCheckPoint.getCheckpointFile());
     }
 
     @Override
@@ -178,7 +179,7 @@ public class QingYunOssClient implements StandardOssClient {
         try {
             Bucket.GetObjectInput input = new Bucket.GetObjectInput();
             Bucket.GetObjectOutput object = bucketClient.getObject(getKey(targetName, false), input);
-            DateTime date = DateUtil.parse(object.getLastModified());
+            DateTime date = DateUtil.date(Date.parse(object.getLastModified()));
             long contentLength = object.getContentLength();
             String eTag = object.getETag();
             return new DownloadObjectStat().setSize(contentLength).setLastModified(date).setDigest(eTag);
@@ -334,7 +335,8 @@ public class QingYunOssClient implements StandardOssClient {
     public Map<String, Object> getClientObject() {
         return new HashMap<String, Object>() {
             {
-                put(QING_OBJECT_NAME, getQingStor());
+                put(QINGSTORE_OBJECT_NAME, getQingStor());
+                put(BUCKET_OBJECT_NAME, getBucketClient());
             }
         };
     }
