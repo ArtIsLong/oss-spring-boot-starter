@@ -73,7 +73,7 @@ public class QingYunOssClient implements StandardOssClient {
 
     @Override
     public OssInfo upLoadCheckPoint(File file, String targetName) {
-        return uploadFile(file, targetName, qingYunOssConfig.getSliceConfig(), OssConstant.OssType.BAIDU);
+        return uploadFile(file, targetName, qingYunOssConfig.getSliceConfig(), OssConstant.OssType.QINGYUN);
     }
 
     @Override
@@ -170,7 +170,7 @@ public class QingYunOssClient implements StandardOssClient {
 
     @Override
     public void downLoadCheckPoint(File localFile, String targetName) {
-        downLoadFile(localFile, targetName, qingYunOssConfig.getSliceConfig(), OssConstant.OssType.BAIDU);
+        downLoadFile(localFile, targetName, qingYunOssConfig.getSliceConfig(), OssConstant.OssType.QINGYUN);
     }
 
     @Override
@@ -280,10 +280,10 @@ public class QingYunOssClient implements StandardOssClient {
                 String prefix = OssPathUtil.convertPath(key, false);
                 Bucket.ListObjectsInput input = new Bucket.ListObjectsInput();
                 input.setPrefix(prefix.endsWith(StrUtil.SLASH) ? prefix : prefix + CharPool.SLASH);
+                input.setDelimiter(StrUtil.SLASH);
                 Bucket.ListObjectsOutput listObjects = bucketClient.listObjects(input);
 
                 if (ObjectUtil.isNotEmpty(listObjects.getKeys())) {
-                    // TODO 优化目录层级
                     for (Types.KeyModel keyModel : listObjects.getKeys()) {
                         if (FileNameUtil.getName(keyModel.getKey()).equals(FileNameUtil.getName(key))) {
                             ossInfo.setLastUpdateTime(DateUtil.parse(keyModel.getCreated()).toString(DatePattern.NORM_DATETIME_PATTERN));

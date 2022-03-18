@@ -172,7 +172,7 @@ public class UCloudOssClient implements StandardOssClient {
 
     @Override
     public void downLoadCheckPoint(File localFile, String targetName) {
-        downLoadFile(localFile, targetName, uCloudOssConfig.getSliceConfig(), OssConstant.OssType.TENCENT);
+        downLoadFile(localFile, targetName, uCloudOssConfig.getSliceConfig(), OssConstant.OssType.UCLOUD);
     }
 
     @Override

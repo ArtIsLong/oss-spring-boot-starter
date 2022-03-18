@@ -26,16 +26,16 @@ public class QingYunOssClientTest implements StandardOssClientTest {
 
     @Test
     public void test() throws Exception {
-        upLoad();
-        downLoad();
-        copy();
-        rename();
-        move();
-        isExist();
-        getInfo();
-        delete();
-
+//        upLoad();
+//        downLoad();
+//        copy();
+//        rename();
+//        move();
+//        isExist();
+//        getInfo();
+//        delete();
+//
         upLoadCheckPoint();
-        downloadCheckPoint();
+//        downloadCheckPoint();
     }
 }

@@ -89,7 +89,7 @@ public class PingAnOssClient implements StandardOssClient {
             String bucketName = getBucketName();
             String key = getKey(targetName, false);
             String filePath = file.getPath();
-            String checkpointFile = filePath + StrUtil.DOT + OssConstant.OssType.ALI;
+            String checkpointFile = filePath + StrUtil.DOT + OssConstant.OssType.QINGYUN;
             SliceConfig slice = pingAnOssConfig.getSliceConfig();
 
             MutilpartUploadFileRequest uploadFileRequest = new MutilpartUploadFileRequest();
