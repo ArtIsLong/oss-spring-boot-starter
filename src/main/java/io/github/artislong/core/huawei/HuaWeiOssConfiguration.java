@@ -4,6 +4,7 @@ import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.obs.services.ObsClient;
+import com.obs.services.ObsConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.huawei.model.HuaweiOssConfig;
@@ -39,18 +40,18 @@ public class HuaWeiOssConfiguration {
         if (huaweiOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, huaWeiOssClient(huaWeiOssProperties));
         } else {
-            String endpoint = huaWeiOssProperties.getEndpoint();
             String accessKey = huaWeiOssProperties.getAccessKey();
             String secretKey = huaWeiOssProperties.getSecretKey();
+            ObsConfiguration clientConfig = huaWeiOssProperties.getClientConfig();
             huaweiOssConfigMap.forEach((name, huaweiOssConfig) -> {
-                if (ObjectUtil.isEmpty(huaweiOssConfig.getEndpoint())) {
-                    huaweiOssConfig.setEndpoint(endpoint);
-                }
                 if (ObjectUtil.isEmpty(huaweiOssConfig.getAccessKey())) {
                     huaweiOssConfig.setAccessKey(accessKey);
                 }
                 if (ObjectUtil.isEmpty(huaweiOssConfig.getSecretKey())) {
                     huaweiOssConfig.setSecretKey(secretKey);
+                }
+                if (ObjectUtil.isEmpty(huaweiOssConfig.getClientConfig())) {
+                    huaweiOssConfig.setClientConfig(clientConfig);
                 }
                 SpringUtil.registerBean(name, huaWeiOssClient(huaweiOssConfig));
             });
@@ -63,6 +64,6 @@ public class HuaWeiOssConfiguration {
     }
 
     public ObsClient obsClient(HuaweiOssConfig huaweiOssConfig) {
-        return new ObsClient(huaweiOssConfig.getAccessKey(), huaweiOssConfig.getSecretKey(), huaweiOssConfig.getEndpoint());
+        return new ObsClient(huaweiOssConfig.getAccessKey(), huaweiOssConfig.getSecretKey(), huaweiOssConfig.getClientConfig());
     }
 }

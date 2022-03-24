@@ -41,18 +41,18 @@ public class BaiduOssConfiguration {
         if (baiduOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, baiduOssClient(baiduOssProperties));
         } else {
-            String endPoint = baiduOssProperties.getEndPoint();
             String accessKeyId = baiduOssProperties.getAccessKeyId();
             String secretAccessKey = baiduOssProperties.getSecretAccessKey();
+            BosClientConfiguration clientConfig = baiduOssProperties.getClientConfig();
             baiduOssConfigMap.forEach((name, baiduOssConfig) -> {
-                if (ObjectUtil.isEmpty(baiduOssConfig.getEndPoint())) {
-                    baiduOssConfig.setEndPoint(endPoint);
-                }
                 if (ObjectUtil.isEmpty(baiduOssConfig.getAccessKeyId())) {
                     baiduOssConfig.setAccessKeyId(accessKeyId);
                 }
                 if (ObjectUtil.isEmpty(baiduOssConfig.getSecretAccessKey())) {
                     baiduOssConfig.setSecretAccessKey(secretAccessKey);
+                }
+                if (ObjectUtil.isEmpty(baiduOssConfig.getClientConfig())) {
+                    baiduOssConfig.setClientConfig(clientConfig);
                 }
                 SpringUtil.registerBean(name, baiduOssClient(baiduOssConfig));
             });
@@ -65,10 +65,9 @@ public class BaiduOssConfiguration {
     }
 
     public BosClientConfiguration bosClientConfiguration(BaiduOssConfig baiduOssConfig) {
-        BosClientConfiguration config = new BosClientConfiguration();
-        config.setCredentials(new DefaultBceCredentials(baiduOssConfig.getAccessKeyId(), baiduOssConfig.getSecretAccessKey()));
-        config.setEndpoint(baiduOssConfig.getEndPoint());
-        return config;
+        BosClientConfiguration clientConfig = baiduOssConfig.getClientConfig();
+        clientConfig.setCredentials(new DefaultBceCredentials(baiduOssConfig.getAccessKeyId(), baiduOssConfig.getSecretAccessKey()));
+        return clientConfig;
     }
 
     public BosClient bosClient(BosClientConfiguration config) {

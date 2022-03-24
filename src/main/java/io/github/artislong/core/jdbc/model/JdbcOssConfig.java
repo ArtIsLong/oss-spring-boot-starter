@@ -14,6 +14,9 @@ import javax.sql.DataSource;
 public class JdbcOssConfig {
 
     private String basePath;
+
+    private String dataSourceName;
+
     private String url;
     private Class<? extends DataSource> type;
     private String driver;

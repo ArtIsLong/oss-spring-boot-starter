@@ -1,5 +1,6 @@
 package io.github.artislong.core.baidu.model;
 
+import com.baidubce.services.bos.BosClientConfiguration;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
@@ -16,9 +17,10 @@ public class BaiduOssConfig {
 
     private String basePath;
     private String bucketName;
-    private String endPoint;
     private String accessKeyId;
     private String secretAccessKey;
+
+    private BosClientConfiguration clientConfig;
 
     /**
      * 断点续传参数

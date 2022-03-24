@@ -1,5 +1,6 @@
 package io.github.artislong.core.ali.model;
 
+import com.aliyun.oss.ClientBuilderConfiguration;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
@@ -33,6 +34,10 @@ public class AliOssConfig {
      * AccessKey Secret
      */
     private String accessKeySecret;
+
+    private String securityToken;
+
+    private ClientBuilderConfiguration clientConfig;
 
     /**
      * 断点续传参数

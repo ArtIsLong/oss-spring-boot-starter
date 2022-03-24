@@ -1,5 +1,6 @@
 package io.github.artislong.core.jd.model;
 
+import com.amazonaws.ClientConfiguration;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
@@ -20,6 +21,8 @@ public class JdOssConfig {
     private String secretKey;
 
     private String region;
+
+    private ClientConfiguration clientConfig;
 
     /**
      * 断点续传参数

@@ -7,7 +7,6 @@ import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
-import com.qcloud.cos.region.Region;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.tencent.model.TencentOssConfig;
@@ -43,18 +42,18 @@ public class TencentOssConfiguration {
         if (tencentOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, tencentOssClient(tencentOssProperties));
         } else {
-            String region = tencentOssProperties.getRegion();
             String secretId = tencentOssProperties.getSecretId();
             String secretKey = tencentOssProperties.getSecretKey();
+            ClientConfig clientConfig = tencentOssProperties.getClientConfig();
             tencentOssConfigMap.forEach((name, tencentOssConfig) -> {
-                if (ObjectUtil.isEmpty(tencentOssConfig.getRegion())) {
-                    tencentOssConfig.setRegion(region);
-                }
                 if (ObjectUtil.isEmpty(tencentOssConfig.getSecretId())) {
                     tencentOssConfig.setSecretId(secretId);
                 }
                 if (ObjectUtil.isEmpty(tencentOssConfig.getSecretKey())) {
                     tencentOssConfig.setSecretKey(secretKey);
+                }
+                if (ObjectUtil.isEmpty(tencentOssConfig.getClientConfig())) {
+                    tencentOssConfig.setClientConfig(clientConfig);
                 }
                 SpringUtil.registerBean(name, tencentOssClient(tencentOssConfig));
             });
@@ -63,8 +62,7 @@ public class TencentOssConfiguration {
     }
 
     private StandardOssClient tencentOssClient(TencentOssConfig tencentOssConfig) {
-        Region region = region(tencentOssConfig);
-        ClientConfig clientConfig = config(region);
+        ClientConfig clientConfig = tencentOssConfig.getClientConfig();
         COSCredentials cosCredentials = cosCredentials(tencentOssConfig);
         COSClient cosClient = cosClient(cosCredentials, clientConfig);
         return tencentOssClient(cosClient, tencentOssConfig);
@@ -76,14 +74,6 @@ public class TencentOssConfiguration {
 
     public COSCredentials cosCredentials(TencentOssConfig tencentOssConfig) {
         return new BasicCOSCredentials(tencentOssConfig.getSecretId(), tencentOssConfig.getSecretKey());
-    }
-
-    public Region region(TencentOssConfig tencentOssConfig) {
-        return new Region(tencentOssConfig.getRegion());
-    }
-
-    public ClientConfig config(Region region) {
-        return new ClientConfig(region);
     }
 
     public COSClient cosClient(COSCredentials cred, ClientConfig clientConfig) {

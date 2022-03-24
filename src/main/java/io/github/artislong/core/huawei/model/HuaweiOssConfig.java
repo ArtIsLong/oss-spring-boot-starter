@@ -1,5 +1,6 @@
 package io.github.artislong.core.huawei.model;
 
+import com.obs.services.ObsConfiguration;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
@@ -16,10 +17,11 @@ public class HuaweiOssConfig {
 
     private String basePath;
 
-    private String endpoint;
     private String accessKey;
     private String secretKey;
     private String bucketName;
+
+    private ObsConfiguration clientConfig;
 
     /**
      * 断点续传参数

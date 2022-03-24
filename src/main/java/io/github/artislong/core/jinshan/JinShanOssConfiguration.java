@@ -41,18 +41,18 @@ public class JinShanOssConfiguration {
         if (ossConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, jinShanOssClient(jinShanOssProperties));
         } else {
-            String endpoint = jinShanOssProperties.getEndpoint();
             String accessKeyId = jinShanOssProperties.getAccessKeyId();
             String accessKeySecret = jinShanOssProperties.getAccessKeySecret();
+            Ks3ClientConfig clientConfig = jinShanOssProperties.getClientConfig();
             ossConfigMap.forEach((name, jinShanOssConfig) -> {
-                if (ObjectUtil.isEmpty(jinShanOssConfig.getEndpoint())) {
-                    jinShanOssConfig.setEndpoint(endpoint);
-                }
                 if (ObjectUtil.isEmpty(jinShanOssConfig.getAccessKeyId())) {
                     jinShanOssConfig.setAccessKeyId(accessKeyId);
                 }
                 if (ObjectUtil.isEmpty(jinShanOssConfig.getAccessKeySecret())) {
                     jinShanOssConfig.setAccessKeySecret(accessKeySecret);
+                }
+                if (ObjectUtil.isEmpty(jinShanOssConfig.getClientConfig())) {
+                    jinShanOssConfig.setClientConfig(clientConfig);
                 }
                 SpringUtil.registerBean(name, jinShanOssClient(jinShanOssConfig));
             });
@@ -65,11 +65,7 @@ public class JinShanOssConfiguration {
     }
 
     public Ks3 ks3(JinShanOssConfig ossConfig) {
-        Ks3ClientConfig config = new Ks3ClientConfig();
-        config.setEndpoint(ossConfig.getEndpoint());
-        config.setDomainMode(ossConfig.isDomainMode());
-        config.setProtocol(ossConfig.getProtocol());
-        config.setPathStyleAccess(ossConfig.isPathStyleAccess());
-        return new Ks3Client(ossConfig.getAccessKeyId(),ossConfig.getAccessKeySecret(),config);
+        Ks3ClientConfig clientConfig = ossConfig.getClientConfig();
+        return new Ks3Client(ossConfig.getAccessKeyId(), ossConfig.getAccessKeySecret(), clientConfig);
     }
 }

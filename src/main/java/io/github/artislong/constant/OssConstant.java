@@ -1,5 +1,7 @@
 package io.github.artislong.constant;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author 陈敏
  * @version OssConstant.java, v 1.1 2021/11/5 11:06 chenmin Exp $
@@ -29,6 +31,8 @@ public class OssConstant {
      */
     public static final Integer DEFAULT_TASK_NUM = Runtime.getRuntime().availableProcessors();
 
+    public static final Long DEFAULT_CONNECTION_TIMEOUT = TimeUnit.MINUTES.toMillis(5);
+
     /**
      * OSS存储类型
      */
@@ -51,6 +55,5 @@ public class OssConstant {
         String QINGYUN = "qingyun";
         String JDBC = "jdbc";
     }
-
 
 }

@@ -12,15 +12,12 @@ import lombok.Data;
  */
 @Data
 public class JinShanOssConfig {
-    private String endpoint;
-    private String bucketName;
     private String accessKeyId;
     private String accessKeySecret;
-    private boolean domainMode = false;
-    private Ks3ClientConfig.PROTOCOL protocol = Ks3ClientConfig.PROTOCOL.https;
-    private boolean pathStyleAccess = true;
-
+    private String bucketName;
     private String basePath;
+
+    private Ks3ClientConfig clientConfig;
 
     /**
      * 断点续传参数

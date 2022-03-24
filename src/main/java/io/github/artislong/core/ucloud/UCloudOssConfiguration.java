@@ -20,8 +20,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author 陈敏
@@ -50,6 +48,7 @@ public class UCloudOssConfiguration {
             String privateKey = uCloudOssProperties.getPrivateKey();
             String region = uCloudOssProperties.getRegion();
             String proxySuffix = uCloudOssProperties.getProxySuffix();
+            HttpClient.Config clientConfig = uCloudOssProperties.getClientConfig();
             ossConfigMap.forEach((name, ossConfig) -> {
                 if (ObjectUtil.isEmpty(ossConfig.getPublicKey())) {
                     ossConfig.setPublicKey(publicKey);
@@ -63,6 +62,9 @@ public class UCloudOssConfiguration {
                 if (ObjectUtil.isEmpty(ossConfig.getProxySuffix())) {
                     ossConfig.setProxySuffix(proxySuffix);
                 }
+                if (ObjectUtil.isEmpty(ossConfig.getClientConfig())) {
+                    ossConfig.setClientConfig(clientConfig);
+                }
                 SpringUtil.registerBean(name, uCloudOssClient(ossConfig));
             });
         }
@@ -70,10 +72,7 @@ public class UCloudOssConfiguration {
     }
 
     public StandardOssClient uCloudOssClient(UCloudOssConfig uCloudOssConfig) {
-        UfileClient.Config config = new UfileClient.Config(
-                new HttpClient.Config(10, 5, TimeUnit.MINUTES)
-                        .setTimeout(10 * 1000, 30 * 1000, 30 * 1000)
-                        .setExecutorService(Executors.newSingleThreadExecutor()));
+        UfileClient.Config config = new UfileClient.Config(uCloudOssConfig.getClientConfig());
         ObjectAuthorization objectAuthorization = new UfileObjectLocalAuthorization(uCloudOssConfig.getPublicKey(), uCloudOssConfig.getPrivateKey());
         ObjectConfig objectConfig = new ObjectConfig(uCloudOssConfig.getRegion(), uCloudOssConfig.getProxySuffix());
         UfileClient ufileClient = UfileClient.configure(config);

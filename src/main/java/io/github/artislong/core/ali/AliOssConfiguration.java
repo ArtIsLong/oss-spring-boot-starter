@@ -3,6 +3,7 @@ package io.github.artislong.core.ali;
 import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSClientBuilder;
@@ -44,6 +45,7 @@ public class AliOssConfiguration {
             String endpoint = aliOssProperties.getEndpoint();
             String accessKeyId = aliOssProperties.getAccessKeyId();
             String accessKeySecret = aliOssProperties.getAccessKeySecret();
+            ClientBuilderConfiguration clientConfig = aliOssProperties.getClientConfig();
             aliOssConfigMap.forEach((name, aliOssConfig) -> {
                 if (ObjectUtil.isEmpty(aliOssConfig.getEndpoint())) {
                     aliOssConfig.setEndpoint(endpoint);
@@ -53,6 +55,9 @@ public class AliOssConfiguration {
                 }
                 if (ObjectUtil.isEmpty(aliOssConfig.getAccessKeySecret())) {
                     aliOssConfig.setAccessKeySecret(accessKeySecret);
+                }
+                if (ObjectUtil.isEmpty(aliOssConfig.getClientConfig())) {
+                    aliOssConfig.setClientConfig(clientConfig);
                 }
                 SpringUtil.registerBean(name, aliOssClient(aliOssConfig));
             });
@@ -65,9 +70,21 @@ public class AliOssConfiguration {
     }
 
     public OSS ossClient(AliOssConfig aliOssConfig) {
+        String securityToken = aliOssConfig.getSecurityToken();
+        ClientBuilderConfiguration clientConfiguration = aliOssConfig.getClientConfig();
+        if (ObjectUtil.isEmpty(securityToken) && ObjectUtil.isNotEmpty(clientConfiguration)) {
+            return new OSSClientBuilder().build(aliOssConfig.getEndpoint(),
+                    aliOssConfig.getAccessKeyId(),
+                    aliOssConfig.getAccessKeySecret(), clientConfiguration);
+        }
+        if (ObjectUtil.isNotEmpty(securityToken) && ObjectUtil.isEmpty(clientConfiguration)) {
+            return new OSSClientBuilder().build(aliOssConfig.getEndpoint(),
+                    aliOssConfig.getAccessKeyId(),
+                    aliOssConfig.getAccessKeySecret(), securityToken);
+        }
         return new OSSClientBuilder().build(aliOssConfig.getEndpoint(),
                 aliOssConfig.getAccessKeyId(),
-                aliOssConfig.getAccessKeySecret());
+                aliOssConfig.getAccessKeySecret(), securityToken, clientConfiguration);
     }
 
 }

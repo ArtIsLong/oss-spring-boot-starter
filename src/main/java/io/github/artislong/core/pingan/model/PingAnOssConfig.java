@@ -20,6 +20,9 @@ public class PingAnOssConfig {
     private String basePath;
     private String bucketName;
 
+    private Boolean representPathInKey = false;
+    private String domainName;
+
     /**
      * 断点续传参数
      */

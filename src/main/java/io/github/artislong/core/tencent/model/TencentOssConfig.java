@@ -1,5 +1,6 @@
 package io.github.artislong.core.tencent.model;
 
+import com.qcloud.cos.ClientConfig;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
@@ -16,7 +17,8 @@ public class TencentOssConfig {
     private String bucketName;
     private String secretId;
     private String secretKey;
-    private String region;
+
+    private ClientConfig clientConfig;
 
     /**
      * 断点续传参数

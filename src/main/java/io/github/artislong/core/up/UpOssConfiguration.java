@@ -81,7 +81,7 @@ public class UpOssConfiguration {
         SliceConfig sliceConfig = upOssConfig.getSliceConfig();
         parallelUploader.setParallel(sliceConfig.getTaskNum());
         parallelUploader.setCheckMD5(true);
-
+        parallelUploader.setTimeout(upOssConfig.getTimeout());
         return parallelUploader;
     }
 }

@@ -18,6 +18,8 @@ public class MinioOssConfig {
     private String secretKey;
     private String bucketName;
 
+    private MinioOssClientConfig clientConfig = new MinioOssClientConfig();
+
     /**
      * 断点续传参数
      */

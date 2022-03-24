@@ -42,10 +42,15 @@ public class QingYunOssConfiguration {
         if (ossConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, qingYunOssClient(qingYunOssProperties));
         } else {
+            String endpoint = qingYunOssProperties.getEndpoint();
             String accessKey = qingYunOssProperties.getAccessKey();
             String accessSecret = qingYunOssProperties.getAccessSecret();
             String zone = qingYunOssProperties.getZone();
+            EnvContext.HttpConfig clientConfig = qingYunOssProperties.getClientConfig();
             ossConfigMap.forEach((name, ossConfig) -> {
+                if (ObjectUtil.isEmpty(ossConfig.getEndpoint())) {
+                    ossConfig.setEndpoint(endpoint);
+                }
                 if (ObjectUtil.isEmpty(ossConfig.getAccessKey())) {
                     ossConfig.setAccessKey(accessKey);
                 }
@@ -54,6 +59,9 @@ public class QingYunOssConfiguration {
                 }
                 if (ObjectUtil.isEmpty(ossConfig.getZone())) {
                     ossConfig.setZone(zone);
+                }
+                if (ObjectUtil.isEmpty(ossConfig.getClientConfig())) {
+                    ossConfig.setClientConfig(clientConfig);
                 }
                 SpringUtil.registerBean(name, qingYunOssClient(ossConfig));
             });
@@ -69,6 +77,14 @@ public class QingYunOssConfiguration {
 
     public QingStor qingStor(QingYunOssConfig qingYunOssConfig) {
         EnvContext env = new EnvContext(qingYunOssConfig.getAccessKey(), qingYunOssConfig.getAccessSecret());
+        env.setHttpConfig(qingYunOssConfig.getClientConfig());
+        String endpoint = qingYunOssConfig.getEndpoint();
+        if (ObjectUtil.isNotEmpty(endpoint)) {
+            env.setEndpoint(endpoint);
+        }
+        env.setCnameSupport(qingYunOssConfig.getCnameSupport());
+        env.setAdditionalUserAgent(qingYunOssConfig.getAdditionalUserAgent());
+        env.setVirtualHostEnabled(qingYunOssConfig.getVirtualHostEnabled());
         return new QingStor(env);
     }
 }

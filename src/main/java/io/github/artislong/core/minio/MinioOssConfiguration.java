@@ -5,8 +5,11 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.minio.model.MinioOssClientConfig;
 import io.github.artislong.core.minio.model.MinioOssConfig;
 import io.minio.MinioClient;
+import io.minio.http.HttpUtils;
+import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -42,6 +45,7 @@ public class MinioOssConfiguration {
             String endpoint = minioOssProperties.getEndpoint();
             String accessKey = minioOssProperties.getAccessKey();
             String secretKey = minioOssProperties.getSecretKey();
+            MinioOssClientConfig clientConfig = minioOssProperties.getClientConfig();
             minioOssConfigMap.forEach((name, minioOssConfig) -> {
                 if (ObjectUtil.isEmpty(minioOssConfig.getEndpoint())) {
                     minioOssConfig.setEndpoint(endpoint);
@@ -51,6 +55,9 @@ public class MinioOssConfiguration {
                 }
                 if (ObjectUtil.isEmpty(minioOssConfig.getSecretKey())) {
                     minioOssConfig.setSecretKey(secretKey);
+                }
+                if (ObjectUtil.isEmpty(minioOssConfig.getClientConfig())) {
+                    minioOssConfig.setClientConfig(clientConfig);
                 }
                 SpringUtil.registerBean(name, minioOssClient(minioOssConfig));
             });
@@ -63,9 +70,13 @@ public class MinioOssConfiguration {
     }
 
     public MinioClient minioClient(MinioOssConfig minioOssConfig) {
+        MinioOssClientConfig clientConfig = minioOssConfig.getClientConfig();
+        OkHttpClient okHttpClient = HttpUtils.newDefaultHttpClient(
+                clientConfig.getConnectTimeout(), clientConfig.getWriteTimeout(), clientConfig.getReadTimeout());
         return MinioClient.builder()
                 .endpoint(minioOssConfig.getEndpoint())
                 .credentials(minioOssConfig.getAccessKey(), minioOssConfig.getSecretKey())
+                .httpClient(okHttpClient)
                 .build();
     }
 }

@@ -46,6 +46,7 @@ public class PingAnOssConfiguration {
             String obsUrl = pingAnOssProperties.getObsUrl();
             String obsAccessKey = pingAnOssProperties.getObsAccessKey();
             String obsSecret = pingAnOssProperties.getObsSecret();
+            String domainName = pingAnOssProperties.getDomainName();
             ossConfigMap.forEach((name, ossConfig) -> {
                 if (ObjectUtil.isEmpty(ossConfig.getUserAgent())) {
                     ossConfig.setUserAgent(userAgent);
@@ -58,6 +59,9 @@ public class PingAnOssConfiguration {
                 }
                 if (ObjectUtil.isEmpty(ossConfig.getObsSecret())) {
                     ossConfig.setObsSecret(obsSecret);
+                }
+                if (ObjectUtil.isEmpty(ossConfig.getDomainName())) {
+                    ossConfig.setDomainName(domainName);
                 }
                 SpringUtil.registerBean(name, pingAnOssClient(ossConfig));
             });
@@ -83,9 +87,18 @@ public class PingAnOssConfiguration {
             public String getObsSecret() {
                 return pingAnOssConfig.getObsSecret();
             }
+            @Override
+            public boolean isRepresentPathInKey() {
+                return pingAnOssConfig.getRepresentPathInKey();
+            }
         };
         try {
-            return RadosgwServiceFactory.getFromConfigObject(oc);
+            String domainName = pingAnOssConfig.getDomainName();
+            if (ObjectUtil.isEmpty(domainName)) {
+                return RadosgwServiceFactory.getFromConfigObject(oc);
+            } else {
+                return RadosgwServiceFactory.getFromConfigObject(oc, domainName);
+            }
         } catch (Exception e) {
             throw new OssException(e);
         }

@@ -52,6 +52,7 @@ public class JdOssConfiguration {
             String accessKey = jdOssProperties.getAccessKey();
             String secretKey = jdOssProperties.getSecretKey();
             String region = jdOssProperties.getRegion();
+            ClientConfiguration clientConfig = jdOssProperties.getClientConfig();
             jdOssConfigMap.forEach((name, jdOssConfig) -> {
                 if (ObjectUtil.isEmpty(jdOssConfig.getEndpoint())) {
                     jdOssConfig.setEndpoint(endpoint);
@@ -65,6 +66,9 @@ public class JdOssConfiguration {
                 if (ObjectUtil.isEmpty(jdOssConfig.getRegion())) {
                     jdOssConfig.setRegion(region);
                 }
+                if (ObjectUtil.isEmpty(jdOssConfig.getClientConfig())) {
+                    jdOssConfig.setClientConfig(clientConfig);
+                }
                 SpringUtil.registerBean(name, jdOssClient(jdOssConfig));
             });
         }
@@ -72,7 +76,7 @@ public class JdOssConfiguration {
     }
 
     private StandardOssClient jdOssClient(JdOssConfig jdOssConfig) {
-        ClientConfiguration clientConfig = clientConfig();
+        ClientConfiguration clientConfig = jdOssConfig.getClientConfig();
         AwsClientBuilder.EndpointConfiguration endpointConfig = endpointConfig(jdOssConfig);
         AWSCredentials awsCredentials = awsCredentials(jdOssConfig);
         AWSCredentialsProvider awsCredentialsProvider = awsCredentialsProvider(awsCredentials);
@@ -83,10 +87,6 @@ public class JdOssConfiguration {
 
     public StandardOssClient jdOssClient(AmazonS3 amazonS3, TransferManager transferManager, JdOssConfig jdOssConfig) {
         return new JdOssClient(amazonS3, transferManager, jdOssConfig);
-    }
-
-    public ClientConfiguration clientConfig() {
-        return new ClientConfiguration();
     }
 
     public AwsClientBuilder.EndpointConfiguration endpointConfig(JdOssConfig jdOssConfig) {
