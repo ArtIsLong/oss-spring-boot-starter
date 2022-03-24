@@ -6,7 +6,7 @@
 
     <groupId>io.github.artislong</groupId>
     <artifactId>oss-spring-boot-starter</artifactId>
-    <version>1.2</version>
+    <version>1.1</version>
 
     <name>oss-spring-boot-starter</name>
     <url>https://github.com/ArtIsLong/oss-spring-boot-starter</url>
