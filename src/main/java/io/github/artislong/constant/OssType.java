@@ -90,7 +90,12 @@ public enum OssType {
     /**
      * JDBC
      */
-    JDBC(OssConstant.OssType.JDBC);
+    JDBC(OssConstant.OssType.JDBC),
+
+    /**
+     * 亚马逊
+     */
+    AWS(OssConstant.OssType.AWS);
 
     private final String value;
 

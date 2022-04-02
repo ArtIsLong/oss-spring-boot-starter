@@ -54,6 +54,7 @@ public class OssConstant {
         String PINGAN = "pingan";
         String QINGYUN = "qingyun";
         String JDBC = "jdbc";
+        String AWS = "aws";
     }
 
 }

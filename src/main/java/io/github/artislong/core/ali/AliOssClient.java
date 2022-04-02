@@ -58,11 +58,7 @@ public class AliOssClient implements StandardOssClient {
         if (isOverride || !oss.doesObjectExist(bucketName, key)) {
             oss.putObject(bucketName, key, is, new ObjectMetadata());
         }
-        OssInfo ossInfo = getBaseInfo(bucketName, key);
-        ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
-        ossInfo.setPath(OssPathUtil.replaceKey(targetName, ossInfo.getName(), true));
-
-        return ossInfo;
+        return getInfo(targetName);
     }
 
     /**
