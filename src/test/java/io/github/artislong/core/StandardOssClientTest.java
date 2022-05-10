@@ -12,7 +12,7 @@ import io.github.artislong.model.OssInfo;
 public interface StandardOssClientTest {
 
     default void upLoad() {
-        OssInfo ossInfo = getOssClient().upLoad(FileUtil.getInputStream("C:\\Users\\15221\\Desktop\\vim.png"), "test/test.png");
+        OssInfo ossInfo = getOssClient().upLoad(FileUtil.getInputStream("/Users/admin/test.png"), "test.png");
         System.out.println(ossInfo);
     }
 
