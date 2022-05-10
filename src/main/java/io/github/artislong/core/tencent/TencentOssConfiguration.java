@@ -9,22 +9,24 @@ import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.tencent.model.TencentOssClientConfig;
 import io.github.artislong.core.tencent.model.TencentOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 陈敏
  * @version TencentConfiguration.java, v 1.1 2021/11/24 15:22 chenmin Exp $
  * Created on 2021/11/24
  */
-@Configuration
+@SpringBootConfiguration
 @ConditionalOnClass(COSClient.class)
 @EnableConfigurationProperties({TencentOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.TENCENT + CharPool.DOT + OssConstant.ENABLE,
@@ -44,7 +46,7 @@ public class TencentOssConfiguration {
         } else {
             String secretId = tencentOssProperties.getSecretId();
             String secretKey = tencentOssProperties.getSecretKey();
-            ClientConfig clientConfig = tencentOssProperties.getClientConfig();
+            TencentOssClientConfig clientConfig = tencentOssProperties.getClientConfig();
             tencentOssConfigMap.forEach((name, tencentOssConfig) -> {
                 if (ObjectUtil.isEmpty(tencentOssConfig.getSecretId())) {
                     tencentOssConfig.setSecretId(secretId);
@@ -62,9 +64,9 @@ public class TencentOssConfiguration {
     }
 
     private StandardOssClient tencentOssClient(TencentOssConfig tencentOssConfig) {
-        ClientConfig clientConfig = tencentOssConfig.getClientConfig();
+        TencentOssClientConfig clientConfig = Optional.ofNullable(tencentOssConfig.getClientConfig()).orElse(new TencentOssClientConfig());
         COSCredentials cosCredentials = cosCredentials(tencentOssConfig);
-        COSClient cosClient = cosClient(cosCredentials, clientConfig);
+        COSClient cosClient = cosClient(cosCredentials, clientConfig.toClientConfig());
         return tencentOssClient(cosClient, tencentOssConfig);
     }
 

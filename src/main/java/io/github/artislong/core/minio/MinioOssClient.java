@@ -6,7 +6,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -146,8 +145,10 @@ public class MinioOssClient implements StandardOssClient {
         GetObjectArgs getObjectArgs = GetObjectArgs.builder()
                 .bucket(getBucket())
                 .object(key)
-                .offset(start) // 起始字节的位置
-                .length(end)  // 要读取的长度 (可选，如果无值则代表读到文件结尾)。
+                // 起始字节的位置
+                .offset(start)
+                // 要读取的长度 (可选，如果无值则代表读到文件结尾)。
+                .length(end)
                 .build();
         return minioClient.getObject(getObjectArgs);
     }
@@ -193,8 +194,8 @@ public class MinioOssClient implements StandardOssClient {
                 String prefix = OssPathUtil.convertPath(key, true);
                 ListObjectsArgs listObjectsArgs = ListObjectsArgs.builder()
                         .bucket(getBucket())
-                        .delimiter("/")
-                        .prefix(prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH)
+                        .delimiter(StrUtil.SLASH)
+                        .prefix(prefix.endsWith(StrUtil.SLASH) ? prefix : prefix + StrUtil.SLASH)
                         .build();
                 Iterable<Result<Item>> results = minioClient.listObjects(listObjectsArgs);
 
@@ -239,7 +240,15 @@ public class MinioOssClient implements StandardOssClient {
     }
 
     private String getBucket() {
-        return minioOssConfig.getBucketName();
+        String bucketName = minioOssConfig.getBucketName();
+        try {
+            if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build())) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bucketName;
     }
 
     public OssInfo getBaseInfo(String targetName) {

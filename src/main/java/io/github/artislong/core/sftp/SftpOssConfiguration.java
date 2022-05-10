@@ -8,11 +8,11 @@ import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.sftp.model.SftpOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 
@@ -21,7 +21,7 @@ import java.util.Map;
  * @version SftpOssConfiguration.java, v 1.1 2021/11/16 15:33 chenmin Exp $
  * Created on 2021/11/16
  */
-@Configuration
+@SpringBootConfiguration
 @ConditionalOnClass(ChannelSftp.class)
 @EnableConfigurationProperties({SftpOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.SFTP + CharPool.DOT + OssConstant.ENABLE,
@@ -49,7 +49,7 @@ public class SftpOssConfiguration {
     }
 
     public Sftp sftp(SftpOssConfig sftpOssConfig) {
-        return new Sftp(sftpOssConfig);
+        return new Sftp(sftpOssConfig.toFtpConfig());
     }
 
 }

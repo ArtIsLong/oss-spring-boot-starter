@@ -8,25 +8,26 @@ import cn.ucloud.ufile.api.object.ObjectApiBuilder;
 import cn.ucloud.ufile.api.object.ObjectConfig;
 import cn.ucloud.ufile.auth.ObjectAuthorization;
 import cn.ucloud.ufile.auth.UfileObjectLocalAuthorization;
-import cn.ucloud.ufile.http.HttpClient;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.ucloud.model.UCloudOssClientConfig;
 import io.github.artislong.core.ucloud.model.UCloudOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 陈敏
  * @version UCloudOssConfiguration.java, v 1.1 2022/3/7 0:20 chenmin Exp $
  * Created on 2022/3/7
  */
-@Configuration
+@SpringBootConfiguration
 @ConditionalOnClass(UfileClient.class)
 @EnableConfigurationProperties({UCloudOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UCLOUD + CharPool.DOT + OssConstant.ENABLE,
@@ -46,9 +47,8 @@ public class UCloudOssConfiguration {
         } else {
             String publicKey = uCloudOssProperties.getPublicKey();
             String privateKey = uCloudOssProperties.getPrivateKey();
-            String region = uCloudOssProperties.getRegion();
-            String proxySuffix = uCloudOssProperties.getProxySuffix();
-            HttpClient.Config clientConfig = uCloudOssProperties.getClientConfig();
+            String customHost = uCloudOssProperties.getCustomHost();
+            UCloudOssClientConfig clientConfig = uCloudOssProperties.getClientConfig();
             ossConfigMap.forEach((name, ossConfig) -> {
                 if (ObjectUtil.isEmpty(ossConfig.getPublicKey())) {
                     ossConfig.setPublicKey(publicKey);
@@ -56,11 +56,8 @@ public class UCloudOssConfiguration {
                 if (ObjectUtil.isEmpty(ossConfig.getPrivateKey())) {
                     ossConfig.setPrivateKey(privateKey);
                 }
-                if (ObjectUtil.isEmpty(ossConfig.getRegion())) {
-                    ossConfig.setRegion(region);
-                }
-                if (ObjectUtil.isEmpty(ossConfig.getProxySuffix())) {
-                    ossConfig.setProxySuffix(proxySuffix);
+                if (ObjectUtil.isEmpty(ossConfig.getCustomHost())) {
+                    ossConfig.setCustomHost(customHost);
                 }
                 if (ObjectUtil.isEmpty(ossConfig.getClientConfig())) {
                     ossConfig.setClientConfig(clientConfig);
@@ -72,9 +69,10 @@ public class UCloudOssConfiguration {
     }
 
     public StandardOssClient uCloudOssClient(UCloudOssConfig uCloudOssConfig) {
-        UfileClient.Config config = new UfileClient.Config(uCloudOssConfig.getClientConfig());
+        UCloudOssClientConfig clientConfig = Optional.ofNullable(uCloudOssConfig.getClientConfig()).orElse(new UCloudOssClientConfig());
+        UfileClient.Config config = new UfileClient.Config(clientConfig.toClientConfig());
         ObjectAuthorization objectAuthorization = new UfileObjectLocalAuthorization(uCloudOssConfig.getPublicKey(), uCloudOssConfig.getPrivateKey());
-        ObjectConfig objectConfig = new ObjectConfig(uCloudOssConfig.getRegion(), uCloudOssConfig.getProxySuffix());
+        ObjectConfig objectConfig = new ObjectConfig(uCloudOssConfig.getCustomHost());
         UfileClient ufileClient = UfileClient.configure(config);
         ObjectApiBuilder objectApiBuilder = new ObjectApiBuilder(ufileClient, objectAuthorization, objectConfig);
         return new UCloudOssClient(ufileClient, objectApiBuilder, uCloudOssConfig);

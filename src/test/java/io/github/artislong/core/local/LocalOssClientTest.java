@@ -6,6 +6,8 @@ import lombok.Getter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
@@ -14,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  * Created on 2021/11/15
  */
 @SpringBootTest
+@EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)
 public class LocalOssClientTest implements StandardOssClientTest {
 
     @Getter

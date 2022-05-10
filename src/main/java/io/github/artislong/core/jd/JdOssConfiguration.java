@@ -15,22 +15,24 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.jd.model.JdOssClientConfig;
 import io.github.artislong.core.jd.model.JdOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 陈敏
  * @version JdOssConfiguration.java, v 1.1 2021/11/25 10:44 chenmin Exp $
  * Created on 2021/11/25
  */
-@Configuration
+@SpringBootConfiguration
 @ConditionalOnClass(AmazonS3.class)
 @EnableConfigurationProperties({JdOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JD + CharPool.DOT + OssConstant.ENABLE,
@@ -52,7 +54,7 @@ public class JdOssConfiguration {
             String accessKey = jdOssProperties.getAccessKey();
             String secretKey = jdOssProperties.getSecretKey();
             String region = jdOssProperties.getRegion();
-            ClientConfiguration clientConfig = jdOssProperties.getClientConfig();
+            JdOssClientConfig clientConfig = jdOssProperties.getClientConfig();
             jdOssConfigMap.forEach((name, jdOssConfig) -> {
                 if (ObjectUtil.isEmpty(jdOssConfig.getEndpoint())) {
                     jdOssConfig.setEndpoint(endpoint);
@@ -76,11 +78,11 @@ public class JdOssConfiguration {
     }
 
     private StandardOssClient jdOssClient(JdOssConfig jdOssConfig) {
-        ClientConfiguration clientConfig = jdOssConfig.getClientConfig();
+        JdOssClientConfig clientConfig = Optional.ofNullable(jdOssConfig.getClientConfig()).orElse(new JdOssClientConfig());
         AwsClientBuilder.EndpointConfiguration endpointConfig = endpointConfig(jdOssConfig);
         AWSCredentials awsCredentials = awsCredentials(jdOssConfig);
         AWSCredentialsProvider awsCredentialsProvider = awsCredentialsProvider(awsCredentials);
-        AmazonS3 amazonS3 = amazonS3(endpointConfig, clientConfig, awsCredentialsProvider);
+        AmazonS3 amazonS3 = amazonS3(endpointConfig, clientConfig.toClientConfig(), awsCredentialsProvider);
         TransferManager transferManager = transferManager(amazonS3);
         return jdOssClient(amazonS3, transferManager, jdOssConfig);
     }

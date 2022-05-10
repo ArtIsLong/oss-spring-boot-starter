@@ -7,7 +7,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -280,7 +279,7 @@ public class QingYunOssClient implements StandardOssClient {
             try {
                 String prefix = OssPathUtil.convertPath(key, false);
                 Bucket.ListObjectsInput input = new Bucket.ListObjectsInput();
-                input.setPrefix(prefix.endsWith(StrUtil.SLASH) ? prefix : prefix + CharPool.SLASH);
+                input.setPrefix(prefix.endsWith(StrUtil.SLASH) ? prefix : prefix + StrUtil.SLASH);
                 input.setDelimiter(StrUtil.SLASH);
                 Bucket.ListObjectsOutput listObjects = bucketClient.listObjects(input);
 

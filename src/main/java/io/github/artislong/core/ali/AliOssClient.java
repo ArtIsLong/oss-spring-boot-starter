@@ -5,7 +5,6 @@ import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -149,9 +148,9 @@ public class AliOssClient implements StandardOssClient {
 
         if (isRecursion && isDirectory(key)) {
             ListObjectsRequest listObjectsRequest = new ListObjectsRequest(bucketName);
-            listObjectsRequest.setDelimiter("/");
+            listObjectsRequest.setDelimiter(StrUtil.SLASH);
             String prefix = OssPathUtil.convertPath(key, false);
-            listObjectsRequest.setPrefix(prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH);
+            listObjectsRequest.setPrefix(prefix.endsWith(StrUtil.SLASH) ? prefix : prefix + StrUtil.SLASH);
             ObjectListing listing = oss.listObjects(listObjectsRequest);
 
             List<OssInfo> fileOssInfos = new ArrayList<>();
@@ -205,7 +204,11 @@ public class AliOssClient implements StandardOssClient {
     }
 
     public String getBucketName() {
-        return aliOssConfig.getBucketName();
+        String bucketName = aliOssConfig.getBucketName();
+        if (!oss.doesBucketExist(bucketName)) {
+            oss.createBucket(bucketName);
+        }
+        return bucketName;
     }
 
     public OssInfo getBaseInfo(String bucketName, String key) {

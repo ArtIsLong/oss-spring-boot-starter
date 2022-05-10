@@ -6,13 +6,14 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.ftp.Ftp;
 import cn.hutool.extra.ftp.FtpMode;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.ftp.model.FtpOssClientConfig;
 import io.github.artislong.core.ftp.model.FtpOssConfig;
 import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
@@ -67,9 +68,9 @@ public class FtpOssClient implements StandardOssClient {
     public OssInfo upLoadCheckPoint(File file, String targetName) {
         String key = getKey(targetName, true);
         String fileName = FileNameUtil.getName(targetName);
-
-        Ftp ftp = new Ftp(ftpOssConfig, FtpMode.Passive);
-        ftp.setBackToPwd(ftpOssConfig.isBackToPwd());
+        FtpOssClientConfig clientConfig = ftpOssConfig.getClientConfig();
+        Ftp ftp = new Ftp(ftpOssConfig.toFtpConfig(), FtpMode.Passive);
+        ftp.setBackToPwd(clientConfig.isBackToPwd());
         FTPClient ftpClient = ftp.getClient();
         InputStream inputStream = null;
         try {
@@ -120,10 +121,10 @@ public class FtpOssClient implements StandardOssClient {
     public void downLoadCheckPoint(File localFile, String targetName) {
         Ftp ftp = null;
         OutputStream outputStream = null;
-
+        FtpOssClientConfig clientConfig = ftpOssConfig.getClientConfig();
         try {
-            ftp = new Ftp(ftpOssConfig, FtpMode.Passive);
-            ftp.setBackToPwd(ftpOssConfig.isBackToPwd());
+            ftp = new Ftp(ftpOssConfig.toFtpConfig(), FtpMode.Passive);
+            ftp.setBackToPwd(clientConfig.isBackToPwd());
             FTPClient ftpClient = ftp.getClient();
             ftpClient.enterLocalPassiveMode();
 
@@ -206,9 +207,9 @@ public class FtpOssClient implements StandardOssClient {
             List<OssInfo> directoryInfos = new ArrayList<>();
             for (FTPFile ftpFile : ftpFiles) {
                 if (ftpFile.isDirectory()) {
-                    directoryInfos.add(getInfo(targetName + CharPool.SLASH + ftpFile.getName(), true));
+                    directoryInfos.add(getInfo(targetName + StrUtil.SLASH + ftpFile.getName(), true));
                 } else {
-                    fileOssInfos.add(getInfo(targetName + CharPool.SLASH + ftpFile.getName(), false));
+                    fileOssInfos.add(getInfo(targetName + StrUtil.SLASH + ftpFile.getName(), false));
                 }
             }
             ReflectUtil.setFieldValue(ossInfo, "fileInfos", fileOssInfos);

@@ -3,28 +3,29 @@ package io.github.artislong.core.ali;
 import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSClientBuilder;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.ali.model.AliOssClientConfig;
 import io.github.artislong.core.ali.model.AliOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 陈敏
  * @version AliOssConfiguration.java, v 1.1 2021/11/16 15:25 chenmin Exp $
  * Created on 2021/11/16
  */
-@Configuration
+@SpringBootConfiguration
 @ConditionalOnClass(OSSClient.class)
 @EnableConfigurationProperties({AliOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.ALI + CharPool.DOT + OssConstant.ENABLE,
@@ -45,7 +46,8 @@ public class AliOssConfiguration {
             String endpoint = aliOssProperties.getEndpoint();
             String accessKeyId = aliOssProperties.getAccessKeyId();
             String accessKeySecret = aliOssProperties.getAccessKeySecret();
-            ClientBuilderConfiguration clientConfig = aliOssProperties.getClientConfig();
+            String securityToken = aliOssProperties.getSecurityToken();
+            AliOssClientConfig clientConfig = aliOssProperties.getClientConfig();
             aliOssConfigMap.forEach((name, aliOssConfig) -> {
                 if (ObjectUtil.isEmpty(aliOssConfig.getEndpoint())) {
                     aliOssConfig.setEndpoint(endpoint);
@@ -55,6 +57,9 @@ public class AliOssConfiguration {
                 }
                 if (ObjectUtil.isEmpty(aliOssConfig.getAccessKeySecret())) {
                     aliOssConfig.setAccessKeySecret(accessKeySecret);
+                }
+                if (ObjectUtil.isEmpty(aliOssConfig.getSecurityToken())) {
+                    aliOssConfig.setSecurityToken(securityToken);
                 }
                 if (ObjectUtil.isEmpty(aliOssConfig.getClientConfig())) {
                     aliOssConfig.setClientConfig(clientConfig);
@@ -71,11 +76,11 @@ public class AliOssConfiguration {
 
     public OSS ossClient(AliOssConfig aliOssConfig) {
         String securityToken = aliOssConfig.getSecurityToken();
-        ClientBuilderConfiguration clientConfiguration = aliOssConfig.getClientConfig();
+        AliOssClientConfig clientConfiguration = aliOssConfig.getClientConfig();
         if (ObjectUtil.isEmpty(securityToken) && ObjectUtil.isNotEmpty(clientConfiguration)) {
             return new OSSClientBuilder().build(aliOssConfig.getEndpoint(),
                     aliOssConfig.getAccessKeyId(),
-                    aliOssConfig.getAccessKeySecret(), clientConfiguration);
+                    aliOssConfig.getAccessKeySecret(), clientConfiguration.toClientConfig());
         }
         if (ObjectUtil.isNotEmpty(securityToken) && ObjectUtil.isEmpty(clientConfiguration)) {
             return new OSSClientBuilder().build(aliOssConfig.getEndpoint(),
@@ -84,7 +89,8 @@ public class AliOssConfiguration {
         }
         return new OSSClientBuilder().build(aliOssConfig.getEndpoint(),
                 aliOssConfig.getAccessKeyId(),
-                aliOssConfig.getAccessKeySecret(), securityToken, clientConfiguration);
+                aliOssConfig.getAccessKeySecret(), securityToken,
+                Optional.ofNullable(clientConfiguration).orElse(new AliOssClientConfig()).toClientConfig());
     }
 
 }

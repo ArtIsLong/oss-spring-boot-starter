@@ -1,0 +1,183 @@
+oss:
+  sftp:
+    enable: false
+    host: 192.168.0.1
+    port: 22
+    user: test
+    password: test
+    charset: UTF-8
+    base-path: /home/test/file
+  ftp:
+    enable: false
+    host: 192.168.0.1
+    port: 22
+    user: test
+    password: test
+    charset: UTF-8
+    base-path: /home/test/file
+  ali:
+    enable: false
+    access-key-id: AccessKeyId
+    access-key-secret: AccessKeySecret
+    endpoint: Endpoint
+    base-path: /test
+    bucket-name: Bucket
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+  minio:
+    enable: false
+    endpoint: https://play.min.io
+    access-key: Q3AM3UQ867SPQQA43P2F
+    secret-key: zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG
+    bucket-name: asiatrip
+    base-path: /test
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+  qiniu:
+    enable: false
+    access-key: AccessKey
+    secret-key: SecretKey
+    bucket-name: Bucket
+    base-path: /test
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+  baidu:
+    enable: false
+    access-key-id: AccessKeyId
+    secret-access-key: SecretAccessKey
+    bucket-name: Bucket
+    base-path: /test
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+  huawei:
+    enable: false
+    access-key: AccessKey
+    secret-key: SecretKey
+    end-point: EndPoint
+    bucket-name: Bucket
+    base-path: /test
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+  jd:
+    enable: false
+    endpoint: Endpoint
+    region: Region
+    access-key: AccessKey
+    secret-key: SecretKey
+    bucket-name: Bucket
+    base-path: /test
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+  tencent:
+    enable: false
+    secret-key: SecretKey
+    secret-id: SecretId
+    bucket-name: Bucket
+    base-path: /test
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+    client-config:
+      region: Region
+  up:
+    enable: false
+    user-name: UserName
+    password: Password
+    bucket-name: Bucket
+    base-path: /test
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+  local:
+    enable: false
+    base-path: F:/file
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+  jinshan:
+    enable: true
+    access-key-id: AccessKeyId
+    access-key-secret: AccessKeySecret
+    endpoint: Endpoint
+    bucket-name: Bucket
+    base-path: /test
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+  jdbc:
+    enable: true
+    base-path: /test
+    #    data-source-name: dataSource
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://localhost:3306/oss?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    driver: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+  #    oss-config:
+  #      mysqlOssClient:
+  #        base-path: /
+  #        data-source-name: dataSource
+  #    oss-config:
+  #      mysqlOssClient:
+  #        base-path: /
+  #        type: com.zaxxer.hikari.HikariDataSource
+  #        url: jdbc:mysql://localhost:3306/oss?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+  #        driver: com.mysql.cj.jdbc.Driver
+  #        username: root
+  #        password: root
+  #      oracleOssClient:
+  #        base-path: /
+  #        type: com.zaxxer.hikari.HikariDataSource
+  #        url: jdbc:oracle:thin:@localhost:1521:orcl
+  #        driver: oracle.jdbc.driver.OracleDriver
+  #        username: test
+  #        password: test123
+  qingyun:
+    enable: false
+    zone: Zone
+    access-key: AccessKey
+    access-secret: AccessSecret
+    bucket-name: Bucket
+    base-path: /
+    slice-config:
+      task-num: 8
+      part-size: 104857600
+logging:
+  level:
+    com:
+      upyun: debug
+      baidubce: debug
+      qiniu: debug
+      aliyun:
+        oss: debug
+    okhttp3: debug
+    okio: debug
+    io:
+      github:
+        artislong: debug
+    cn:
+      hutool: debug
+#spring:
+#  datasource:
+#    dynamic:
+#      primary: mysql
+#      strict: true
+#      datasource:
+#        mysql:
+#          type: com.zaxxer.hikari.HikariDataSource
+#          url: jdbc:mysql://localhost:3306/oss?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#          driver: com.mysql.cj.jdbc.Driver
+#          username: root
+#          password: root
+#        oracle:
+#          type: com.zaxxer.hikari.HikariDataSource
+#          url: jdbc:oracle:thin:@localhost:1521:orcl
+#          driver: oracle.jdbc.driver.OracleDriver
+#          username: test
+#          password: test123

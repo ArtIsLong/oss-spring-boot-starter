@@ -8,22 +8,24 @@ import com.baidubce.services.bos.BosClient;
 import com.baidubce.services.bos.BosClientConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.baidu.model.BaiduOssClientConfig;
 import io.github.artislong.core.baidu.model.BaiduOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 陈敏
  * @version BaiduConfiguration.java, v 1.1 2021/11/24 15:26 chenmin Exp $
  * Created on 2021/11/24
  */
-@Configuration
+@SpringBootConfiguration
 @ConditionalOnClass(BosClient.class)
 @EnableConfigurationProperties({BaiduOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.BAIDU + CharPool.DOT + OssConstant.ENABLE,
@@ -43,7 +45,7 @@ public class BaiduOssConfiguration {
         } else {
             String accessKeyId = baiduOssProperties.getAccessKeyId();
             String secretAccessKey = baiduOssProperties.getSecretAccessKey();
-            BosClientConfiguration clientConfig = baiduOssProperties.getClientConfig();
+            BaiduOssClientConfig clientConfig = baiduOssProperties.getClientConfig();
             baiduOssConfigMap.forEach((name, baiduOssConfig) -> {
                 if (ObjectUtil.isEmpty(baiduOssConfig.getAccessKeyId())) {
                     baiduOssConfig.setAccessKeyId(accessKeyId);
@@ -65,9 +67,10 @@ public class BaiduOssConfiguration {
     }
 
     public BosClientConfiguration bosClientConfiguration(BaiduOssConfig baiduOssConfig) {
-        BosClientConfiguration clientConfig = baiduOssConfig.getClientConfig();
-        clientConfig.setCredentials(new DefaultBceCredentials(baiduOssConfig.getAccessKeyId(), baiduOssConfig.getSecretAccessKey()));
-        return clientConfig;
+        BaiduOssClientConfig clientConfig = Optional.ofNullable(baiduOssConfig.getClientConfig()).orElse(new BaiduOssClientConfig());
+        BosClientConfiguration bosClientConfiguration = clientConfig.toClientConfig();
+        bosClientConfiguration.setCredentials(new DefaultBceCredentials(baiduOssConfig.getAccessKeyId(), baiduOssConfig.getSecretAccessKey()));
+        return bosClientConfiguration;
     }
 
     public BosClient bosClient(BosClientConfiguration config) {

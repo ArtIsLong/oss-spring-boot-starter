@@ -25,7 +25,6 @@ import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
-import io.github.artislong.model.SliceConfig;
 import io.github.artislong.model.download.DownloadCheckPoint;
 import io.github.artislong.model.download.DownloadObjectStat;
 import io.github.artislong.utils.OssPathUtil;
@@ -65,6 +64,7 @@ public class QiNiuOssClient implements StandardOssClient {
     private UploadManager uploadManager;
     private BucketManager bucketManager;
     private QiNiuOssConfig qiNiuOssConfig;
+    private Configuration configuration;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -82,18 +82,10 @@ public class QiNiuOssClient implements StandardOssClient {
     public OssInfo upLoadCheckPoint(File file, String targetName) {
         String key = getKey(targetName, false);
 
-        SliceConfig sliceConfig = qiNiuOssConfig.getSliceConfig();
-
-        Configuration cfg = new Configuration(qiNiuOssConfig.getRegion().buildRegion());
-        // 指定分片上传版本
-        cfg.resumableUploadAPIVersion = Configuration.ResumableUploadAPIVersion.V2;
-        // 设置分片上传并发，1：采用同步上传；大于1：采用并发上传
-        cfg.resumableUploadMaxConcurrentTaskCount = sliceConfig.getTaskNum();
-        cfg.resumableUploadAPIV2BlockSize = sliceConfig.getPartSize().intValue();
-
         try {
             FileRecorder fileRecorder = new FileRecorder(file.getParent());
-            UploadManager uploadManager = new UploadManager(cfg, fileRecorder);
+            UploadManager uploadManager = new UploadManager(configuration, fileRecorder);
+
             uploadManager.put(file.getPath(), key, getUpToken());
         } catch (Exception e) {
             String errorMsg = String.format("%s上传失败", targetName);
@@ -225,7 +217,7 @@ public class QiNiuOssClient implements StandardOssClient {
 
         OssInfo ossInfo = getBaseInfo(targetName);
         if (isRecursion && isDirectory(key)) {
-            FileListing listFiles = bucketManager.listFiles(getBucket(), key, "", 1000, "/");
+            FileListing listFiles = bucketManager.listFiles(getBucket(), key, "", 1000, StrUtil.SLASH);
 
             System.out.println(listFiles);
             List<OssInfo> fileOssInfos = new ArrayList<>();
@@ -273,7 +265,15 @@ public class QiNiuOssClient implements StandardOssClient {
     }
 
     private String getBucket() {
-        return qiNiuOssConfig.getBucketName();
+        String bucketName = qiNiuOssConfig.getBucketName();
+        try {
+            if (ObjectUtil.isEmpty(bucketManager.getBucketInfo(bucketName))) {
+                bucketManager.createBucket(bucketName, qiNiuOssConfig.getClientConfig().getRegion().getRegion());
+            }
+        } catch (QiniuException e) {
+            log.error("创建Bucket失败", e);
+        }
+        return bucketName;
     }
 
     private OssInfo getBaseInfo(String targetName) {

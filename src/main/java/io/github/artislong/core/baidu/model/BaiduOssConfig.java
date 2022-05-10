@@ -1,10 +1,11 @@
 package io.github.artislong.core.baidu.model;
 
-import com.baidubce.services.bos.BosClientConfiguration;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Optional;
 
 /**
  * @author 陈敏
@@ -20,7 +21,7 @@ public class BaiduOssConfig {
     private String accessKeyId;
     private String secretAccessKey;
 
-    private BosClientConfiguration clientConfig;
+    private BaiduOssClientConfig clientConfig;
 
     /**
      * 断点续传参数

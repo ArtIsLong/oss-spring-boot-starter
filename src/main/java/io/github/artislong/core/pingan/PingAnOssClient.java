@@ -5,11 +5,12 @@ import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aliyun.oss.common.utils.HttpHeaders;
+import com.pingan.radosgw.sdk.admin.dto.UserInfo;
+import com.pingan.radosgw.sdk.admin.service.RGWAdminServiceFacade;
 import com.pingan.radosgw.sdk.service.RadosgwService;
 import com.pingan.radosgw.sdk.service.request.ListObjectsRequest;
 import com.pingan.radosgw.sdk.service.request.MutilpartUploadFileRequest;
@@ -56,6 +57,7 @@ public class PingAnOssClient implements StandardOssClient {
 
     private PingAnOssConfig pingAnOssConfig;
     private RadosgwService radosgwService;
+    RGWAdminServiceFacade rgwAdminServiceFacade;
 
     @Override
     public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
@@ -69,11 +71,7 @@ public class PingAnOssClient implements StandardOssClient {
                 throw new OssException(e);
             }
         }
-        OssInfo ossInfo = getBaseInfo(bucketName, key);
-        ossInfo.setName(StrUtil.equals(targetName, StrUtil.SLASH) ? targetName : FileNameUtil.getName(targetName));
-        ossInfo.setPath(OssPathUtil.replaceKey(targetName, ossInfo.getName(), true));
-
-        return ossInfo;
+        return getInfo(targetName);
     }
 
     /**
@@ -161,9 +159,9 @@ public class PingAnOssClient implements StandardOssClient {
         if (isRecursion && isDirectory(key)) {
             ListObjectsRequest listObjectsRequest = new ListObjectsRequest();
             listObjectsRequest.setBucketName(bucketName);
-            listObjectsRequest.setDelimiter("/");
+            listObjectsRequest.setDelimiter(StrUtil.SLASH);
             String prefix = OssPathUtil.convertPath(key, false);
-            listObjectsRequest.setPrefix(prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH);
+            listObjectsRequest.setPrefix(prefix.endsWith(StrUtil.SLASH) ? prefix : prefix + StrUtil.SLASH);
             ObjectListing objectListing = null;
             try {
                 objectListing = radosgwService.listObjects(listObjectsRequest);
@@ -223,7 +221,20 @@ public class PingAnOssClient implements StandardOssClient {
     }
 
     public String getBucketName() {
-        return pingAnOssConfig.getBucketName();
+        String bucketName = pingAnOssConfig.getBucketName();
+        try {
+            String userId = pingAnOssConfig.getUserId();
+            UserInfo userInfo = rgwAdminServiceFacade.getUser(userId);
+            if (ObjectUtil.isEmpty(userInfo)) {
+                rgwAdminServiceFacade.createUser(userId, userId);
+            }
+            if (ObjectUtil.isEmpty(rgwAdminServiceFacade.getBucket(bucketName).getName())) {
+                rgwAdminServiceFacade.createBucket(userId, bucketName);
+            }
+        } catch (AmazonClientException e) {
+            log.error("创建Bucket失败", e);
+        }
+        return bucketName;
     }
 
     public OssInfo getBaseInfo(String bucketName, String key) {

@@ -4,9 +4,9 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.ssh.Sftp;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
@@ -134,7 +134,7 @@ public class SftpOssClient implements StandardOssClient {
             List<OssInfo> directoryInfos = new ArrayList<>();
             for (ChannelSftp.LsEntry lsEntry : lsEntries) {
                 SftpATTRS attrs = lsEntry.getAttrs();
-                String target = OssPathUtil.convertPath(targetName + CharPool.SLASH + lsEntry.getFilename(), true);
+                String target = OssPathUtil.convertPath(targetName + StrUtil.SLASH + lsEntry.getFilename(), true);
                 if (attrs.isDir()) {
                     directoryInfos.add(getInfo(target, true));
                 } else {

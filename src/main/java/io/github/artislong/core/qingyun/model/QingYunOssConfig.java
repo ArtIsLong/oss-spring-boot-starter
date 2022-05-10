@@ -1,6 +1,6 @@
 package io.github.artislong.core.qingyun.model;
 
-import com.qingstor.sdk.config.EnvContext;
+import io.github.artislong.core.qingyun.constant.QingYunOssConstant;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
@@ -13,7 +13,7 @@ import lombok.Data;
 @Data
 public class QingYunOssConfig {
 
-    private String endpoint;
+    private String endpoint = QingYunOssConstant.DEFAULT_ENDPOINT;
     private String accessKey;
     private String accessSecret;
 
@@ -21,11 +21,7 @@ public class QingYunOssConfig {
     private String zone;
     private String basePath;
 
-    private Boolean cnameSupport = false;
-    private String additionalUserAgent;
-    private Boolean virtualHostEnabled = false;
-
-    private EnvContext.HttpConfig clientConfig = new EnvContext.HttpConfig();
+    private QingYunOssClientConfig clientConfig;
 
     /**
      * 断点续传参数

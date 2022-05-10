@@ -7,7 +7,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -195,7 +194,7 @@ public class JdOssClient implements StandardOssClient {
 
         if (isRecursion && isDirectory(key)) {
             String prefix = OssPathUtil.convertPath(key, false);
-            ObjectListing listObjects = amazonS3.listObjects(getBucket(), prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH);
+            ObjectListing listObjects = amazonS3.listObjects(getBucket(), prefix.endsWith(StrUtil.SLASH) ? prefix : prefix + StrUtil.SLASH);
 
             List<OssInfo> fileOssInfos = new ArrayList<>();
             List<OssInfo> directoryInfos = new ArrayList<>();
@@ -249,7 +248,11 @@ public class JdOssClient implements StandardOssClient {
     }
 
     private String getBucket() {
-        return jdOssConfig.getBucketName();
+        String bucketName = jdOssConfig.getBucketName();
+        if (!amazonS3.doesBucketExistV2(bucketName)) {
+            amazonS3.createBucket(bucketName);
+        }
+        return bucketName;
     }
 
     public OssInfo getBaseInfo(String key) {

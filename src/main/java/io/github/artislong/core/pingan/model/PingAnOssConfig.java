@@ -17,6 +17,8 @@ public class PingAnOssConfig {
     private String obsAccessKey;
     private String obsSecret;
 
+    private String userId;
+
     private String basePath;
     private String bucketName;
 

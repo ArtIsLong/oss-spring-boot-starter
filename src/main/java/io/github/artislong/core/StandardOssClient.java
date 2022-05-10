@@ -132,10 +132,23 @@ public interface StandardOssClient {
         return getInfo(targetName);
     }
 
+    /**
+     * 完成分片上传
+     * @param upLoadCheckPoint 断点对象
+     * @param partEntityTags 所有分片
+     */
     default void completeUpload(UpLoadCheckPoint upLoadCheckPoint, List<UpLoadPartEntityTag> partEntityTags) {
         FileUtil.del(upLoadCheckPoint.getCheckpointFile());
     }
 
+    /**
+     * 初始化断点续传对象
+     * @param uploadCheckPoint 断点续传对象
+     * @param upLoadFile 要上传的文件
+     * @param targetName 上传文件名
+     * @param checkpointFile 断点文件
+     * @param slice 分片参数
+     */
     default void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile, SliceConfig slice) {
         throw new OssException("初始化断点续传对象未实现，默认不支持此方法");
     }
@@ -212,14 +225,11 @@ public interface StandardOssClient {
      * 上传分片
      * @param upLoadCheckPoint 断点续传对象
      * @param partNum 分片索引
+     * @param inputStream 文件流
      * @return 上传结果
      */
     default UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
-        UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
-        long partSize = uploadPart.getSize();
-        UpLoadPartResult partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
-        partResult.setFailed(true);
-        return partResult;
+        throw new OssException("上传文件分片方法未实现，默认不支持此方法");
     }
 
     /**
@@ -495,6 +505,7 @@ public interface StandardOssClient {
      * @param start 文件开始字节
      * @param end 文件结束字节
      * @return 此范围的文件流
+     * @throws Exception 客户端异常
      */
     default InputStream downloadPart(String key, long start, long end) throws Exception {
         throw new OssException("下载文件分片方法未实现，默认不支持此方法");
@@ -612,6 +623,10 @@ public interface StandardOssClient {
         return !isFile(targetName);
     }
 
+    /**
+     * 获取标准的OSS客户端底层操作对象
+     * @return
+     */
     Map<String, Object> getClientObject();
 
     /**

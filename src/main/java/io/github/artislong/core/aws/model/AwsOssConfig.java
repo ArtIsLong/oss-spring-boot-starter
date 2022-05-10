@@ -30,7 +30,7 @@ public class AwsOssConfig {
 
     private DefaultsMode mode;
 
-    private AwsOssClientConfig clientConfig = new AwsOssClientConfig();
+    private AwsOssClientConfig clientConfig;
     /**
      * 断点续传参数
      */

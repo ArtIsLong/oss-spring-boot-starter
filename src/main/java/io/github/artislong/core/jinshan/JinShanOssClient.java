@@ -7,7 +7,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -221,7 +220,7 @@ public class JinShanOssClient implements StandardOssClient {
 
         if (isRecursion && isDirectory(key)) {
             String prefix = OssPathUtil.convertPath(key, false);
-            ObjectListing listObjects = ks3.listObjects(getBucket(), prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH);
+            ObjectListing listObjects = ks3.listObjects(getBucket(), prefix.endsWith(StrUtil.SLASH) ? prefix : prefix + StrUtil.SLASH);
 
             List<OssInfo> fileOssInfos = new ArrayList<>();
             List<OssInfo> directoryInfos = new ArrayList<>();
@@ -278,7 +277,11 @@ public class JinShanOssClient implements StandardOssClient {
     }
 
     private String getBucket() {
-        return jinShanOssConfig.getBucketName();
+        String bucketName = jinShanOssConfig.getBucketName();
+        if (!ks3.bucketExists(bucketName)) {
+            ks3.createBucket(bucketName);
+        }
+        return bucketName;
     }
 
     public OssInfo getBaseInfo(String key) {

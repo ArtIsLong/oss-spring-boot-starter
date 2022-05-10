@@ -7,22 +7,24 @@ import com.obs.services.ObsClient;
 import com.obs.services.ObsConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.huawei.model.HuaweiOssClientConfig;
 import io.github.artislong.core.huawei.model.HuaweiOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 陈敏
  * @version HuaWeiOssConfiguration.java, v 1.1 2021/11/25 9:58 chenmin Exp $
  * Created on 2021/11/25
  */
-@Configuration
+@SpringBootConfiguration
 @ConditionalOnClass(ObsClient.class)
 @EnableConfigurationProperties({HuaWeiOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.HUAWEI + CharPool.DOT + OssConstant.ENABLE,
@@ -42,7 +44,8 @@ public class HuaWeiOssConfiguration {
         } else {
             String accessKey = huaWeiOssProperties.getAccessKey();
             String secretKey = huaWeiOssProperties.getSecretKey();
-            ObsConfiguration clientConfig = huaWeiOssProperties.getClientConfig();
+            String endPoint = huaWeiOssProperties.getEndPoint();
+            HuaweiOssClientConfig clientConfig = huaWeiOssProperties.getClientConfig();
             huaweiOssConfigMap.forEach((name, huaweiOssConfig) -> {
                 if (ObjectUtil.isEmpty(huaweiOssConfig.getAccessKey())) {
                     huaweiOssConfig.setAccessKey(accessKey);
@@ -52,6 +55,9 @@ public class HuaWeiOssConfiguration {
                 }
                 if (ObjectUtil.isEmpty(huaweiOssConfig.getClientConfig())) {
                     huaweiOssConfig.setClientConfig(clientConfig);
+                }
+                if (ObjectUtil.isEmpty(huaweiOssConfig.getEndPoint())) {
+                    huaweiOssConfig.setEndPoint(endPoint);
                 }
                 SpringUtil.registerBean(name, huaWeiOssClient(huaweiOssConfig));
             });
@@ -64,6 +70,9 @@ public class HuaWeiOssConfiguration {
     }
 
     public ObsClient obsClient(HuaweiOssConfig huaweiOssConfig) {
-        return new ObsClient(huaweiOssConfig.getAccessKey(), huaweiOssConfig.getSecretKey(), huaweiOssConfig.getClientConfig());
+        HuaweiOssClientConfig clientConfig = Optional.ofNullable(huaweiOssConfig.getClientConfig()).orElse(new HuaweiOssClientConfig());
+        ObsConfiguration obsConfiguration = clientConfig.toClientConfig();
+        obsConfiguration.setEndPoint(huaweiOssConfig.getEndPoint());
+        return new ObsClient(huaweiOssConfig.getAccessKey(), huaweiOssConfig.getSecretKey(), obsConfiguration);
     }
 }

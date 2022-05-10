@@ -7,23 +7,25 @@ import com.upyun.ParallelUploader;
 import com.upyun.RestManager;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.up.model.UpOssClientConfig;
 import io.github.artislong.core.up.model.UpOssConfig;
 import io.github.artislong.model.SliceConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 陈敏
  * @version UpOssConfiguration.java, v 1.1 2021/11/30 12:03 chenmin Exp $
  * Created on 2021/11/30
  */
-@Configuration
+@SpringBootConfiguration
 @ConditionalOnClass(RestManager.class)
 @EnableConfigurationProperties({UpOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UP + CharPool.DOT + OssConstant.ENABLE,
@@ -68,10 +70,11 @@ public class UpOssConfiguration {
 
     public RestManager restManager(UpOssConfig upOssConfig) {
         RestManager restManager = new RestManager(upOssConfig.getBucketName(), upOssConfig.getUserName(), upOssConfig.getPassword());
+        UpOssClientConfig clientConfig = Optional.ofNullable(upOssConfig.getClientConfig()).orElse(new UpOssClientConfig());
         // 手动设置超时时间：默认为30秒
-        restManager.setTimeout(upOssConfig.getTimeout());
+        restManager.setTimeout(clientConfig.getTimeout());
         // 选择最优的接入点
-        restManager.setApiDomain(upOssConfig.getApiDomain().toString());
+        restManager.setApiDomain(clientConfig.getApiDomain().toString());
         return restManager;
     }
 
@@ -81,7 +84,8 @@ public class UpOssConfiguration {
         SliceConfig sliceConfig = upOssConfig.getSliceConfig();
         parallelUploader.setParallel(sliceConfig.getTaskNum());
         parallelUploader.setCheckMD5(true);
-        parallelUploader.setTimeout(upOssConfig.getTimeout());
+        UpOssClientConfig clientConfig = Optional.ofNullable(upOssConfig.getClientConfig()).orElse(new UpOssClientConfig());
+        parallelUploader.setTimeout(clientConfig.getTimeout());
         return parallelUploader;
     }
 }

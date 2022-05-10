@@ -1,6 +1,7 @@
 package io.github.artislong.core;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.StrUtil;
 import io.github.artislong.model.OssInfo;
 
 /**
@@ -11,7 +12,7 @@ import io.github.artislong.model.OssInfo;
 public interface StandardOssClientTest {
 
     default void upLoad() {
-        OssInfo ossInfo = getOssClient().upLoad(FileUtil.getInputStream("/Users/admin/test.png"), "test.png");
+        OssInfo ossInfo = getOssClient().upLoad(FileUtil.getInputStream("C:\\Users\\15221\\Desktop\\vim.png"), "test/test.png");
         System.out.println(ossInfo);
     }
 
@@ -45,9 +46,9 @@ public interface StandardOssClientTest {
     }
 
     default void getInfo() {
-        OssInfo info = getOssClient().getInfo("test.png");
-        System.out.println(info);
-        info = getOssClient().getInfo("/", true);
+//        OssInfo info = getOssClient().getInfo("test.png");
+//        System.out.println(info);
+        OssInfo info = getOssClient().getInfo(StrUtil.SLASH, true);
         System.out.println(info);
     }
 

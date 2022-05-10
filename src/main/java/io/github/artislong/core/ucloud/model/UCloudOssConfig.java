@@ -1,6 +1,5 @@
 package io.github.artislong.core.ucloud.model;
 
-import cn.ucloud.ufile.http.HttpClient;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
@@ -17,10 +16,9 @@ public class UCloudOssConfig {
     private String bucketName;
     private String publicKey;
     private String privateKey;
-    private String region;
-    private String proxySuffix;
+    private String customHost;
 
-    private HttpClient.Config clientConfig;
+    private UCloudOssClientConfig clientConfig;
 
     /**
      * 断点续传参数

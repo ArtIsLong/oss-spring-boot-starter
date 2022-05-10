@@ -9,22 +9,24 @@ import com.qingstor.sdk.service.Bucket;
 import com.qingstor.sdk.service.QingStor;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.qingyun.model.QingYunOssClientConfig;
 import io.github.artislong.core.qingyun.model.QingYunOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 陈敏
  * @version QingYunOssConfiguration.java, v 1.0 2022/3/10 23:43 chenmin Exp $
  * Created on 2022/3/10
  */
-@Configuration
+@SpringBootConfiguration
 @ConditionalOnClass(OSSClient.class)
 @EnableConfigurationProperties({QingYunOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINGYUN + CharPool.DOT + OssConstant.ENABLE,
@@ -46,7 +48,7 @@ public class QingYunOssConfiguration {
             String accessKey = qingYunOssProperties.getAccessKey();
             String accessSecret = qingYunOssProperties.getAccessSecret();
             String zone = qingYunOssProperties.getZone();
-            EnvContext.HttpConfig clientConfig = qingYunOssProperties.getClientConfig();
+            QingYunOssClientConfig clientConfig = qingYunOssProperties.getClientConfig();
             ossConfigMap.forEach((name, ossConfig) -> {
                 if (ObjectUtil.isEmpty(ossConfig.getEndpoint())) {
                     ossConfig.setEndpoint(endpoint);
@@ -77,14 +79,18 @@ public class QingYunOssConfiguration {
 
     public QingStor qingStor(QingYunOssConfig qingYunOssConfig) {
         EnvContext env = new EnvContext(qingYunOssConfig.getAccessKey(), qingYunOssConfig.getAccessSecret());
-        env.setHttpConfig(qingYunOssConfig.getClientConfig());
+        QingYunOssClientConfig clientConfig = Optional.ofNullable(qingYunOssConfig.getClientConfig()).orElse(new QingYunOssClientConfig());
+        env.setHttpConfig(clientConfig.toClientConfig());
         String endpoint = qingYunOssConfig.getEndpoint();
         if (ObjectUtil.isNotEmpty(endpoint)) {
             env.setEndpoint(endpoint);
         }
-        env.setCnameSupport(qingYunOssConfig.getCnameSupport());
-        env.setAdditionalUserAgent(qingYunOssConfig.getAdditionalUserAgent());
-        env.setVirtualHostEnabled(qingYunOssConfig.getVirtualHostEnabled());
+        env.setCnameSupport(clientConfig.isCnameSupport());
+        String additionalUserAgent = clientConfig.getAdditionalUserAgent();
+        if (ObjectUtil.isNotEmpty(additionalUserAgent)) {
+            env.setAdditionalUserAgent(additionalUserAgent);
+        }
+        env.setVirtualHostEnabled(clientConfig.isVirtualHostEnabled());
         return new QingStor(env);
     }
 }

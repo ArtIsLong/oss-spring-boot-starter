@@ -15,8 +15,14 @@ public class JdbcOssConfig {
 
     private String basePath;
 
+    /**
+     * 系统数据源Bean名称(适用于系统多数据源配置)
+     */
     private String dataSourceName;
 
+    /**
+     * 对象存储数据源
+     */
     private String url;
     private Class<? extends DataSource> type;
     private String driver;

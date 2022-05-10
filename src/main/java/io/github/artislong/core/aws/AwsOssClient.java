@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * https://docs.aws.amazon.com/s3/
  * @author 陈敏
  * @version AwsOssClient.java, v 1.0 2022/4/1 18:05 chenmin Exp $
  * Created on 2022/4/1

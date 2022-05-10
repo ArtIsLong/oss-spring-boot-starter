@@ -7,7 +7,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -257,7 +256,7 @@ public class UCloudOssClient implements StandardOssClient {
             ObjectListBean objectListBean;
             try {
                 objectListBean = objectApiBuilder.objectList(getBucket())
-                        .withPrefix(prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH)
+                        .withPrefix(prefix.endsWith(StrUtil.SLASH) ? prefix : prefix + StrUtil.SLASH)
                         .execute();
             } catch (Exception e) {
                 throw new OssException(e);

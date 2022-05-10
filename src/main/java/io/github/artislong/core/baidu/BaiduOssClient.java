@@ -7,7 +7,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -222,7 +221,7 @@ public class BaiduOssClient implements StandardOssClient {
 
         if (isRecursion && isDirectory(key)) {
             String prefix = OssPathUtil.convertPath(key, false);
-            ListObjectsResponse listObjects = bosClient.listObjects(getBucket(), prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH);
+            ListObjectsResponse listObjects = bosClient.listObjects(getBucket(), prefix.endsWith(StrUtil.SLASH) ? prefix : prefix + StrUtil.SLASH);
 
             List<OssInfo> fileOssInfos = new ArrayList<>();
             List<OssInfo> directoryInfos = new ArrayList<>();
@@ -279,7 +278,11 @@ public class BaiduOssClient implements StandardOssClient {
     }
 
     private String getBucket() {
-        return baiduOssConfig.getBucketName();
+        String bucketName = baiduOssConfig.getBucketName();
+        if (!bosClient.doesBucketExist(bucketName)) {
+            bosClient.createBucket(bucketName);
+        }
+        return bucketName;
     }
 
     public OssInfo getBaseInfo(String key) {

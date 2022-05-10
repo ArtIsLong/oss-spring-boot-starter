@@ -3,6 +3,9 @@ package io.github.artislong.core.pingan;
 import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import com.pingan.radosgw.sdk.RGWPassport;
+import com.pingan.radosgw.sdk.admin.RadosgwAdminServiceFactory;
+import com.pingan.radosgw.sdk.admin.service.RGWAdminServiceFacade;
 import com.pingan.radosgw.sdk.config.ObsClientConfig;
 import com.pingan.radosgw.sdk.service.RadosgwService;
 import com.pingan.radosgw.sdk.service.RadosgwServiceFactory;
@@ -11,11 +14,12 @@ import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.pingan.model.PingAnOssConfig;
 import io.github.artislong.exception.OssException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import repkg.com.amazonaws.AmazonClientException;
 
 import java.util.Map;
 
@@ -24,7 +28,7 @@ import java.util.Map;
  * @version PingAnOssConfiguration.java, v 1.1 2022/3/8 10:25 chenmin Exp $
  * Created on 2022/3/8
  */
-@Configuration
+@SpringBootConfiguration
 @ConditionalOnClass(RadosgwService.class)
 @EnableConfigurationProperties({PingAnOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.PINGAN + CharPool.DOT + OssConstant.ENABLE,
@@ -70,20 +74,34 @@ public class PingAnOssConfiguration {
     }
 
     public StandardOssClient pingAnOssClient(PingAnOssConfig pingAnOssConfig) {
-        return new PingAnOssClient(pingAnOssConfig, radosgwService(pingAnOssConfig));
+        return new PingAnOssClient(pingAnOssConfig, radosgwService(pingAnOssConfig), rgwAdminServiceFacade(pingAnOssConfig));
     }
 
-    public RadosgwService radosgwService(PingAnOssConfig pingAnOssConfig) {
-        ObsClientConfig oc = new ObsClientConfig() {
+    public RGWAdminServiceFacade rgwAdminServiceFacade(PingAnOssConfig pingAnOssConfig) {
+        ObsClientConfig obsClientConfig = obsClientConfig(pingAnOssConfig);
+        try {
+            RGWPassport rgwPassport = new RGWPassport(obsClientConfig);
+            return RadosgwAdminServiceFactory.get(rgwPassport);
+        } catch (AmazonClientException e) {
+            throw new OssException(e);
+        }
+    }
+
+    public ObsClientConfig obsClientConfig(PingAnOssConfig pingAnOssConfig) {
+        return new ObsClientConfig() {
+            @Override
             public String getUserAgent() {
                 return pingAnOssConfig.getUserAgent();
             }
+            @Override
             public String getObsUrl() {
                 return pingAnOssConfig.getObsUrl();
             }
+            @Override
             public String getObsAccessKey() {
                 return pingAnOssConfig.getObsAccessKey();
             }
+            @Override
             public String getObsSecret() {
                 return pingAnOssConfig.getObsSecret();
             }
@@ -92,12 +110,16 @@ public class PingAnOssConfiguration {
                 return pingAnOssConfig.getRepresentPathInKey();
             }
         };
+    }
+
+    public RadosgwService radosgwService(PingAnOssConfig pingAnOssConfig) {
+        ObsClientConfig obsClientConfig = obsClientConfig(pingAnOssConfig);
         try {
             String domainName = pingAnOssConfig.getDomainName();
             if (ObjectUtil.isEmpty(domainName)) {
-                return RadosgwServiceFactory.getFromConfigObject(oc);
+                return RadosgwServiceFactory.getFromConfigObject(obsClientConfig);
             } else {
-                return RadosgwServiceFactory.getFromConfigObject(oc, domainName);
+                return RadosgwServiceFactory.getFromConfigObject(obsClientConfig, domainName);
             }
         } catch (Exception e) {
             throw new OssException(e);

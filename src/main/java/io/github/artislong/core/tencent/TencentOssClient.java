@@ -7,7 +7,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -219,7 +218,7 @@ public class TencentOssClient implements StandardOssClient {
 
         if (isRecursion && isDirectory(key)) {
             String prefix = OssPathUtil.convertPath(key, false);
-            ObjectListing listObjects = cosClient.listObjects(getBucket(), prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH);
+            ObjectListing listObjects = cosClient.listObjects(getBucket(), prefix.endsWith(StrUtil.SLASH) ? prefix : prefix + StrUtil.SLASH);
 
             List<OssInfo> fileOssInfos = new ArrayList<>();
             List<OssInfo> directoryInfos = new ArrayList<>();
@@ -272,7 +271,11 @@ public class TencentOssClient implements StandardOssClient {
     }
 
     private String getBucket() {
-        return tencentOssConfig.getBucketName();
+        String bucketName = tencentOssConfig.getBucketName();
+        if (!cosClient.doesBucketExist(bucketName)) {
+            cosClient.createBucket(bucketName);
+        }
+        return bucketName;
     }
 
     public OssInfo getBaseInfo(String key) {
@@ -281,7 +284,7 @@ public class TencentOssClient implements StandardOssClient {
         if (isFile(key)) {
             ossInfo = new FileOssInfo();
             try {
-                ObjectMetadata objectMetadata = cosClient.getObjectMetadata(getBucket(), OssPathUtil.replaceKey(key, getBasePath(), false));
+                ObjectMetadata objectMetadata = cosClient.getObjectMetadata(getBucket(), key);
                 ossInfo.setLastUpdateTime(DateUtil.date(objectMetadata.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.date(objectMetadata.getLastModified()).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setLength(Convert.toStr(objectMetadata.getContentLength()));

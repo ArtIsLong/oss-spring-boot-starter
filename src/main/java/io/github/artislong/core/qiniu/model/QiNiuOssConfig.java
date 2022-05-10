@@ -1,6 +1,5 @@
 package io.github.artislong.core.qiniu.model;
 
-import io.github.artislong.core.qiniu.constant.QiNiuRegion;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
@@ -16,8 +15,8 @@ public class QiNiuOssConfig {
     private String basePath;
     private String accessKey;
     private String secretKey;
-    private QiNiuRegion region = QiNiuRegion.AUTOREGION;
     private String bucketName;
+    private QiNiuOssClientConfig clientConfig;
 
     /**
      * 断点续传参数
