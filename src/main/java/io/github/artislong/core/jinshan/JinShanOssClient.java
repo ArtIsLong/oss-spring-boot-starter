@@ -56,23 +56,23 @@ public class JinShanOssClient implements StandardOssClient {
     private JinShanOssConfig jinShanOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String bucket = getBucket();
         String key = getKey(targetName, false);
         if (isOverride || !ks3.objectExists(bucket, key)) {
-            ks3.putObject(bucket, key, is, null);
+            ks3.putObject(bucket, key, inputStream, null);
         }
         return getInfo(targetName);
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         return uploadFile(file, targetName, jinShanOssConfig.getSliceConfig(), OssConstant.OssType.JINSHAN);
     }
 
     @Override
-    public void completeUpload(UpLoadCheckPoint upLoadCheckPoint, List<UpLoadPartEntityTag> partEntityTags) {
-        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(UpLoadPartEntityTag::getPartNumber))
+    public void completeUpload(UploadCheckpoint uploadcheckpoint, List<UploadPartEntityTag> partEntityTags) {
+        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(UploadPartEntityTag::getPartNumber))
                 .map(partEntityTag -> {
                     PartETag p = new PartETag();
                     p.seteTag(partEntityTag.getETag());
@@ -81,25 +81,25 @@ public class JinShanOssClient implements StandardOssClient {
                 }).collect(Collectors.toList());
 
         CompleteMultipartUploadRequest completeMultipartUploadRequest =
-                new CompleteMultipartUploadRequest(upLoadCheckPoint.getBucket(), upLoadCheckPoint.getKey(), upLoadCheckPoint.getUploadId(), eTags);
+                new CompleteMultipartUploadRequest(uploadcheckpoint.getBucket(), uploadcheckpoint.getKey(), uploadcheckpoint.getUploadId(), eTags);
         ks3.completeMultipartUpload(completeMultipartUploadRequest);
-        FileUtil.del(upLoadCheckPoint.getCheckpointFile());
+        FileUtil.del(uploadcheckpoint.getCheckpointFile());
     }
 
     @Override
-    public void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile, SliceConfig slice) {
+    public void prepareUpload(UploadCheckpoint uploadCheckPoint, File uploadfile, String targetName, String checkpointFile, SliceConfig slice) {
         String bucket = getBucket();
         String key = getKey(targetName, false);
 
-        uploadCheckPoint.setMagic(UpLoadCheckPoint.UPLOAD_MAGIC);
-        uploadCheckPoint.setUploadFile(upLoadFile.getPath());
+        uploadCheckPoint.setMagic(UploadCheckpoint.UPLOAD_MAGIC);
+        uploadCheckPoint.setUploadFile(uploadfile.getPath());
         uploadCheckPoint.setKey(key);
         uploadCheckPoint.setBucket(bucket);
         uploadCheckPoint.setCheckpointFile(checkpointFile);
-        uploadCheckPoint.setUploadFileStat(UpLoadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
+        uploadCheckPoint.setUploadFileStat(UploadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
         long partSize = slice.getPartSize();
-        long fileLength = upLoadFile.length();
+        long fileLength = uploadfile.length();
         int parts = (int) (fileLength / partSize);
         if (fileLength % partSize > 0) {
             parts++;
@@ -116,23 +116,23 @@ public class JinShanOssClient implements StandardOssClient {
     }
 
     @Override
-    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
-        UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+    public UploadPartResult uploadPart(UploadCheckpoint uploadcheckpoint, int partNum, InputStream inputStream) {
+        UploadPart uploadPart = uploadcheckpoint.getUploadParts().get(partNum);
         long partSize = uploadPart.getSize();
-        UpLoadPartResult partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
+        UploadPartResult partResult = new UploadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
 
         try {
             inputStream.skip(uploadPart.getOffset());
 
-            UploadPartRequest uploadPartRequest = new UploadPartRequest(upLoadCheckPoint.getBucket(), upLoadCheckPoint.getKey());
-            uploadPartRequest.setUploadId(upLoadCheckPoint.getUploadId());
+            UploadPartRequest uploadPartRequest = new UploadPartRequest(uploadcheckpoint.getBucket(), uploadcheckpoint.getKey());
+            uploadPartRequest.setUploadId(uploadcheckpoint.getUploadId());
             uploadPartRequest.setInputStream(inputStream);
             uploadPartRequest.setPartSize(partSize);
             uploadPartRequest.setPartNumber(partNum + 1);
             PartETag eTag = ks3.uploadPart(uploadPartRequest);
 
             partResult.setNumber(eTag.getPartNumber());
-            partResult.setEntityTag(new UpLoadPartEntityTag().setETag(eTag.geteTag()).setPartNumber(eTag.getPartNumber()));
+            partResult.setEntityTag(new UploadPartEntityTag().setETag(eTag.geteTag()).setPartNumber(eTag.getPartNumber()));
         } catch (Exception e) {
             partResult.setFailed(true);
             partResult.setException(e);
@@ -144,14 +144,14 @@ public class JinShanOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         GetObjectResult objectResult = ks3.getObject(getBucket(), getKey(targetName, false));
-        IoUtil.copy(objectResult.getObject().getObjectContent(), os);
+        IoUtil.copy(objectResult.getObject().getObjectContent(), outputStream);
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
-        downLoadFile(localFile, targetName, jinShanOssConfig.getSliceConfig(), OssConstant.OssType.JINSHAN);
+    public void downloadcheckpoint(File localFile, String targetName) {
+        downloadfile(localFile, targetName, jinShanOssConfig.getSliceConfig(), OssConstant.OssType.JINSHAN);
     }
 
     @Override
@@ -202,7 +202,7 @@ public class JinShanOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         String bucket = getBucket();
         String newTargetName = getKey(targetName, false);
         if (isOverride || !ks3.objectExists(bucket, newTargetName)) {
@@ -211,7 +211,7 @@ public class JinShanOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String key = getKey(targetName, false);
 
         OssInfo ossInfo = getBaseInfo(key);
@@ -258,7 +258,7 @@ public class JinShanOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         return ks3.objectExists(getBucket(), getKey(targetName, false));
     }
 

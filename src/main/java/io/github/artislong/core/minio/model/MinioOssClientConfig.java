@@ -29,15 +29,15 @@ public class MinioOssClientConfig {
     /**
      * 是否支持重定向，默认支持
      */
-    private boolean followRedirects = true;
+    private Boolean followRedirects = true;
     /**
      * 是否支持HTTP到HTTPS，HTTPS到HTTP的重定向，默认支持
      */
-    private boolean followSslRedirects = true;
+    private Boolean followSslRedirects = true;
     /**
      * 是否开始连接失败重试，默认不支持
      */
-    private boolean retryOnConnectionFailure = false;
+    private Boolean retryOnConnectionFailure = false;
     /**
      * 连接健康检测间隔时长（单位：毫秒）
      */

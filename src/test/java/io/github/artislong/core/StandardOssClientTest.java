@@ -12,21 +12,21 @@ import io.github.artislong.model.OssInfo;
 public interface StandardOssClientTest {
 
     default void upLoad() {
-        OssInfo ossInfo = getOssClient().upLoad(FileUtil.getInputStream("/Users/admin/test.png"), "test.png");
+        OssInfo ossInfo = getOssClient().upload(FileUtil.getInputStream("/Users/admin/test.png"), "test.png");
         System.out.println(ossInfo);
     }
 
     default void upLoadCheckPoint() {
-        OssInfo ossInfo = getOssClient().upLoadCheckPoint("/Users/admin/test.zip", "test.zip");
+        OssInfo ossInfo = getOssClient().uploadCheckPoint("/Users/admin/test.zip", "test.zip");
         System.out.println(ossInfo);
     }
 
     default void downLoad() {
-        getOssClient().downLoad(FileUtil.getOutputStream("/Users/admin/test.png"), "test1.png");
+        getOssClient().download(FileUtil.getOutputStream("/Users/admin/test.png"), "test1.png");
     }
 
     default void downloadCheckPoint() {
-        getOssClient().downLoadCheckPoint("/Users/admin/test.zip", "test.zip");
+        getOssClient().downloadcheckpoint("/Users/admin/test.zip", "test.zip");
     }
 
     default void delete() {

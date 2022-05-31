@@ -1,11 +1,13 @@
 package io.github.artislong.core.jdbc;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.jdbc.adapter.JdbcOssOperation;
+import io.github.artislong.core.jdbc.adapter.JdbcOssOperationFactoryBean;
 import io.github.artislong.core.jdbc.model.JdbcOssConfig;
 import io.github.artislong.exception.OssException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author 陈敏
@@ -28,7 +31,7 @@ import java.util.Map;
 @SpringBootConfiguration
 @ConditionalOnClass(JdbcTemplate.class)
 @EnableConfigurationProperties({JdbcOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JDBC + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JDBC + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class JdbcOssConfiguration {
 
@@ -38,20 +41,23 @@ public class JdbcOssConfiguration {
     private JdbcOssProperties jdbcOssProperties;
 
     @Bean
-    public StandardOssClient jdbcOssClient() {
+    public StandardOssClient jdbcOssClient() throws Exception {
         Map<String, JdbcOssConfig> ossConfigMap = jdbcOssProperties.getOssConfig();
         // 开启Jdbc存储的同时，未配置对应的Jdbc存储数据库连接，将采用默认数据源
         if (ossConfigMap.isEmpty() && isEmptyForOssConfig(jdbcOssProperties)) {
-            JdbcTemplate jdbcTemplate = SpringUtil.getBean(JdbcTemplate.class);
-            if (ObjectUtil.isEmpty(jdbcTemplate)) {
+            DataSource dataSource = SpringUtil.getBean(DataSource.class);
+            if (ObjectUtil.isEmpty(dataSource)) {
                 throw new OssException("未配置数据源，请检查！");
             }
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, jdbcOssClient(jdbcTemplate, jdbcOssProperties));
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, jdbcOssClient(dataSource, jdbcOssProperties));
         }
         if (ossConfigMap.isEmpty() && !isEmptyForOssConfig(jdbcOssProperties)) {
             registerJdbcOssClient(DEFAULT_BEAN_NAME, jdbcOssProperties);
         } else {
-            ossConfigMap.forEach(this::registerJdbcOssClient);
+            Set<Map.Entry<String, JdbcOssConfig>> entrySet = ossConfigMap.entrySet();
+            for (Map.Entry<String, JdbcOssConfig> jdbcOssConfigEntry : entrySet) {
+                registerJdbcOssClient(jdbcOssConfigEntry.getKey(), jdbcOssConfigEntry.getValue());
+            }
         }
         return null;
     }
@@ -62,32 +68,20 @@ public class JdbcOssConfiguration {
                 ObjectUtil.isEmpty(jdbcOssConfig.getPassword()) && ObjectUtil.isEmpty(jdbcOssConfig.getDataSourceName());
     }
 
-    public void registerJdbcOssClient(String jdbcOssClientBeanName, JdbcOssConfig jdbcOssConfig) {
+    public void registerJdbcOssClient(String jdbcOssClientBeanName, JdbcOssConfig jdbcOssConfig) throws Exception {
         if (ObjectUtil.isNotEmpty(jdbcOssConfig.getDataSourceName())) {
-            SpringUtil.registerBean(jdbcOssClientBeanName, jdbcOssClient((DataSource) SpringUtil.getBean(jdbcOssConfig.getDataSourceName()), jdbcOssProperties));
+            SpringUtil.registerBean(jdbcOssClientBeanName, jdbcOssClient(SpringUtil.getBean(jdbcOssConfig.getDataSourceName(), DataSource.class), jdbcOssProperties));
         } else {
             SpringUtil.registerBean(jdbcOssClientBeanName, jdbcOssClient(jdbcOssConfig));
         }
     }
 
-    public StandardOssClient jdbcOssClient(DataSource dataSource, JdbcOssConfig jdbcOssConfig) {
-        return new JdbcOssClient(jdbcTemplate(dataSource), jdbcOssConfig);
+    public StandardOssClient jdbcOssClient(DataSource dataSource, JdbcOssConfig jdbcOssConfig) throws Exception {
+        return new JdbcOssClient(jdbcOssConfig, jdbcOssOperation(dataSource));
     }
 
-    public StandardOssClient jdbcOssClient(JdbcTemplate jdbcTemplate, JdbcOssConfig jdbcOssConfig) {
-        return new JdbcOssClient(jdbcTemplate, jdbcOssConfig);
-    }
-
-    public StandardOssClient jdbcOssClient(JdbcOssConfig jdbcOssConfig) {
-        return new JdbcOssClient(jdbcTemplate(jdbcOssConfig), jdbcOssConfig);
-    }
-
-    public JdbcTemplate jdbcTemplate(JdbcOssConfig jdbcOssConfig) {
-        return new JdbcTemplate(dataSource(jdbcOssConfig));
-    }
-
-    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
-        return new JdbcTemplate(dataSource);
+    public StandardOssClient jdbcOssClient(JdbcOssConfig jdbcOssConfig) throws Exception {
+        return new JdbcOssClient(jdbcOssConfig, jdbcOssOperation(dataSource(jdbcOssConfig)));
     }
 
     public DataSource dataSource(JdbcOssConfig jdbcOssConfig) {
@@ -102,5 +96,11 @@ public class JdbcOssConfiguration {
                 .username(jdbcOssConfig.getUsername())
                 .password(jdbcOssConfig.getPassword())
                 .build();
+    }
+
+    public JdbcOssOperation jdbcOssOperation(DataSource dataSource) throws Exception {
+        JdbcOssOperationFactoryBean jdbcOssOperationFactory = new JdbcOssOperationFactoryBean();
+        jdbcOssOperationFactory.setDataSource(dataSource);
+        return jdbcOssOperationFactory.getObject();
     }
 }

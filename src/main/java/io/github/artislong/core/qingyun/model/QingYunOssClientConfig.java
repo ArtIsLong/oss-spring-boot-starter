@@ -15,7 +15,7 @@ public class QingYunOssClientConfig {
     /**
      * 是否支持CNAME作为Endpoint，默认不支持CNAME。
      */
-    private boolean cnameSupport = false;
+    private Boolean cnameSupport = false;
     /**
      * 附加的用户代理
      */
@@ -23,7 +23,7 @@ public class QingYunOssClientConfig {
     /**
      * 是否启用虚拟Host
      */
-    private boolean virtualHostEnabled = false;
+    private Boolean virtualHostEnabled = false;
     /**
      * 读超时时间
      */

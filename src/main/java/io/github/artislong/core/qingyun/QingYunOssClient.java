@@ -55,11 +55,11 @@ public class QingYunOssClient implements StandardOssClient {
     private QingYunOssConfig qingYunOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String key = getKey(targetName, false);
         if (isOverride || !isExist(targetName)) {
             Bucket.PutObjectInput input = new Bucket.PutObjectInput();
-            input.setBodyInputStream(is);
+            input.setBodyInputStream(inputStream);
             try {
                 bucketClient.putObject(key, input);
             } catch (Exception e) {
@@ -70,15 +70,15 @@ public class QingYunOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         return uploadFile(file, targetName, qingYunOssConfig.getSliceConfig(), OssConstant.OssType.QINGYUN);
     }
 
     @Override
-    public void completeUpload(UpLoadCheckPoint upLoadCheckPoint, List<UpLoadPartEntityTag> partEntityTags) {
+    public void completeUpload(UploadCheckpoint uploadcheckpoint, List<UploadPartEntityTag> partEntityTags) {
         try {
-            String uploadId = upLoadCheckPoint.getUploadId();
-            String key = upLoadCheckPoint.getKey();
+            String uploadId = uploadcheckpoint.getUploadId();
+            String key = uploadcheckpoint.getKey();
 
             Bucket.ListMultipartInput listMultipartInput = new Bucket.ListMultipartInput();
             listMultipartInput.setUploadID(uploadId);
@@ -90,26 +90,26 @@ public class QingYunOssClient implements StandardOssClient {
             multipartUploadInput.setObjectParts(objectParts);
 
             bucketClient.completeMultipartUpload(key, multipartUploadInput);
-            FileUtil.del(upLoadCheckPoint.getCheckpointFile());
+            FileUtil.del(uploadcheckpoint.getCheckpointFile());
         } catch (QSException e) {
             throw new OssException(e);
         }
     }
 
     @Override
-    public void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile, SliceConfig slice) {
+    public void prepareUpload(UploadCheckpoint uploadCheckPoint, File uploadfile, String targetName, String checkpointFile, SliceConfig slice) {
         String bucket = getBucket();
         String key = getKey(targetName, false);
 
-        uploadCheckPoint.setMagic(UpLoadCheckPoint.UPLOAD_MAGIC);
-        uploadCheckPoint.setUploadFile(upLoadFile.getPath());
+        uploadCheckPoint.setMagic(UploadCheckpoint.UPLOAD_MAGIC);
+        uploadCheckPoint.setUploadFile(uploadfile.getPath());
         uploadCheckPoint.setKey(key);
         uploadCheckPoint.setBucket(bucket);
         uploadCheckPoint.setCheckpointFile(checkpointFile);
-        uploadCheckPoint.setUploadFileStat(UpLoadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
+        uploadCheckPoint.setUploadFileStat(UploadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
         long partSize = slice.getPartSize();
-        long fileLength = upLoadFile.length();
+        long fileLength = uploadfile.length();
         int parts = (int) (fileLength / partSize);
         if (fileLength % partSize > 0) {
             parts++;
@@ -130,10 +130,10 @@ public class QingYunOssClient implements StandardOssClient {
     }
 
     @Override
-    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
-        UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+    public UploadPartResult uploadPart(UploadCheckpoint uploadcheckpoint, int partNum, InputStream inputStream) {
+        UploadPart uploadPart = uploadcheckpoint.getUploadParts().get(partNum);
         long partSize = uploadPart.getSize();
-        UpLoadPartResult partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
+        UploadPartResult partResult = new UploadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
 
         try {
             inputStream.skip(uploadPart.getOffset());
@@ -141,12 +141,12 @@ public class QingYunOssClient implements StandardOssClient {
             Bucket.UploadMultipartInput input = new Bucket.UploadMultipartInput();
             input.setPartNumber(partNum + 1);
             input.setFileOffset(uploadPart.getOffset());
-            input.setUploadID(upLoadCheckPoint.getUploadId());
+            input.setUploadID(uploadcheckpoint.getUploadId());
             input.setBodyInputStream(inputStream);
-            Bucket.UploadMultipartOutput multipartOutput = bucketClient.uploadMultipart(upLoadCheckPoint.getKey(), input);
+            Bucket.UploadMultipartOutput multipartOutput = bucketClient.uploadMultipart(uploadcheckpoint.getKey(), input);
 
             partResult.setNumber(partNum + 1);
-            partResult.setEntityTag(new UpLoadPartEntityTag().setETag(multipartOutput.getETag()).setPartNumber(partNum));
+            partResult.setEntityTag(new UploadPartEntityTag().setETag(multipartOutput.getETag()).setPartNumber(partNum));
         } catch (Exception e) {
             partResult.setFailed(true);
             partResult.setException(e);
@@ -158,19 +158,19 @@ public class QingYunOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         try {
             Bucket.GetObjectInput input = new Bucket.GetObjectInput();
             Bucket.GetObjectOutput object = bucketClient.getObject(getKey(targetName, false), input);
-            IoUtil.copy(object.getBodyInputStream(), os);
+            IoUtil.copy(object.getBodyInputStream(), outputStream);
         } catch (Exception e) {
             throw new OssException(e);
         }
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
-        downLoadFile(localFile, targetName, qingYunOssConfig.getSliceConfig(), OssConstant.OssType.QINGYUN);
+    public void downloadcheckpoint(File localFile, String targetName) {
+        downloadfile(localFile, targetName, qingYunOssConfig.getSliceConfig(), OssConstant.OssType.QINGYUN);
     }
 
     @Override
@@ -233,7 +233,7 @@ public class QingYunOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         String bucket = getBucket();
         String newSourceName = getKey(sourceName, false);
         String newTargetName = getKey(targetName, false);
@@ -249,7 +249,7 @@ public class QingYunOssClient implements StandardOssClient {
     }
 
     @Override
-    public void move(String sourceName, String targetName, Boolean isOverride) {
+    public void move(String sourceName, String targetName, boolean isOverride) {
         String bucket = getBucket();
         String newSourceName = getKey(sourceName, false);
         String newTargetName = getKey(targetName, false);
@@ -265,7 +265,7 @@ public class QingYunOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String key = getKey(targetName, false);
 
         OssInfo ossInfo = getBaseInfo(key);
@@ -320,7 +320,7 @@ public class QingYunOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         OssInfo info = getInfo(targetName);
         return ObjectUtil.isNotEmpty(info.getLength()) && Convert.toLong(info.getLength()) > 0;
     }

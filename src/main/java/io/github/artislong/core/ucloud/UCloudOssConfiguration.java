@@ -1,6 +1,6 @@
 package io.github.artislong.core.ucloud;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.ucloud.ufile.UfileClient;
@@ -30,7 +30,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(UfileClient.class)
 @EnableConfigurationProperties({UCloudOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UCLOUD + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UCLOUD + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class UCloudOssConfiguration {
 

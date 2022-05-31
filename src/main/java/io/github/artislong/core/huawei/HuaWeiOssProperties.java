@@ -1,6 +1,6 @@
 package io.github.artislong.core.huawei;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.huawei.model.HuaweiOssConfig;
 import lombok.Data;
@@ -18,7 +18,7 @@ import java.util.Map;
  */
 @Slf4j
 @Data
-@ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.HUAWEI)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.HUAWEI)
 public class HuaWeiOssProperties extends HuaweiOssConfig implements InitializingBean {
 
     private Boolean enable = false;

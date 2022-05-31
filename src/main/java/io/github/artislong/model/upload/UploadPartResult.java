@@ -11,7 +11,7 @@ import lombok.experimental.Accessors;
  */
 @Accessors(chain = true)
 @Data
-public class UpLoadPartResult {
+public class UploadPartResult {
 
     /**
      * 分块号
@@ -38,15 +38,15 @@ public class UpLoadPartResult {
      */
     private Long partCrc;
 
-    private UpLoadPartEntityTag entityTag;
+    private UploadPartEntityTag entityTag;
 
-    public UpLoadPartResult(int number, long offset, long length) {
+    public UploadPartResult(int number, long offset, long length) {
         this.number = number;
         this.offset = offset;
         this.length = length;
     }
 
-    public UpLoadPartResult(int number, long offset, long length, long partCrc) {
+    public UploadPartResult(int number, long offset, long length, long partCrc) {
         this.number = number;
         this.offset = offset;
         this.length = length;

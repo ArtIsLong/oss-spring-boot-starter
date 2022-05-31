@@ -35,7 +35,7 @@ public class JdOssClientConfig {
     /**
      * 是否限制重试的默认值。
      */
-    private boolean throttleRetries = DEFAULT_THROTTLE_RETRIES;
+    private Boolean throttleRetries = DEFAULT_THROTTLE_RETRIES;
     /**
      * 连接协议类型
      */
@@ -75,11 +75,11 @@ public class JdOssClientConfig {
     /**
      * 是否禁用Socket代理
      */
-    private boolean disableSocketProxy = DEFAULT_DISABLE_SOCKET_PROXY;
+    private Boolean disableSocketProxy = DEFAULT_DISABLE_SOCKET_PROXY;
     /**
      * 是否使用基本身份验证对代理服务器进行抢先身份验证
      */
-    private boolean preemptiveBasicProxyAuth;
+    private Boolean preemptiveBasicProxyAuth;
     /**
      * Socket层传输数据的超时时间（单位：毫秒）。默认为50000毫秒
      */
@@ -103,11 +103,11 @@ public class JdOssClientConfig {
     /**
      * 是否使用com.amazonaws.http.IdleConnectionReaper管理旧连接
      */
-    private boolean useReaper = DEFAULT_USE_REAPER;
+    private Boolean useReaper = DEFAULT_USE_REAPER;
     /**
      * 是否使用gzip解压缩
      */
-    private boolean useGzip = DEFAULT_USE_GZIP;
+    private Boolean useGzip = DEFAULT_USE_GZIP;
     /**
      * Socket发送缓冲区的大小提示(以字节为单位)。
      */
@@ -127,11 +127,11 @@ public class JdOssClientConfig {
     /**
      * 是否使用USE_EXPECT_CONTINUE作为期望值
      */
-    private boolean useExpectContinue = DEFAULT_USE_EXPECT_CONTINUE;
+    private Boolean useExpectContinue = DEFAULT_USE_EXPECT_CONTINUE;
     /**
      * 是否缓存响应元数据
      */
-    private boolean cacheResponseMetadata = DEFAULT_CACHE_RESPONSE_METADATA;
+    private Boolean cacheResponseMetadata = DEFAULT_CACHE_RESPONSE_METADATA;
     /**
      * 连接TTL (生存时间)。Http连接由连接管理器用TTL缓存。
      */
@@ -147,7 +147,7 @@ public class JdOssClientConfig {
     /**
      * 是否使用TCP KeepAlive的默认值。
      */
-    private boolean tcpKeepAlive = DEFAULT_TCP_KEEP_ALIVE;
+    private Boolean tcpKeepAlive = DEFAULT_TCP_KEEP_ALIVE;
     /**
      * 所有请求的公共请求头
      */
@@ -159,7 +159,7 @@ public class JdOssClientConfig {
     /**
      * 是否禁用主机前缀
      */
-    private boolean disableHostPrefixInjection;
+    private Boolean disableHostPrefixInjection;
     /**
      * 重试模式
      */

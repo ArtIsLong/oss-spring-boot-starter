@@ -1,6 +1,6 @@
 package io.github.artislong.core.minio;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.minio.model.MinioOssConfig;
 import lombok.Data;
@@ -16,7 +16,7 @@ import java.util.Map;
  * Created on 2021/11/24
  */
 @Data
-@ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.MINIO)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.MINIO)
 public class MinioOssProperties extends MinioOssConfig implements InitializingBean {
 
     private Boolean enable = false;

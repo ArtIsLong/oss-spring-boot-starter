@@ -1,6 +1,6 @@
 package io.github.artislong.core.qiniu;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.qiniu.storage.BucketManager;
@@ -28,7 +28,7 @@ import java.util.Optional;
  */
 @SpringBootConfiguration
 @EnableConfigurationProperties({QiNiuOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINIU + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINIU + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class QiNiuOssConfiguration {
 

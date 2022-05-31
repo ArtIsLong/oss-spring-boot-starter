@@ -1,6 +1,6 @@
 package io.github.artislong.core.aws;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.aws.model.AwsOssConfig;
 import lombok.Data;
@@ -18,7 +18,7 @@ import java.util.Map;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.AWS)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.AWS)
 public class AwsOssProperties extends AwsOssConfig implements InitializingBean {
 
     private Boolean enable = false;

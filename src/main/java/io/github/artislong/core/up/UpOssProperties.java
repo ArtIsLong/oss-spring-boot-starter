@@ -1,6 +1,6 @@
 package io.github.artislong.core.up;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.up.model.UpOssConfig;
 import lombok.Data;
@@ -16,7 +16,7 @@ import java.util.Map;
  * Created on 2021/11/30
  */
 @Data
-@ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.UP)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.UP)
 public class UpOssProperties extends UpOssConfig implements InitializingBean {
 
     private Boolean enable = false;

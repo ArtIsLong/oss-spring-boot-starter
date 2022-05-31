@@ -22,17 +22,17 @@ public class QiNiuOssClientConfig {
     /**
      * 空间相关上传管理操作是否使用 https , 默认 是
      */
-    public boolean useHttpsDomains = true;
+    public Boolean useHttpsDomains = true;
     /**
      * 空间相关上传管理操作是否使用代理加速上传，默认 是
      */
-    public boolean accUpHostFirst = true;
+    public Boolean accUpHostFirst = true;
     /**
      * 使用 AutoRegion 时，如果从区域信息得到上传 host 失败，使用默认的上传域名上传，默认 是
      * upload.qiniup.com, upload-z1.qiniup.com, upload-z2.qiniup.com,
      * upload-na0.qiniup.com, upload-as0.qiniup.com
      */
-    public boolean useDefaultUpHostIfNone = true;
+    public Boolean useDefaultUpHostIfNone = true;
     /**
      * 如果文件大小大于此值则使用断点上传, 否则使用Form上传
      */

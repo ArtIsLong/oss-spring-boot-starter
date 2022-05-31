@@ -56,21 +56,21 @@ StandardOssClient类提供统一的文件存储API，提供了如下方法：
 ```java
 /**
  * 上传文件，默认覆盖
- * @param is 输入流
+ * @param inputStream 输入流
  * @param targetName 目标文件路径
  * @return 返回文件路径
  */
-default OssInfo upLoad(InputStream is,String targetName) {
-    return upLoad(is,targetName,true);
+default OssInfo upload(InputStream inputStream,String targetName) {
+    return upload(inputStream,targetName,true);
 }
 /**
  * 上传文件
- * @param is 输入流
+ * @param inputStream 输入流
  * @param targetName 目标文件路径
  * @param isOverride 是否覆盖
  * @return 返回文件路径
  */
-OssInfo upLoad(InputStream is,String targetName,Boolean isOverride);
+OssInfo upload(InputStream inputStream,String targetName,boolean isOverride);
 ```
 
 - 断点续传上传
@@ -82,8 +82,8 @@ OssInfo upLoad(InputStream is,String targetName,Boolean isOverride);
  * @param targetName  目标文件路径
  * @return 文件信息
  */
-default OssInfo upLoadCheckPoint(String file, String targetName) {
-    return upLoadCheckPoint(new File(file), targetName);
+default OssInfo uploadCheckPoint(String file, String targetName) {
+    return uploadCheckPoint(new File(file), targetName);
 }
 /**
  * 断点续传
@@ -91,7 +91,7 @@ default OssInfo upLoadCheckPoint(String file, String targetName) {
  * @param targetName 目标文件路径
  * @return 文件信息
  */
-OssInfo upLoadCheckPoint(File file, String targetName);
+OssInfo uploadCheckPoint(File file, String targetName);
 ```
 
 - 文件下载
@@ -99,10 +99,10 @@ OssInfo upLoadCheckPoint(File file, String targetName);
 ```java
 /**
  * 下载文件
- * @param os  输出流
+ * @param outputStream  输出流
  * @param targetName  目标文件路径
  */
-void downLoad(OutputStream os,String targetName);
+void download(OutputStream outputStream,String targetName);
 ```
 
 - 断点续传下载
@@ -114,8 +114,8 @@ void downLoad(OutputStream os,String targetName);
  * @param targetName 目标文件路径
  * @return 文件信息
  */
-default void downLoadCheckPoint(String localFile, String targetName) {
-    downLoadCheckPoint(new File(localFile), targetName);
+default void downloadCheckPoint(String localFile, String targetName) {
+    downloadCheckPoint(new File(localFile), targetName);
 }
 
 /**
@@ -124,7 +124,7 @@ default void downLoadCheckPoint(String localFile, String targetName) {
  * @param targetName 目标文件路径
  * @return 文件信息
  */
-void downLoadCheckPoint(File localFile, String targetName);
+void downloadCheckPoint(File localFile, String targetName);
 ```
 
 - 删除
@@ -154,7 +154,7 @@ default void copy(String sourceName,String targetName) {
  * @param targetName 目标文件路径
  * @param isOverride 是否覆盖
  */
-void copy(String sourceName,String targetName,Boolean isOverride);
+void copy(String sourceName,String targetName,boolean isOverride);
 ```
 
 - 移动
@@ -174,7 +174,7 @@ default void move(String sourceName,String targetName) {
  * @param targetName 目标路径
  * @param isOverride 是否覆盖
  */
-void move(String sourceName,String targetName,Boolean isOverride);
+void move(String sourceName,String targetName,boolean isOverride);
 ```
 
 - 重命名
@@ -194,7 +194,7 @@ default void rename(String sourceName,String targetName) {
  * @param targetName 目标路径
  * @param isOverride 是否覆盖
  */
-void rename(String sourceName,String targetName,Boolean isOverride);
+void rename(String sourceName,String targetName,boolean isOverride);
 ```
 
 - 获取文件及目录信息
@@ -216,7 +216,7 @@ default OssInfo getInfo(String targetName) {
  * @param isRecursion 是否递归
  * @return 文件基本信息
  */
-OssInfo getInfo(String targetName,Boolean isRecursion);
+OssInfo getInfo(String targetName,boolean isRecursion);
 ```
 
 - 判断对象是否为文件
@@ -228,7 +228,7 @@ OssInfo getInfo(String targetName,Boolean isRecursion);
  * @param targetName 目标文件路径
  * @return true/false
  */
-default Boolean isFile(String targetName) {
+default boolean isFile(String targetName) {
     String name=FileNameUtil.getName(targetName);
     return StrUtil.indexOf(name,StrUtil.C_DOT)>0;
 }
@@ -243,7 +243,7 @@ default Boolean isFile(String targetName) {
  * @param targetName 目标文件路径
  * @return true/false
  */
-default Boolean isDirectory(String targetName) {
+default boolean isDirectory(String targetName) {
     return !isFile(targetName);
 }
 ```
@@ -256,7 +256,7 @@ default Boolean isDirectory(String targetName) {
  * @param targetName 目标文件路径
  * @return true/false
  */
-Boolean isExist(String targetName);
+boolean isExist(String targetName);
 ```
 
 - 分片上传
@@ -264,11 +264,11 @@ Boolean isExist(String targetName);
 ```java
 /**
  * 上传分片
- * @param upLoadCheckPoint 断点续传对象
+ * @param uploadCheckPoint 断点续传对象
  * @param partNum 分片索引
  * @return 上传结果
  */
-UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream);
+UploadPartResult uploadPart(UploadCheckPoint uploadCheckPoint, int partNum, InputStream inputStream);
 ```
 
 - 分片下载

@@ -1,9 +1,10 @@
 package io.github.artislong;
 
-import cn.hutool.core.util.StrUtil;
+import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * @author 陈敏
@@ -14,18 +15,20 @@ import java.util.List;
 public class OssApplicationTests {
 
     @Test
-    public void context() {
-        mkdir("/Study/test/test1/test2");
+    public void context() throws SQLException {
+        HikariDataSource dataSource = new HikariDataSource();
+//        dataSource.setJdbcUrl("jdbc:oracle:thin:@39.105.163.75:1521:orcl");
+//        dataSource.setUsername("test");
+//        dataSource.setPassword("test123");
+
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/oss?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=UTC");
+        dataSource.setUsername("root");
+        dataSource.setPassword("root");
+        Connection connection = dataSource.getConnection();
+        System.out.println(connection.getMetaData().getDriverName());
+        HikariDataSource hikariDataSource = new HikariDataSource();
+        hikariDataSource.setDataSource(dataSource);
+        System.out.println(hikariDataSource.getDriverClassName());
     }
 
-    public void mkdir(String path) {
-        List<String> paths = StrUtil.split(path, StrUtil.SLASH, true, true);
-        StringBuilder fullPath = new StringBuilder();
-        for (String p : paths) {
-            fullPath.append(StrUtil.SLASH + p);
-            System.out.println(p);
-        }
-        System.out.println(fullPath);
-
-    }
 }

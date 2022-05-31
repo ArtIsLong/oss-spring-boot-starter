@@ -14,9 +14,9 @@ import io.github.artislong.model.download.DownloadCheckPoint;
 import io.github.artislong.model.download.DownloadObjectStat;
 import io.github.artislong.model.download.DownloadPart;
 import io.github.artislong.model.download.DownloadPartResult;
-import io.github.artislong.model.upload.UpLoadCheckPoint;
-import io.github.artislong.model.upload.UpLoadPartEntityTag;
-import io.github.artislong.model.upload.UpLoadPartResult;
+import io.github.artislong.model.upload.UploadCheckpoint;
+import io.github.artislong.model.upload.UploadPartEntityTag;
+import io.github.artislong.model.upload.UploadPartResult;
 import io.github.artislong.model.upload.UploadPart;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
@@ -38,22 +38,22 @@ public interface StandardOssClient {
 
     /**
      * 上传文件，默认覆盖
-     * @param is 输入流
+     * @param inputStream 输入流
      * @param targetName 目标文件路径
      * @return 文件信息
      */
-    default OssInfo upLoad(InputStream is, String targetName) {
-        return upLoad(is, targetName, true);
+    default OssInfo upload(InputStream inputStream, String targetName) {
+        return upload(inputStream, targetName, true);
     }
 
     /**
      * 上传文件
-     * @param is 输入流
+     * @param inputStream 输入流
      * @param targetName 目标文件路径
      * @param isOverride 是否覆盖
      * @return 文件信息
      */
-    OssInfo upLoad(InputStream is, String targetName, Boolean isOverride);
+    OssInfo upload(InputStream inputStream, String targetName, boolean isOverride);
 
     /**
      * 断点续传
@@ -61,8 +61,8 @@ public interface StandardOssClient {
      * @param targetName  目标文件路径
      * @return 文件信息
      */
-    default OssInfo upLoadCheckPoint(String file, String targetName) {
-        return upLoadCheckPoint(new File(file), targetName);
+    default OssInfo uploadCheckPoint(String file, String targetName) {
+        return uploadCheckPoint(new File(file), targetName);
     }
 
     /**
@@ -71,20 +71,20 @@ public interface StandardOssClient {
      * @param targetName 目标文件路径
      * @return 文件信息
      */
-    OssInfo upLoadCheckPoint(File file, String targetName);
+    OssInfo uploadCheckPoint(File file, String targetName);
 
     /**
      * 断点续传上传
-     * @param upLoadFile 上传文件
+     * @param uploadfile 上传文件
      * @param targetName 目标对象路径
      * @param slice 分片参数
      * @param ossType OSS类型
      * @return 上传文件信息
      */
-    default OssInfo uploadFile(File upLoadFile, String targetName, SliceConfig slice, String ossType) {
-        String checkpointFile = upLoadFile.getPath() + StrUtil.DOT + ossType;
+    default OssInfo uploadFile(File uploadfile, String targetName, SliceConfig slice, String ossType) {
+        String checkpointFile = uploadfile.getPath() + StrUtil.DOT + ossType;
 
-        UpLoadCheckPoint upLoadCheckPoint = new UpLoadCheckPoint();
+        UploadCheckpoint upLoadCheckPoint = new UploadCheckpoint();
         try {
             upLoadCheckPoint.load(checkpointFile);
         } catch (Exception e) {
@@ -92,12 +92,12 @@ public interface StandardOssClient {
         }
 
         if (!upLoadCheckPoint.isValid()) {
-            prepareUpload(upLoadCheckPoint, upLoadFile, targetName, checkpointFile, slice);
+            prepareUpload(upLoadCheckPoint, uploadfile, targetName, checkpointFile, slice);
             FileUtil.del(checkpointFile);
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(slice.getTaskNum());
-        List<Future<UpLoadPartResult>> futures = new ArrayList<>();
+        List<Future<UploadPartResult>> futures = new ArrayList<>();
 
         for (int i = 0; i < upLoadCheckPoint.getUploadParts().size(); i++) {
             if (!upLoadCheckPoint.getUploadParts().get(i).isCompleted()) {
@@ -107,9 +107,9 @@ public interface StandardOssClient {
 
         executorService.shutdown();
 
-        for (Future<UpLoadPartResult> future : futures) {
+        for (Future<UploadPartResult> future : futures) {
             try {
-                UpLoadPartResult partResult = future.get();
+                UploadPartResult partResult = future.get();
                 if (partResult.isFailed()) {
                     throw partResult.getException();
                 }
@@ -126,7 +126,7 @@ public interface StandardOssClient {
             throw new OssException("关闭线程池失败", e);
         }
 
-        List<UpLoadPartEntityTag> partEntityTags = upLoadCheckPoint.getPartEntityTags();
+        List<UploadPartEntityTag> partEntityTags = upLoadCheckPoint.getPartEntityTags();
         completeUpload(upLoadCheckPoint, partEntityTags);
 
         return getInfo(targetName);
@@ -134,22 +134,22 @@ public interface StandardOssClient {
 
     /**
      * 完成分片上传
-     * @param upLoadCheckPoint 断点对象
+     * @param uploadcheckpoint 断点对象
      * @param partEntityTags 所有分片
      */
-    default void completeUpload(UpLoadCheckPoint upLoadCheckPoint, List<UpLoadPartEntityTag> partEntityTags) {
-        FileUtil.del(upLoadCheckPoint.getCheckpointFile());
+    default void completeUpload(UploadCheckpoint uploadcheckpoint, List<UploadPartEntityTag> partEntityTags) {
+        FileUtil.del(uploadcheckpoint.getCheckpointFile());
     }
 
     /**
      * 初始化断点续传对象
      * @param uploadCheckPoint 断点续传对象
-     * @param upLoadFile 要上传的文件
+     * @param uploadfile 要上传的文件
      * @param targetName 上传文件名
      * @param checkpointFile 断点文件
      * @param slice 分片参数
      */
-    default void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile, SliceConfig slice) {
+    default void prepareUpload(UploadCheckpoint uploadCheckPoint, File uploadfile, String targetName, String checkpointFile, SliceConfig slice) {
         throw new OssException("初始化断点续传对象未实现，默认不支持此方法");
     }
 
@@ -195,7 +195,7 @@ public interface StandardOssClient {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    class UploadPartTask implements Callable<UpLoadPartResult> {
+    class UploadPartTask implements Callable<UploadPartResult> {
         /**
          * OSS客户端
          */
@@ -203,49 +203,49 @@ public interface StandardOssClient {
         /**
          * 断点续传对象
          */
-        private UpLoadCheckPoint upLoadCheckPoint;
+        private UploadCheckpoint upLoadCheckPoint;
         /**
          * 分片索引
          */
         private int partNum;
 
         @Override
-        public UpLoadPartResult call() {
+        public UploadPartResult call() {
             InputStream inputStream = FileUtil.getInputStream(upLoadCheckPoint.getUploadFile());
-            UpLoadPartResult upLoadPartResult = ossClient.uploadPart(upLoadCheckPoint, partNum, inputStream);
-            if (!upLoadPartResult.isFailed()) {
-                upLoadCheckPoint.update(partNum, upLoadPartResult.getEntityTag(), true);
+            UploadPartResult uploadPartResult = ossClient.uploadPart(upLoadCheckPoint, partNum, inputStream);
+            if (!uploadPartResult.isFailed()) {
+                upLoadCheckPoint.update(partNum, uploadPartResult.getEntityTag(), true);
                 upLoadCheckPoint.dump();
             }
-            return upLoadPartResult;
+            return uploadPartResult;
         }
     }
 
     /**
      * 上传分片
-     * @param upLoadCheckPoint 断点续传对象
+     * @param uploadcheckpoint 断点续传对象
      * @param partNum 分片索引
      * @param inputStream 文件流
      * @return 上传结果
      */
-    default UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
+    default UploadPartResult uploadPart(UploadCheckpoint uploadcheckpoint, int partNum, InputStream inputStream) {
         throw new OssException("上传文件分片方法未实现，默认不支持此方法");
     }
 
     /**
      * 下载文件
-     * @param os  输出流
+     * @param outputStream  输出流
      * @param targetName  目标文件路径
      */
-    void downLoad(OutputStream os, String targetName);
+    void download(OutputStream outputStream, String targetName);
 
     /**
      * 断点续传
      * @param localFile 本地文件路径
      * @param targetName 目标文件路径
      */
-    default void downLoadCheckPoint(String localFile, String targetName) {
-        downLoadCheckPoint(new File(localFile), targetName);
+    default void downloadcheckpoint(String localFile, String targetName) {
+        downloadcheckpoint(new File(localFile), targetName);
     }
 
     /**
@@ -253,7 +253,7 @@ public interface StandardOssClient {
      * @param localFile 本地文件
      * @param targetName 目标文件路径
      */
-    void downLoadCheckPoint(File localFile, String targetName);
+    void downloadcheckpoint(File localFile, String targetName);
 
     /**
      * 断点续传下载
@@ -262,7 +262,7 @@ public interface StandardOssClient {
      * @param slice 分片参数
      * @param ossType OSS类型
      */
-    default void downLoadFile(File localFile, String targetName, SliceConfig slice, String ossType) {
+    default void downloadfile(File localFile, String targetName, SliceConfig slice, String ossType) {
 
         String checkpointFile = localFile.getPath() + StrUtil.DOT + ossType;
 
@@ -532,7 +532,7 @@ public interface StandardOssClient {
      * @param targetName 目标文件路径
      * @param isOverride 是否覆盖
      */
-    void copy(String sourceName, String targetName, Boolean isOverride);
+    void copy(String sourceName, String targetName, boolean isOverride);
 
     /**
      * 移动文件，默认覆盖
@@ -549,7 +549,7 @@ public interface StandardOssClient {
      * @param targetName 目标路径
      * @param isOverride 是否覆盖
      */
-    default void move(String sourceName, String targetName, Boolean isOverride) {
+    default void move(String sourceName, String targetName, boolean isOverride) {
         copy(sourceName, targetName, isOverride);
         delete(sourceName);
     }
@@ -569,7 +569,7 @@ public interface StandardOssClient {
      * @param targetName 目标路径
      * @param isOverride 是否覆盖
      */
-    default void rename(String sourceName, String targetName, Boolean isOverride) {
+    default void rename(String sourceName, String targetName, boolean isOverride) {
         move(sourceName, targetName, isOverride);
     }
 
@@ -590,14 +590,14 @@ public interface StandardOssClient {
      * @param isRecursion 是否递归
      * @return 文件基本信息
      */
-    OssInfo getInfo(String targetName, Boolean isRecursion);
+    OssInfo getInfo(String targetName, boolean isRecursion);
 
     /**
      * 是否存在
      * @param targetName 目标文件路径
      * @return true/false
      */
-    default Boolean isExist(String targetName) {
+    default boolean isExist(String targetName) {
         OssInfo info = getInfo(targetName);
         return ObjectUtil.isNotEmpty(info) && ObjectUtil.isNotEmpty(info.getName());
     }
@@ -608,7 +608,7 @@ public interface StandardOssClient {
      * @param targetName 目标文件路径
      * @return true/false
      */
-    default Boolean isFile(String targetName) {
+    default boolean isFile(String targetName) {
         String name = FileNameUtil.getName(targetName);
         return StrUtil.indexOf(name, StrUtil.C_DOT) > 0;
     }
@@ -619,7 +619,7 @@ public interface StandardOssClient {
      * @param targetName 目标文件路径
      * @return true/false
      */
-    default Boolean isDirectory(String targetName) {
+    default boolean isDirectory(String targetName) {
         return !isFile(targetName);
     }
 
@@ -636,7 +636,7 @@ public interface StandardOssClient {
      *                   true：绝对路径；false：相对路径
      * @return 完整路径
      */
-    default String getKey(String targetName, Boolean isAbsolute) {
+    default String getKey(String targetName, boolean isAbsolute) {
         String key = OssPathUtil.convertPath(getBasePath() + targetName, isAbsolute);
         if (FileUtil.isWindows() && isAbsolute) {
             if (key.contains(StrUtil.COLON) && key.startsWith(StrUtil.SLASH)) {

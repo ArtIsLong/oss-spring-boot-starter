@@ -15,6 +15,7 @@ import cn.hutool.extra.ftp.FtpMode;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ftp.model.FtpOssClientConfig;
 import io.github.artislong.core.ftp.model.FtpOssConfig;
+import io.github.artislong.exception.NotSupportException;
 import io.github.artislong.exception.OssException;
 import io.github.artislong.model.DirectoryOssInfo;
 import io.github.artislong.model.FileOssInfo;
@@ -52,25 +53,25 @@ public class FtpOssClient implements StandardOssClient {
     private FtpOssConfig ftpOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String key = getKey(targetName, true);
         String parentPath = OssPathUtil.convertPath(Paths.get(key).getParent().toString(), true);
         if (!ftp.exist(parentPath)) {
             ftp.mkDirs(parentPath);
         }
         if (isOverride || !ftp.exist(key)) {
-            ftp.upload(parentPath, FileNameUtil.getName(targetName), is);
+            ftp.upload(parentPath, FileNameUtil.getName(targetName), inputStream);
         }
         return getInfo(targetName);
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         String key = getKey(targetName, true);
         String fileName = FileNameUtil.getName(targetName);
         FtpOssClientConfig clientConfig = ftpOssConfig.getClientConfig();
         Ftp ftp = new Ftp(ftpOssConfig.toFtpConfig(), FtpMode.Passive);
-        ftp.setBackToPwd(clientConfig.isBackToPwd());
+        ftp.setBackToPwd(clientConfig.getBackToPwd());
         FTPClient ftpClient = ftp.getClient();
         InputStream inputStream = null;
         try {
@@ -112,19 +113,19 @@ public class FtpOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         String key = getKey(targetName, true);
-        ftp.download(OssPathUtil.convertPath(Paths.get(key).getParent().toString(), true), key, os);
+        ftp.download(OssPathUtil.convertPath(Paths.get(key).getParent().toString(), true), key, outputStream);
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
+    public void downloadcheckpoint(File localFile, String targetName) {
         Ftp ftp = null;
         OutputStream outputStream = null;
         FtpOssClientConfig clientConfig = ftpOssConfig.getClientConfig();
         try {
             ftp = new Ftp(ftpOssConfig.toFtpConfig(), FtpMode.Passive);
-            ftp.setBackToPwd(clientConfig.isBackToPwd());
+            ftp.setBackToPwd(clientConfig.getBackToPwd());
             FTPClient ftpClient = ftp.getClient();
             ftpClient.enterLocalPassiveMode();
 
@@ -174,17 +175,17 @@ public class FtpOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
-        log.warn("ftp协议不支持copy命令，暂不实现");
+    public void copy(String sourceName, String targetName, boolean isOverride) {
+        throw new NotSupportException("ftp协议不支持copy命令");
     }
 
     @Override
-    public void move(String sourceName, String targetName, Boolean isOverride) {
-        log.warn("ftp协议不支持move命令，暂不实现");
+    public void move(String sourceName, String targetName, boolean isOverride) {
+        throw new NotSupportException("ftp协议不支持move命令");
     }
 
     @Override
-    public void rename(String sourceName, String targetName, Boolean isOverride) {
+    public void rename(String sourceName, String targetName, boolean isOverride) {
         String newSourceName = getKey(sourceName, true);
         String newTargetName = getKey(targetName, true);
         try {
@@ -198,7 +199,7 @@ public class FtpOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String key = getKey(targetName, true);
         OssInfo ossInfo = getBaseInfo(key);
         if (isRecursion && ftp.isDir(key)) {
@@ -219,17 +220,17 @@ public class FtpOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         return ftp.exist(getKey(targetName, true));
     }
 
     @Override
-    public Boolean isFile(String targetName) {
+    public boolean isFile(String targetName) {
         return !isDirectory(targetName);
     }
 
     @Override
-    public Boolean isDirectory(String targetName) {
+    public boolean isDirectory(String targetName) {
         return ftp.isDir(getKey(targetName, true));
     }
 

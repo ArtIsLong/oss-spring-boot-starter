@@ -53,7 +53,7 @@ public class AliOssClientConfig {
     /**
      * 是否使用com.aliyun.oss.common.comm.IdleConnectionReaper管理过期连接,默认开启
      */
-    private boolean useReaper = DEFAULT_USE_REAPER;
+    private Boolean useReaper = DEFAULT_USE_REAPER;
     /**
      * 连接空闲超时时间，超时则关闭连接（单位：毫秒）。默认为60000毫秒。
      */
@@ -89,7 +89,7 @@ public class AliOssClientConfig {
     /**
      * 是否支持CNAME作为Endpoint，默认支持CNAME。
      */
-    private boolean supportCname = false;
+    private Boolean supportCname = false;
     /**
      * 设置不可变排除的CName列表 ---- 任何以该列表中的项目结尾的域都不会进行Cname解析。
      */
@@ -97,7 +97,7 @@ public class AliOssClientConfig {
     /**
      * 是否开启二级域名（Second Level Domain）的访问方式，默认不开启。
      */
-    private boolean sldEnabled = false;
+    private Boolean sldEnabled = false;
     /**
      * 请求超时时间，单位：毫秒。默认情况下是5分钟。
      */
@@ -105,7 +105,7 @@ public class AliOssClientConfig {
     /**
      * 是否启用请求超时校验。默认情况下，它是禁用的。
      */
-    private boolean requestTimeoutEnabled = false;
+    private Boolean requestTimeoutEnabled = false;
     /**
      * 设置慢请求的延迟阈值。如果请求的延迟大于延迟，则将记录该请求。默认情况下，阈值为5分钟。
      */
@@ -117,7 +117,7 @@ public class AliOssClientConfig {
     /**
      * 是否在上传和下载时启用CRC校验，默认启用
      */
-    private boolean crcCheckEnabled = true;
+    private Boolean crcCheckEnabled = true;
     /**
      * 所有请求设置签名版本
      */
@@ -130,20 +130,20 @@ public class AliOssClientConfig {
      * 是否开启HTTP重定向。
      * 说明: Java SDK 3.10.1及以上版本支持设置是否开启HTTP重定向，默认开启。
      */
-    private boolean redirectEnable = true;
+    private Boolean redirectEnable = true;
     /**
      * 是否开启SSL证书校验。
      * 说明: Java SDK 3.10.1及以上版本支持设置是否开启SSL证书校验，默认开启。
      */
-    private boolean verifySSLEnable = true;
+    private Boolean verifySSLEnable = true;
     /**
      * 是否开启日志记录连接池统计信息
      */
-    private boolean logConnectionPoolStats = false;
+    private Boolean logConnectionPoolStats = false;
     /**
      * 是否使用系统属性值
      */
-    private boolean useSystemPropertyValues = false;
+    private Boolean useSystemPropertyValues = false;
 
     public ClientBuilderConfiguration toClientConfig() {
         ClientBuilderConfiguration clientConfig = new ClientBuilderConfiguration();

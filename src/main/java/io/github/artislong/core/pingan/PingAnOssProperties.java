@@ -1,6 +1,6 @@
 package io.github.artislong.core.pingan;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.pingan.model.PingAnOssConfig;
 import lombok.Data;
@@ -16,7 +16,7 @@ import java.util.Map;
  * Created on 2022/3/8
  */
 @Data
-@ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.PINGAN)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.PINGAN)
 public class PingAnOssProperties extends PingAnOssConfig implements InitializingBean {
 
     private Boolean enable = false;

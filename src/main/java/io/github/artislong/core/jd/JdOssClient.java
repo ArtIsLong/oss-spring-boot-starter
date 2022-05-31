@@ -21,9 +21,9 @@ import io.github.artislong.model.FileOssInfo;
 import io.github.artislong.model.OssInfo;
 import io.github.artislong.model.download.DownloadCheckPoint;
 import io.github.artislong.model.download.DownloadObjectStat;
-import io.github.artislong.model.upload.UpLoadCheckPoint;
-import io.github.artislong.model.upload.UpLoadPartEntityTag;
-import io.github.artislong.model.upload.UpLoadPartResult;
+import io.github.artislong.model.upload.UploadCheckpoint;
+import io.github.artislong.model.upload.UploadPartEntityTag;
+import io.github.artislong.model.upload.UploadPartResult;
 import io.github.artislong.model.upload.UploadPart;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
@@ -58,54 +58,54 @@ public class JdOssClient implements StandardOssClient {
     private JdOssConfig jdOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String bucketName = getBucket();
         String key = getKey(targetName, false);
 
         if (isOverride || !amazonS3.doesObjectExist(bucketName, key)) {
-            amazonS3.putObject(bucketName, key, is, new ObjectMetadata());
+            amazonS3.putObject(bucketName, key, inputStream, new ObjectMetadata());
         }
         return getInfo(targetName);
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         return uploadFile(file, targetName, jdOssConfig.getSliceConfig(), OssConstant.OssType.JD);
     }
 
     @Override
-    public void completeUpload(UpLoadCheckPoint upLoadCheckPoint, List<UpLoadPartEntityTag> partEntityTags) {
-        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(UpLoadPartEntityTag::getPartNumber))
+    public void completeUpload(UploadCheckpoint uploadcheckpoint, List<UploadPartEntityTag> partEntityTags) {
+        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(UploadPartEntityTag::getPartNumber))
                 .map(partEntityTag -> new PartETag(partEntityTag.getPartNumber(), partEntityTag.getETag())).collect(Collectors.toList());
 
         CompleteMultipartUploadRequest completeMultipartUploadRequest =
-                new CompleteMultipartUploadRequest(upLoadCheckPoint.getBucket(), upLoadCheckPoint.getKey(), upLoadCheckPoint.getUploadId(), eTags);
+                new CompleteMultipartUploadRequest(uploadcheckpoint.getBucket(), uploadcheckpoint.getKey(), uploadcheckpoint.getUploadId(), eTags);
         amazonS3.completeMultipartUpload(completeMultipartUploadRequest);
 
-        FileUtil.del(upLoadCheckPoint.getCheckpointFile());
+        FileUtil.del(uploadcheckpoint.getCheckpointFile());
     }
 
     @Override
-    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
-        UpLoadPartResult partResult = null;
-        UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+    public UploadPartResult uploadPart(UploadCheckpoint uploadcheckpoint, int partNum, InputStream inputStream) {
+        UploadPartResult partResult = null;
+        UploadPart uploadPart = uploadcheckpoint.getUploadParts().get(partNum);
         long partSize = uploadPart.getSize();
-        partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
+        partResult = new UploadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
         try {
             inputStream.skip(uploadPart.getOffset());
 
             UploadPartRequest uploadPartRequest = new UploadPartRequest();
-            uploadPartRequest.setBucketName(upLoadCheckPoint.getBucket());
-            uploadPartRequest.setKey(upLoadCheckPoint.getKey());
-            uploadPartRequest.setUploadId(upLoadCheckPoint.getUploadId());
+            uploadPartRequest.setBucketName(uploadcheckpoint.getBucket());
+            uploadPartRequest.setKey(uploadcheckpoint.getKey());
+            uploadPartRequest.setUploadId(uploadcheckpoint.getUploadId());
             uploadPartRequest.setInputStream(inputStream);
             uploadPartRequest.setPartSize(partSize);
             uploadPartRequest.setPartNumber(uploadPart.getNumber());
 
-            UploadPartResult uploadPartResponse = amazonS3.uploadPart(uploadPartRequest);
+            com.amazonaws.services.s3.model.UploadPartResult uploadPartResponse = amazonS3.uploadPart(uploadPartRequest);
 
             partResult.setNumber(uploadPartResponse.getPartNumber());
-            partResult.setEntityTag(new UpLoadPartEntityTag().setETag(uploadPartResponse.getETag())
+            partResult.setEntityTag(new UploadPartEntityTag().setETag(uploadPartResponse.getETag())
                     .setPartNumber(uploadPartResponse.getPartNumber()));
         } catch (Exception e) {
             partResult.setFailed(true);
@@ -118,14 +118,14 @@ public class JdOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         S3Object s3Object = amazonS3.getObject(getBucket(), getKey(targetName, false));
-        IoUtil.copy(s3Object.getObjectContent(), os);
+        IoUtil.copy(s3Object.getObjectContent(), outputStream);
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
-        downLoadFile(localFile, targetName, jdOssConfig.getSliceConfig(), OssConstant.OssType.BAIDU);
+    public void downloadcheckpoint(File localFile, String targetName) {
+        downloadfile(localFile, targetName, jdOssConfig.getSliceConfig(), OssConstant.OssType.BAIDU);
     }
 
     @Override
@@ -176,7 +176,7 @@ public class JdOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         String bucketName = getBucket();
         String targetKey = getKey(targetName, false);
         if (isOverride || !amazonS3.doesObjectExist(bucketName, targetKey)) {
@@ -185,7 +185,7 @@ public class JdOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String key = getKey(targetName, false);
 
         OssInfo ossInfo = getBaseInfo(key);
@@ -228,7 +228,7 @@ public class JdOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         return amazonS3.doesObjectExist(getBucket(), getKey(targetName, false));
     }
 

@@ -1,6 +1,6 @@
 package io.github.artislong.core.ftp;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.ftp.model.FtpOssConfig;
 import lombok.Data;
@@ -16,7 +16,7 @@ import java.util.Map;
  * Created on 2021/11/16
  */
 @Data
-@ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.FTP)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.FTP)
 public class FtpOssProperties extends FtpOssConfig implements InitializingBean {
 
     private Boolean enable = false;

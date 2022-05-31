@@ -1,6 +1,6 @@
 package io.github.artislong.core.jd;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.amazonaws.ClientConfiguration;
@@ -35,7 +35,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(AmazonS3.class)
 @EnableConfigurationProperties({JdOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JD + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JD + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class JdOssConfiguration {
 

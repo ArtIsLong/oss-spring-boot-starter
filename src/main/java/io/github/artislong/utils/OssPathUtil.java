@@ -38,7 +38,7 @@ public class OssPathUtil {
      *                    true：绝对路径；false：相对路径
      * @return 以 / 为分隔的路径
      */
-    public static String convertPath(String key, Boolean isAbsolute) {
+    public static String convertPath(String key, boolean isAbsolute) {
         key = key.replaceAll("\\\\", StrUtil.SLASH).replaceAll("//", StrUtil.SLASH);
         if (isAbsolute && !key.startsWith(StrUtil.SLASH)) {
             key = StrUtil.SLASH + key;
@@ -56,7 +56,7 @@ public class OssPathUtil {
      *                   true：绝对路径；false：相对路径
      * @return 完整路径
      */
-    public static String replaceKey(String path, String basePath, Boolean isAbsolute) {
+    public static String replaceKey(String path, String basePath, boolean isAbsolute) {
         String newPath;
         if (StrUtil.SLASH.equals(basePath)) {
             newPath = convertPath(path, isAbsolute);

@@ -1,6 +1,6 @@
 package io.github.artislong.core.sftp;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.extra.ssh.Sftp;
 import com.jcraft.jsch.ChannelSftp;
@@ -24,7 +24,7 @@ import java.util.Map;
 @SpringBootConfiguration
 @ConditionalOnClass(ChannelSftp.class)
 @EnableConfigurationProperties({SftpOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.SFTP + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.SFTP + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class SftpOssConfiguration {
 

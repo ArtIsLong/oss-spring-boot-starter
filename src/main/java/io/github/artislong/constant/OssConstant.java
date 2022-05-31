@@ -57,6 +57,9 @@ public class OssConstant {
         String QINGYUN = "qingyun";
         String JDBC = "jdbc";
         String AWS = "aws";
+        String CTYUN = "ctyun";
+        String ECLOUD = "cloud";
+        String INSPUR = "inspur";
     }
 
 }

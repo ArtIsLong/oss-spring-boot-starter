@@ -1,6 +1,6 @@
 package io.github.artislong.core.ucloud;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.ucloud.model.UCloudOssConfig;
 import lombok.Data;
@@ -16,7 +16,7 @@ import java.util.Map;
  * Created on 2022/3/7
  */
 @Data
-@ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.UCLOUD)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.UCLOUD)
 public class UCloudOssProperties extends UCloudOssConfig implements InitializingBean {
 
     private Boolean enable = false;

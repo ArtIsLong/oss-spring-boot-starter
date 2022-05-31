@@ -17,7 +17,7 @@ import java.io.Serializable;
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpLoadPartEntityTag implements Serializable {
+public class UploadPartEntityTag implements Serializable {
 
     private static final long serialVersionUID = 2471854027355307627L;
 
@@ -51,7 +51,7 @@ public class UpLoadPartEntityTag implements Serializable {
         if (this.getClass() != obj.getClass()) {
             return false;
         }
-        UpLoadPartEntityTag other = (UpLoadPartEntityTag) obj;
+        UploadPartEntityTag other = (UploadPartEntityTag) obj;
         if (this.eTag == null) {
             if (other.eTag != null) {
                 return false;

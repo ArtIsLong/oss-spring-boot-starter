@@ -1,7 +1,7 @@
 package io.github.artislong.core.ali;
 
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClient;
@@ -28,7 +28,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(OSSClient.class)
 @EnableConfigurationProperties({AliOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.ALI + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.ALI + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class AliOssConfiguration {
 

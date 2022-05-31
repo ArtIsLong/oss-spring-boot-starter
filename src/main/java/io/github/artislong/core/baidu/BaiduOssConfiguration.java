@@ -1,7 +1,7 @@
 package io.github.artislong.core.baidu;
 
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.baidubce.auth.DefaultBceCredentials;
 import com.baidubce.services.bos.BosClient;
@@ -27,8 +27,8 @@ import java.util.Optional;
  */
 @SpringBootConfiguration
 @ConditionalOnClass(BosClient.class)
-@EnableConfigurationProperties({BaiduOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.BAIDU + CharPool.DOT + OssConstant.ENABLE,
+@EnableConfigurationProperties(BaiduOssProperties.class)
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.BAIDU + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class BaiduOssConfiguration {
 

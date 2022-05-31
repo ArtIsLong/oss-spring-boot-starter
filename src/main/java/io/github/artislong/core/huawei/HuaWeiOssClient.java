@@ -50,17 +50,17 @@ public class HuaWeiOssClient implements StandardOssClient {
     private HuaweiOssConfig huaweiOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String bucket = getBucket();
         String key = getKey(targetName, false);
         if (isOverride || !obsClient.doesObjectExist(bucket, key)) {
-            obsClient.putObject(bucket, key, is);
+            obsClient.putObject(bucket, key, inputStream);
         }
         return getInfo(targetName);
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         String bucket = getBucket();
         String key = getKey(targetName, false);
         UploadFileRequest request = new UploadFileRequest(bucket, key);
@@ -81,13 +81,13 @@ public class HuaWeiOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         ObsObject obsObject = obsClient.getObject(getBucket(), getKey(targetName, false));
-        IoUtil.copy(obsObject.getObjectContent(), os);
+        IoUtil.copy(obsObject.getObjectContent(), outputStream);
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
+    public void downloadcheckpoint(File localFile, String targetName) {
         String downloadFile = localFile.getPath();
         DownloadFileRequest request = new DownloadFileRequest(getBucket(), getKey(targetName, false));
         request.setEnableCheckpoint(true);
@@ -107,7 +107,7 @@ public class HuaWeiOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         String bucket = getBucket();
         String newTargetName = getKey(targetName, false);
         if (isOverride || !obsClient.doesObjectExist(bucket, newTargetName)) {
@@ -116,7 +116,7 @@ public class HuaWeiOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String key = getKey(targetName, false);
 
         OssInfo ossInfo = getBaseInfo(key);
@@ -163,7 +163,7 @@ public class HuaWeiOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         return obsClient.doesObjectExist(getBucket(), getKey(targetName, false));
     }
 

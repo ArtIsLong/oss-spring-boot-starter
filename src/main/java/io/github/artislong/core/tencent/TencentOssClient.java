@@ -22,6 +22,7 @@ import io.github.artislong.model.SliceConfig;
 import io.github.artislong.model.download.DownloadCheckPoint;
 import io.github.artislong.model.download.DownloadObjectStat;
 import io.github.artislong.model.upload.*;
+import io.github.artislong.model.upload.UploadPartResult;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -52,48 +53,48 @@ public class TencentOssClient implements StandardOssClient {
     private TencentOssConfig tencentOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String bucketName = getBucket();
         String key = getKey(targetName, false);
 
         if (isOverride || !cosClient.doesObjectExist(bucketName, key)) {
-            cosClient.putObject(bucketName, key, is, new ObjectMetadata());
+            cosClient.putObject(bucketName, key, inputStream, new ObjectMetadata());
         }
         return getInfo(targetName);
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         uploadFile(file, targetName, tencentOssConfig.getSliceConfig(), OssConstant.OssType.TENCENT);
         return getInfo(targetName);
     }
 
     @Override
-    public void completeUpload(UpLoadCheckPoint upLoadCheckPoint, List<UpLoadPartEntityTag> partEntityTags) {
-        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(UpLoadPartEntityTag::getPartNumber))
+    public void completeUpload(UploadCheckpoint uploadcheckpoint, List<UploadPartEntityTag> partEntityTags) {
+        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(UploadPartEntityTag::getPartNumber))
                 .map(partEntityTag -> new PartETag(partEntityTag.getPartNumber(), partEntityTag.getETag())).collect(Collectors.toList());
 
         CompleteMultipartUploadRequest completeMultipartUploadRequest =
-                new CompleteMultipartUploadRequest(upLoadCheckPoint.getBucket(), upLoadCheckPoint.getKey(), upLoadCheckPoint.getUploadId(), eTags);
+                new CompleteMultipartUploadRequest(uploadcheckpoint.getBucket(), uploadcheckpoint.getKey(), uploadcheckpoint.getUploadId(), eTags);
         cosClient.completeMultipartUpload(completeMultipartUploadRequest);
 
-        FileUtil.del(upLoadCheckPoint.getCheckpointFile());
+        FileUtil.del(uploadcheckpoint.getCheckpointFile());
     }
 
     @Override
-    public void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile, SliceConfig slice) {
+    public void prepareUpload(UploadCheckpoint uploadCheckPoint, File uploadfile, String targetName, String checkpointFile, SliceConfig slice) {
         String bucket = getBucket();
         String key = getKey(targetName, false);
 
-        uploadCheckPoint.setMagic(UpLoadCheckPoint.UPLOAD_MAGIC);
-        uploadCheckPoint.setUploadFile(upLoadFile.getPath());
+        uploadCheckPoint.setMagic(UploadCheckpoint.UPLOAD_MAGIC);
+        uploadCheckPoint.setUploadFile(uploadfile.getPath());
         uploadCheckPoint.setKey(key);
         uploadCheckPoint.setBucket(bucket);
         uploadCheckPoint.setCheckpointFile(checkpointFile);
-        uploadCheckPoint.setUploadFileStat(UpLoadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
+        uploadCheckPoint.setUploadFileStat(UploadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
         long partSize = slice.getPartSize();
-        long fileLength = upLoadFile.length();
+        long fileLength = uploadfile.length();
         int parts = (int) (fileLength / partSize);
         if (fileLength % partSize > 0) {
             parts++;
@@ -110,26 +111,26 @@ public class TencentOssClient implements StandardOssClient {
     }
 
     @Override
-    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
-        UpLoadPartResult partResult = null;
-        UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+    public UploadPartResult uploadPart(UploadCheckpoint uploadcheckpoint, int partNum, InputStream inputStream) {
+        UploadPartResult partResult = null;
+        UploadPart uploadPart = uploadcheckpoint.getUploadParts().get(partNum);
         long partSize = uploadPart.getSize();
-        partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
+        partResult = new UploadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
         try {
             inputStream.skip(uploadPart.getOffset());
 
             UploadPartRequest uploadPartRequest = new UploadPartRequest();
-            uploadPartRequest.setBucketName(upLoadCheckPoint.getBucket());
-            uploadPartRequest.setKey(upLoadCheckPoint.getKey());
-            uploadPartRequest.setUploadId(upLoadCheckPoint.getUploadId());
+            uploadPartRequest.setBucketName(uploadcheckpoint.getBucket());
+            uploadPartRequest.setKey(uploadcheckpoint.getKey());
+            uploadPartRequest.setUploadId(uploadcheckpoint.getUploadId());
             uploadPartRequest.setInputStream(inputStream);
             uploadPartRequest.setPartSize(partSize);
             uploadPartRequest.setPartNumber(uploadPart.getNumber());
 
-            UploadPartResult uploadPartResponse = cosClient.uploadPart(uploadPartRequest);
+            com.qcloud.cos.model.UploadPartResult uploadPartResponse = cosClient.uploadPart(uploadPartRequest);
 
             partResult.setNumber(uploadPartResponse.getPartNumber());
-            partResult.setEntityTag(new UpLoadPartEntityTag().setETag(uploadPartResponse.getETag())
+            partResult.setEntityTag(new UploadPartEntityTag().setETag(uploadPartResponse.getETag())
                     .setPartNumber(uploadPartResponse.getPartNumber()));
         } catch (Exception e) {
             partResult.setFailed(true);
@@ -142,14 +143,14 @@ public class TencentOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         COSObject cosObject = cosClient.getObject(getBucket(), getKey(targetName, false));
-        IoUtil.copy(cosObject.getObjectContent(), os);
+        IoUtil.copy(cosObject.getObjectContent(), outputStream);
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
-        downLoadFile(localFile, targetName, tencentOssConfig.getSliceConfig(), OssConstant.OssType.TENCENT);
+    public void downloadcheckpoint(File localFile, String targetName) {
+        downloadfile(localFile, targetName, tencentOssConfig.getSliceConfig(), OssConstant.OssType.TENCENT);
     }
 
     @Override
@@ -200,7 +201,7 @@ public class TencentOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         String bucketName = getBucket();
         String targetKey = getKey(targetName, false);
         if (isOverride || !cosClient.doesObjectExist(bucketName, targetKey)) {
@@ -209,7 +210,7 @@ public class TencentOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String key = getKey(targetName, false);
 
         OssInfo ossInfo = getBaseInfo(key);
@@ -252,7 +253,7 @@ public class TencentOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         return cosClient.doesObjectExist(getBucket(), getKey(targetName, false));
     }
 

@@ -1,6 +1,6 @@
 package io.github.artislong.core.tencent;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.tencent.model.TencentOssConfig;
 import lombok.Data;
@@ -16,7 +16,7 @@ import java.util.Map;
  * Created on 2021/11/24
  */
 @Data
-@ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.TENCENT)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.TENCENT)
 public class TencentOssProperties extends TencentOssConfig implements InitializingBean {
 
     private Boolean enable = false;

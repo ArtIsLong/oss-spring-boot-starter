@@ -50,7 +50,7 @@ public class TencentOssClientConfig {
     /**
      * 是否使用基本身份验证
      */
-    private boolean useBasicAuth = false;
+    private Boolean useBasicAuth = false;
     /**
      * 多次签名的过期时间,单位秒
      */
@@ -86,7 +86,7 @@ public class TencentOssClientConfig {
     /**
      * 数据万象特殊请求配置
      */
-    private boolean ciSpecialRequest = false;
+    private Boolean ciSpecialRequest = false;
     /**
      * 请求失败后最大的重试次数。默认3次。
      **/

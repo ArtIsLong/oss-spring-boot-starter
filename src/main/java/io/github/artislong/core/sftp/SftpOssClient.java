@@ -50,20 +50,20 @@ public class SftpOssClient implements StandardOssClient {
     private SftpOssConfig sftpOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String key = getKey(targetName, true);
         String parentPath = OssPathUtil.convertPath(Paths.get(key).getParent().toString(), true);
         if (!sftp.exist(parentPath)) {
             sftp.mkDirs(parentPath);
         }
         if (isOverride || !sftp.exist(key)) {
-            sftp.upload(parentPath, FileNameUtil.getName(targetName), is);
+            sftp.upload(parentPath, FileNameUtil.getName(targetName), inputStream);
         }
         return getInfo(targetName);
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         String key = getKey(targetName, true);
         String parentPath = OssPathUtil.convertPath(Paths.get(key).getParent().toString(), true);
         if (!sftp.exist(parentPath)) {
@@ -74,12 +74,12 @@ public class SftpOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
-        sftp.download(getKey(targetName, true), os);
+    public void download(OutputStream outputStream, String targetName) {
+        sftp.download(getKey(targetName, true), outputStream);
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
+    public void downloadcheckpoint(File localFile, String targetName) {
         try {
             OssInfo ossInfo = getInfo(targetName, false);
             long skip = localFile.exists() ? localFile.length() : 0;
@@ -102,17 +102,17 @@ public class SftpOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         log.warn("sftp协议不支持copy命令");
     }
 
     @Override
-    public void move(String sourceName, String targetName, Boolean isOverride) {
+    public void move(String sourceName, String targetName, boolean isOverride) {
         log.warn("sftp协议不支持move命令");
     }
 
     @Override
-    public void rename(String sourceName, String targetName, Boolean isOverride) {
+    public void rename(String sourceName, String targetName, boolean isOverride) {
         String newSourceName = getKey(sourceName, true);
         String newTargetName = getKey(targetName, true);
         try {
@@ -125,7 +125,7 @@ public class SftpOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String key = getKey(targetName, true);
         OssInfo ossInfo = getBaseInfo(key);
         if (isRecursion && sftp.isDir(key)) {
@@ -148,17 +148,17 @@ public class SftpOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         return sftp.exist(getKey(targetName, true));
     }
 
     @Override
-    public Boolean isFile(String targetName) {
+    public boolean isFile(String targetName) {
         return !isDirectory(targetName);
     }
 
     @Override
-    public Boolean isDirectory(String targetName) {
+    public boolean isDirectory(String targetName) {
         return sftp.isDir(getKey(targetName, true));
     }
 

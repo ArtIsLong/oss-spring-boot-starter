@@ -54,14 +54,14 @@ public class MinioOssClient implements StandardOssClient {
     private MinioOssConfig minioOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         try {
             String bucket = getBucket();
             String key = getKey(targetName, true);
             minioClient.putObject(PutObjectArgs.builder()
                     .bucket(bucket)
                     .object(key)
-                    .stream(is, is.available(), -1)
+                    .stream(inputStream, inputStream.available(), -1)
                     .build());
         } catch (Exception e) {
             throw new OssException(e);
@@ -70,9 +70,9 @@ public class MinioOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         try (InputStream inputStream = FileUtil.getInputStream(file)) {
-            upLoad(inputStream, targetName, true);
+            upload(inputStream, targetName, true);
         } catch (Exception e) {
             throw new OssException(e);
         }
@@ -80,7 +80,7 @@ public class MinioOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         GetObjectResponse is = null;
         try {
             GetObjectArgs getObjectArgs = GetObjectArgs.builder()
@@ -88,7 +88,7 @@ public class MinioOssClient implements StandardOssClient {
                     .object(getKey(targetName, true))
                     .build();
             is = minioClient.getObject(getObjectArgs);
-            ByteStreams.copy(is, os);
+            ByteStreams.copy(is, outputStream);
         } catch (Exception e) {
             throw new OssException(e);
         } finally {
@@ -97,8 +97,8 @@ public class MinioOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
-        downLoadFile(localFile, targetName, minioOssConfig.getSliceConfig(), OssConstant.OssType.MINIO);
+    public void downloadcheckpoint(File localFile, String targetName) {
+        downloadfile(localFile, targetName, minioOssConfig.getSliceConfig(), OssConstant.OssType.MINIO);
     }
 
     @Override
@@ -167,7 +167,7 @@ public class MinioOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         try {
             CopyObjectArgs copyObjectArgs = CopyObjectArgs.builder()
                     .bucket(getBucket())
@@ -184,7 +184,7 @@ public class MinioOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         try {
             String key = getKey(targetName, false);
 

@@ -51,12 +51,12 @@ public class LocalOssClient implements StandardOssClient {
     private LocalOssConfig localOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String key = getKey(targetName, true);
         if (isOverride && FileUtil.exist(key)) {
             FileUtil.del(key);
         }
-        File file = FileUtil.writeFromStream(is, key);
+        File file = FileUtil.writeFromStream(inputStream, key);
 
         OssInfo ossInfo = getBaseInfo(file.getPath());
 
@@ -66,23 +66,23 @@ public class LocalOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         uploadFile(file, targetName, localOssConfig.getSliceConfig(), OssConstant.OssType.LOCAL);
         return getInfo(targetName);
     }
 
     @Override
-    public void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile, SliceConfig slice) {
+    public void prepareUpload(UploadCheckpoint uploadCheckPoint, File uploadfile, String targetName, String checkpointFile, SliceConfig slice) {
         String key = getKey(targetName, true);
 
-        uploadCheckPoint.setMagic(UpLoadCheckPoint.UPLOAD_MAGIC);
-        uploadCheckPoint.setUploadFile(upLoadFile.getPath());
+        uploadCheckPoint.setMagic(UploadCheckpoint.UPLOAD_MAGIC);
+        uploadCheckPoint.setUploadFile(uploadfile.getPath());
         uploadCheckPoint.setKey(key);
         uploadCheckPoint.setCheckpointFile(checkpointFile);
-        uploadCheckPoint.setUploadFileStat(UpLoadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
+        uploadCheckPoint.setUploadFileStat(UploadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
         long partSize = localOssConfig.getSliceConfig().getPartSize();
-        long fileLength = upLoadFile.length();
+        long fileLength = uploadfile.length();
         int parts = (int) (fileLength / partSize);
         if (fileLength % partSize > 0) {
             parts++;
@@ -93,25 +93,25 @@ public class LocalOssClient implements StandardOssClient {
     }
 
     @Override
-    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
-        UpLoadPartResult partResult = null;
-        UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+    public UploadPartResult uploadPart(UploadCheckpoint uploadcheckpoint, int partNum, InputStream inputStream) {
+        UploadPartResult partResult = null;
+        UploadPart uploadPart = uploadcheckpoint.getUploadParts().get(partNum);
         long offset = uploadPart.getOffset();
         long size = uploadPart.getSize();
         Integer partSize = Convert.toInt(size);
 
-        partResult = new UpLoadPartResult(partNum + 1, offset, size);
+        partResult = new UploadPartResult(partNum + 1, offset, size);
         partResult.setNumber(partNum);
         try {
 
-            RandomAccessFile targetFile = new RandomAccessFile(upLoadCheckPoint.getKey(), "rw");
+            RandomAccessFile targetFile = new RandomAccessFile(uploadcheckpoint.getKey(), "rw");
 
             byte[] data = new byte[partSize];
             inputStream.skip(offset);
             targetFile.seek(offset);
             int len = targetFile.read(data);
             targetFile.write(data, 0, len);
-            partResult.setEntityTag(new UpLoadPartEntityTag());
+            partResult.setEntityTag(new UploadPartEntityTag());
         } catch (Exception e) {
             partResult.setFailed(true);
             partResult.setException(e);
@@ -121,13 +121,13 @@ public class LocalOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
-        FileUtil.writeToStream(getKey(targetName, true), os);
+    public void download(OutputStream outputStream, String targetName) {
+        FileUtil.writeToStream(getKey(targetName, true), outputStream);
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
-        downLoadFile(localFile, targetName, localOssConfig.getSliceConfig(), OssConstant.OssType.LOCAL);
+    public void downloadcheckpoint(File localFile, String targetName) {
+        downloadfile(localFile, targetName, localOssConfig.getSliceConfig(), OssConstant.OssType.LOCAL);
     }
 
     @Override
@@ -182,22 +182,22 @@ public class LocalOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         FileUtil.copy(getKey(sourceName, true), getKey(targetName, true), isOverride);
     }
 
     @Override
-    public void move(String sourceName, String targetName, Boolean isOverride) {
+    public void move(String sourceName, String targetName, boolean isOverride) {
         FileUtil.move(Paths.get(getKey(sourceName, true)), Paths.get(getKey(targetName, true)), isOverride);
     }
 
     @Override
-    public void rename(String sourceName, String targetName, Boolean isOverride) {
+    public void rename(String sourceName, String targetName, boolean isOverride) {
         FileUtil.rename(Paths.get(getKey(sourceName, true)), getKey(targetName, true), isOverride);
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
 
         String key = getKey(targetName, true);
         File file = FileUtil.file(key);
@@ -225,17 +225,17 @@ public class LocalOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         return FileUtil.exist(getKey(targetName, true));
     }
 
     @Override
-    public Boolean isFile(String targetName) {
+    public boolean isFile(String targetName) {
         return FileUtil.isFile(getKey(targetName, true));
     }
 
     @Override
-    public Boolean isDirectory(String targetName) {
+    public boolean isDirectory(String targetName) {
         return FileUtil.isDirectory(getKey(targetName, true));
     }
 

@@ -1,6 +1,6 @@
 package io.github.artislong.core.pingan;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.pingan.radosgw.sdk.RGWPassport;
@@ -31,7 +31,7 @@ import java.util.Map;
 @SpringBootConfiguration
 @ConditionalOnClass(RadosgwService.class)
 @EnableConfigurationProperties({PingAnOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.PINGAN + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.PINGAN + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class PingAnOssConfiguration {
 

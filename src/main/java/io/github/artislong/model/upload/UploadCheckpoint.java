@@ -14,11 +14,11 @@ import java.util.List;
 /**
  * 断点对象
  * @author 陈敏
- * @version UpLoadCheckPoint.java, v 1.1 2022/2/9 22:52 chenmin Exp $
+ * @version UploadCheckPoint.java, v 1.1 2022/2/9 22:52 chenmin Exp $
  * Created on 2022/2/9
  */
 @Data
-public class UpLoadCheckPoint implements Serializable {
+public class UploadCheckpoint implements Serializable {
 
     private static final long serialVersionUID = 5424904565837227164L;
 
@@ -27,13 +27,13 @@ public class UpLoadCheckPoint implements Serializable {
     private String magic;
     private int md5;
     private String uploadFile;
-    private UpLoadFileStat uploadFileStat;
+    private UploadFileStat uploadFileStat;
     private String key;
     private String bucket;
     private String checkpointFile;
     private String uploadId;
     private List<UploadPart> uploadParts = Collections.synchronizedList(new ArrayList<>());
-    private List<UpLoadPartEntityTag> partEntityTags = Collections.synchronizedList(new ArrayList<>());
+    private List<UploadPartEntityTag> partEntityTags = Collections.synchronizedList(new ArrayList<>());
     private long originPartSize;
 
     /**
@@ -43,7 +43,7 @@ public class UpLoadCheckPoint implements Serializable {
     public synchronized void load(String checkpointFile) {
         try {
             // TODO 缓存数据进行压缩
-            UpLoadCheckPoint ucp = JSONUtil.readJSONObject(new File(checkpointFile), CharsetUtil.CHARSET_UTF_8).toBean(this.getClass());
+            UploadCheckpoint ucp = JSONUtil.readJSONObject(new File(checkpointFile), CharsetUtil.CHARSET_UTF_8).toBean(this.getClass());
             assign(ucp);
         } catch (Exception e) {
             throw new OssException(e);
@@ -68,7 +68,7 @@ public class UpLoadCheckPoint implements Serializable {
      * @param partEntityTag 分片Tag
      * @param completed 分片是否完成
      */
-    public synchronized void update(int partIndex, UpLoadPartEntityTag partEntityTag, boolean completed) {
+    public synchronized void update(int partIndex, UploadPartEntityTag partEntityTag, boolean completed) {
         this.getPartEntityTags().add(partEntityTag);
         this.getUploadParts().get(partIndex).setCompleted(completed);
     }
@@ -111,7 +111,7 @@ public class UpLoadCheckPoint implements Serializable {
         return result;
     }
 
-    public void assign(UpLoadCheckPoint ucp) {
+    public void assign(UploadCheckpoint ucp) {
         this.setMagic(ucp.magic);
         this.setMd5(ucp.md5);
         this.setUploadFile(ucp.uploadFile);

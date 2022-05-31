@@ -10,4 +10,5 @@ public class JdbcOssConstant {
         public static final String FILE = "F";
         public static final String DIRECTORY = "D";
     }
+
 }

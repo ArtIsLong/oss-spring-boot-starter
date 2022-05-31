@@ -1,6 +1,6 @@
 package io.github.artislong.core.up;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.upyun.ParallelUploader;
@@ -28,7 +28,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(RestManager.class)
 @EnableConfigurationProperties({UpOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UP + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UP + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class UpOssConfiguration {
 

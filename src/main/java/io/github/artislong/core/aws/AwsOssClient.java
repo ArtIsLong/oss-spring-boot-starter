@@ -7,7 +7,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -59,7 +58,7 @@ public class AwsOssClient implements StandardOssClient {
     private AwsOssConfig ossConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String bucketName = getBucketName();
         String key = getKey(targetName, false);
 
@@ -67,7 +66,7 @@ public class AwsOssClient implements StandardOssClient {
             try {
                 s3Client.putObject(builder -> builder
                         .bucket(bucketName)
-                        .key(key), RequestBody.fromInputStream(is, is.available()));
+                        .key(key), RequestBody.fromInputStream(inputStream, inputStream.available()));
             } catch (IOException e) {
                 throw new OssException(e);
             }
@@ -76,24 +75,24 @@ public class AwsOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         return uploadFile(file, targetName, ossConfig.getSliceConfig(), OssConstant.OssType.AWS);
     }
 
     @Override
-    public void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile, SliceConfig slice) {
+    public void prepareUpload(UploadCheckpoint uploadCheckPoint, File uploadfile, String targetName, String checkpointFile, SliceConfig slice) {
         String bucketName = getBucketName();
         String key = getKey(targetName, false);
 
-        uploadCheckPoint.setMagic(UpLoadCheckPoint.UPLOAD_MAGIC);
-        uploadCheckPoint.setUploadFile(upLoadFile.getPath());
+        uploadCheckPoint.setMagic(UploadCheckpoint.UPLOAD_MAGIC);
+        uploadCheckPoint.setUploadFile(uploadfile.getPath());
         uploadCheckPoint.setKey(key);
         uploadCheckPoint.setBucket(bucketName);
         uploadCheckPoint.setCheckpointFile(checkpointFile);
-        uploadCheckPoint.setUploadFileStat(UpLoadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
+        uploadCheckPoint.setUploadFileStat(UploadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
         long partSize = slice.getPartSize();
-        long fileLength = upLoadFile.length();
+        long fileLength = uploadfile.length();
         int parts = (int) (fileLength / partSize);
         if (fileLength % partSize > 0) {
             parts++;
@@ -109,23 +108,23 @@ public class AwsOssClient implements StandardOssClient {
     }
 
     @Override
-    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
-        UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+    public UploadPartResult uploadPart(UploadCheckpoint uploadcheckpoint, int partNum, InputStream inputStream) {
+        UploadPart uploadPart = uploadcheckpoint.getUploadParts().get(partNum);
         long partSize = uploadPart.getSize();
         int partNumber = partNum + 1;
-        UpLoadPartResult partResult = new UpLoadPartResult(partNumber, uploadPart.getOffset(), partSize);
+        UploadPartResult partResult = new UploadPartResult(partNumber, uploadPart.getOffset(), partSize);
 
         try {
             inputStream.skip(uploadPart.getOffset());
-            UploadPartResponse uploadPartResponse = s3Client.uploadPart(builder -> builder.bucket(upLoadCheckPoint.getBucket())
-                            .key(upLoadCheckPoint.getKey())
-                            .uploadId(upLoadCheckPoint.getUploadId())
+            UploadPartResponse uploadPartResponse = s3Client.uploadPart(builder -> builder.bucket(uploadcheckpoint.getBucket())
+                            .key(uploadcheckpoint.getKey())
+                            .uploadId(uploadcheckpoint.getUploadId())
                             .partNumber(partNumber)
                             .contentLength(partSize),
                     RequestBody.fromInputStream(inputStream, inputStream.available()));
 
             partResult.setNumber(partNumber);
-            partResult.setEntityTag(new UpLoadPartEntityTag().setETag(uploadPartResponse.eTag()).setPartNumber(partNumber));
+            partResult.setEntityTag(new UploadPartEntityTag().setETag(uploadPartResponse.eTag()).setPartNumber(partNumber));
         } catch (Exception e) {
             partResult.setFailed(true);
             partResult.setException(e);
@@ -137,25 +136,25 @@ public class AwsOssClient implements StandardOssClient {
     }
 
     @Override
-    public void completeUpload(UpLoadCheckPoint upLoadCheckPoint, List<UpLoadPartEntityTag> partEntityTags) {
+    public void completeUpload(UploadCheckpoint uploadcheckpoint, List<UploadPartEntityTag> partEntityTags) {
         s3Client.completeMultipartUpload(builder -> builder
-                .bucket(upLoadCheckPoint.getBucket())
-                .key(upLoadCheckPoint.getKey())
-                .uploadId(upLoadCheckPoint.getUploadId()));
-        FileUtil.del(upLoadCheckPoint.getCheckpointFile());
+                .bucket(uploadcheckpoint.getBucket())
+                .key(uploadcheckpoint.getKey())
+                .uploadId(uploadcheckpoint.getUploadId()));
+        FileUtil.del(uploadcheckpoint.getCheckpointFile());
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         ResponseInputStream<GetObjectResponse> responseInputStream = s3Client.getObject(builder -> builder
                 .bucket(getBucketName())
                 .key(getKey(targetName, false)));
-        IoUtil.copy(responseInputStream, os);
+        IoUtil.copy(responseInputStream, outputStream);
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
-        downLoadFile(localFile, targetName, ossConfig.getSliceConfig(), OssConstant.OssType.AWS);
+    public void downloadcheckpoint(File localFile, String targetName) {
+        downloadfile(localFile, targetName, ossConfig.getSliceConfig(), OssConstant.OssType.AWS);
     }
 
     @Override
@@ -208,7 +207,7 @@ public class AwsOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         String bucket = getBucketName();
         if (isOverride || !isExist(targetName)) {
             s3Client.copyObject(builder -> builder
@@ -220,7 +219,7 @@ public class AwsOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String key = getKey(targetName, false);
 
         OssInfo ossInfo = getBaseInfo(key);
@@ -229,7 +228,7 @@ public class AwsOssClient implements StandardOssClient {
 
         if (isRecursion && isDirectory(key)) {
             String prefix = OssPathUtil.convertPath(key, false);
-            ListObjectsResponse listObjects = s3Client.listObjects(builder -> builder.bucket(getBucketName()).prefix(prefix.endsWith("/") ? prefix : prefix + CharPool.SLASH));
+            ListObjectsResponse listObjects = s3Client.listObjects(builder -> builder.bucket(getBucketName()).prefix(prefix.endsWith("/") ? prefix : prefix + StrUtil.SLASH));
 
             List<OssInfo> fileOssInfos = new ArrayList<>();
             List<OssInfo> directoryInfos = new ArrayList<>();

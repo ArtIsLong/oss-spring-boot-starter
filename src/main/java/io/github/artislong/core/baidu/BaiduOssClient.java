@@ -53,23 +53,23 @@ public class BaiduOssClient implements StandardOssClient {
     private BaiduOssConfig baiduOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String bucket = getBucket();
         String key = getKey(targetName, false);
         if (isOverride || !bosClient.doesObjectExist(bucket, key)) {
-            bosClient.putObject(bucket, key, is);
+            bosClient.putObject(bucket, key, inputStream);
         }
         return getInfo(targetName);
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         return uploadFile(file, targetName, baiduOssConfig.getSliceConfig(), OssConstant.OssType.BAIDU);
     }
 
     @Override
-    public void completeUpload(UpLoadCheckPoint upLoadCheckPoint, List<UpLoadPartEntityTag> partEntityTags) {
-        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(UpLoadPartEntityTag::getPartNumber))
+    public void completeUpload(UploadCheckpoint uploadcheckpoint, List<UploadPartEntityTag> partEntityTags) {
+        List<PartETag> eTags = partEntityTags.stream().sorted(Comparator.comparingInt(UploadPartEntityTag::getPartNumber))
                 .map(partEntityTag -> {
                     PartETag p = new PartETag();
                     p.setETag(partEntityTag.getETag());
@@ -78,25 +78,25 @@ public class BaiduOssClient implements StandardOssClient {
                 }).collect(Collectors.toList());
 
         CompleteMultipartUploadRequest completeMultipartUploadRequest =
-                new CompleteMultipartUploadRequest(upLoadCheckPoint.getBucket(), upLoadCheckPoint.getKey(), upLoadCheckPoint.getUploadId(), eTags);
+                new CompleteMultipartUploadRequest(uploadcheckpoint.getBucket(), uploadcheckpoint.getKey(), uploadcheckpoint.getUploadId(), eTags);
         bosClient.completeMultipartUpload(completeMultipartUploadRequest);
-        FileUtil.del(upLoadCheckPoint.getCheckpointFile());
+        FileUtil.del(uploadcheckpoint.getCheckpointFile());
     }
 
     @Override
-    public void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile, SliceConfig slice) {
+    public void prepareUpload(UploadCheckpoint uploadCheckPoint, File uploadfile, String targetName, String checkpointFile, SliceConfig slice) {
         String bucket = getBucket();
         String key = getKey(targetName, false);
 
-        uploadCheckPoint.setMagic(UpLoadCheckPoint.UPLOAD_MAGIC);
-        uploadCheckPoint.setUploadFile(upLoadFile.getPath());
+        uploadCheckPoint.setMagic(UploadCheckpoint.UPLOAD_MAGIC);
+        uploadCheckPoint.setUploadFile(uploadfile.getPath());
         uploadCheckPoint.setKey(key);
         uploadCheckPoint.setBucket(bucket);
         uploadCheckPoint.setCheckpointFile(checkpointFile);
-        uploadCheckPoint.setUploadFileStat(UpLoadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
+        uploadCheckPoint.setUploadFileStat(UploadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
         long partSize = slice.getPartSize();
-        long fileLength = upLoadFile.length();
+        long fileLength = uploadfile.length();
         int parts = (int) (fileLength / partSize);
         if (fileLength % partSize > 0) {
             parts++;
@@ -113,18 +113,18 @@ public class BaiduOssClient implements StandardOssClient {
     }
 
     @Override
-    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
-        UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+    public UploadPartResult uploadPart(UploadCheckpoint uploadcheckpoint, int partNum, InputStream inputStream) {
+        UploadPart uploadPart = uploadcheckpoint.getUploadParts().get(partNum);
         long partSize = uploadPart.getSize();
-        UpLoadPartResult partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
+        UploadPartResult partResult = new UploadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
 
         try {
             inputStream.skip(uploadPart.getOffset());
 
             UploadPartRequest uploadPartRequest = new UploadPartRequest();
-            uploadPartRequest.setBucketName(upLoadCheckPoint.getBucket());
-            uploadPartRequest.setKey(upLoadCheckPoint.getKey());
-            uploadPartRequest.setUploadId(upLoadCheckPoint.getUploadId());
+            uploadPartRequest.setBucketName(uploadcheckpoint.getBucket());
+            uploadPartRequest.setKey(uploadcheckpoint.getKey());
+            uploadPartRequest.setUploadId(uploadcheckpoint.getUploadId());
             uploadPartRequest.setInputStream(inputStream);
             uploadPartRequest.setPartSize(partSize);
             uploadPartRequest.setPartNumber(partNum + 1);
@@ -132,7 +132,7 @@ public class BaiduOssClient implements StandardOssClient {
 
             partResult.setNumber(uploadPartResponse.getPartNumber());
             PartETag eTag = uploadPartResponse.getPartETag();
-            partResult.setEntityTag(new UpLoadPartEntityTag().setETag(eTag.getETag()).setPartNumber(eTag.getPartNumber()));
+            partResult.setEntityTag(new UploadPartEntityTag().setETag(eTag.getETag()).setPartNumber(eTag.getPartNumber()));
         } catch (Exception e) {
             partResult.setFailed(true);
             partResult.setException(e);
@@ -144,14 +144,14 @@ public class BaiduOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         BosObject bosObject = bosClient.getObject(getBucket(), getKey(targetName, false));
-        IoUtil.copy(bosObject.getObjectContent(), os);
+        IoUtil.copy(bosObject.getObjectContent(), outputStream);
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
-        downLoadFile(localFile, targetName, baiduOssConfig.getSliceConfig(), OssConstant.OssType.BAIDU);
+    public void downloadcheckpoint(File localFile, String targetName) {
+        downloadfile(localFile, targetName, baiduOssConfig.getSliceConfig(), OssConstant.OssType.BAIDU);
     }
 
     @Override
@@ -203,7 +203,7 @@ public class BaiduOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         String bucket = getBucket();
         String newTargetName = getKey(targetName, false);
         if (isOverride || !bosClient.doesObjectExist(bucket, newTargetName)) {
@@ -212,7 +212,7 @@ public class BaiduOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String key = getKey(targetName, false);
 
         OssInfo ossInfo = getBaseInfo(key);
@@ -259,7 +259,7 @@ public class BaiduOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         return bosClient.doesObjectExist(getBucket(), getKey(targetName, false));
     }
 

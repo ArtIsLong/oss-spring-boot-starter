@@ -31,11 +31,11 @@ public class BaiduOssClientConfig {
     /**
      * 使用cname访问BOS资源
      */
-    private boolean cnameEnabled;
+    private Boolean cnameEnabled;
     /**
      * 异步put
      */
-    private boolean enableHttpAsyncPut = true;
+    private Boolean enableHttpAsyncPut = true;
     /**
      * 建立连接的超时时间（单位：毫秒）
      */
@@ -75,7 +75,7 @@ public class BaiduOssClientConfig {
     /**
      * 是否设置用户代理认证
      */
-    private boolean proxyPreemptiveAuthenticationEnabled;
+    private Boolean proxyPreemptiveAuthenticationEnabled;
     /**
      * 通过打开的连接传输数据的超时时间（单位：毫秒）
      */
@@ -95,7 +95,7 @@ public class BaiduOssClientConfig {
     /**
      * 是否开启HTTP重定向。默认开启
      */
-    private boolean redirectsEnabled = true;
+    private Boolean redirectsEnabled = true;
     /**
      * 本地地址
      */

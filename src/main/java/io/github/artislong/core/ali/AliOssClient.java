@@ -50,12 +50,12 @@ public class AliOssClient implements StandardOssClient {
     private AliOssConfig aliOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String bucketName = getBucketName();
         String key = getKey(targetName, false);
 
         if (isOverride || !oss.doesObjectExist(bucketName, key)) {
-            oss.putObject(bucketName, key, is, new ObjectMetadata());
+            oss.putObject(bucketName, key, inputStream, new ObjectMetadata());
         }
         return getInfo(targetName);
     }
@@ -68,7 +68,7 @@ public class AliOssClient implements StandardOssClient {
      * @return 文件信息
      */
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         try {
             String bucketName = getBucketName();
             String key = getKey(targetName, false);
@@ -94,17 +94,17 @@ public class AliOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         String bucketName = getBucketName();
         String key = getKey(targetName, false);
         OSSObject ossObject = oss.getObject(bucketName, key);
-        IoUtil.copy(ossObject.getObjectContent(), os);
+        IoUtil.copy(ossObject.getObjectContent(), outputStream);
         IoUtil.close(ossObject);
     }
 
     @SneakyThrows
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
+    public void downloadcheckpoint(File localFile, String targetName) {
         String bucketName = getBucketName();
         String key = getKey(targetName, false);
         String filePath = localFile.getPath();
@@ -129,7 +129,7 @@ public class AliOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         String bucketName = getBucketName();
         String targetKey = getKey(targetName, false);
         if (isOverride || !oss.doesObjectExist(bucketName, targetKey)) {
@@ -138,7 +138,7 @@ public class AliOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String bucketName = getBucketName();
         String key = getKey(targetName, false);
 
@@ -185,7 +185,7 @@ public class AliOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         return oss.doesObjectExist(getBucketName(), getKey(targetName, false));
     }
 

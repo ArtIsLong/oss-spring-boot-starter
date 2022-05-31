@@ -95,7 +95,22 @@ public enum OssType {
     /**
      * 亚马逊
      */
-    AWS(OssConstant.OssType.AWS);
+    AWS(OssConstant.OssType.AWS),
+
+    /**
+     * 天翼云
+     */
+    CTYUN(OssConstant.OssType.CTYUN),
+
+    /**
+     * 移动云
+     */
+    ECLOUD(OssConstant.OssType.ECLOUD),
+
+    /**
+     * 浪潮云
+     */
+    INSPUR(OssConstant.OssType.INSPUR);
 
     private final String value;
 

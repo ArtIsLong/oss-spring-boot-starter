@@ -1,6 +1,6 @@
 package io.github.artislong.core.ftp;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.ftp.Ftp;
 import cn.hutool.extra.spring.SpringUtil;
@@ -27,7 +27,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(FTPClient.class)
 @EnableConfigurationProperties({FtpOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.FTP + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.FTP + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class FtpOssConfiguration {
 
@@ -60,7 +60,7 @@ public class FtpOssConfiguration {
     public Ftp ftp(FtpOssConfig ftpOssConfig) {
         FtpOssClientConfig clientConfig = Optional.ofNullable(ftpOssConfig.getClientConfig()).orElse(new FtpOssClientConfig());
         Ftp ftp = new Ftp(ftpOssConfig.toFtpConfig(), clientConfig.getMode());
-        ftp.setBackToPwd(clientConfig.isBackToPwd());
+        ftp.setBackToPwd(clientConfig.getBackToPwd());
         return ftp;
     }
 

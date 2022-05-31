@@ -67,9 +67,9 @@ public class QiNiuOssClient implements StandardOssClient {
     private Configuration configuration;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         try {
-            uploadManager.put(is, getKey(targetName, false), getUpToken(), null, null);
+            uploadManager.put(inputStream, getKey(targetName, false), getUpToken(), null, null);
         } catch (QiniuException e) {
             String errorMsg = String.format("%s上传失败", targetName);
             log.error(errorMsg, e);
@@ -79,7 +79,7 @@ public class QiNiuOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         String key = getKey(targetName, false);
 
         try {
@@ -96,11 +96,11 @@ public class QiNiuOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         DownloadUrl downloadUrl = new DownloadUrl("qiniu.com", false, getKey(targetName, false));
         try {
             String url = downloadUrl.buildURL();
-            HttpUtil.download(url, os, false);
+            HttpUtil.download(url, outputStream, false);
         } catch (QiniuException e) {
             String errorMsg = String.format("%s下载失败", targetName);
             log.error(errorMsg, e);
@@ -109,8 +109,8 @@ public class QiNiuOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
-        downLoadFile(localFile, targetName, qiNiuOssConfig.getSliceConfig(), OssConstant.OssType.QINIU);
+    public void downloadcheckpoint(File localFile, String targetName) {
+        downloadfile(localFile, targetName, qiNiuOssConfig.getSliceConfig(), OssConstant.OssType.QINIU);
     }
 
     @Override
@@ -178,7 +178,7 @@ public class QiNiuOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         try {
             bucketManager.copy(getBucket(), getKey(sourceName, false), getBucket(), getKey(targetName, false), isOverride);
         } catch (QiniuException e) {
@@ -189,7 +189,7 @@ public class QiNiuOssClient implements StandardOssClient {
     }
 
     @Override
-    public void move(String sourceName, String targetName, Boolean isOverride) {
+    public void move(String sourceName, String targetName, boolean isOverride) {
         try {
             bucketManager.move(getBucket(), getKey(sourceName, false), getBucket(), getKey(targetName, false), isOverride);
         } catch (QiniuException e) {
@@ -200,7 +200,7 @@ public class QiNiuOssClient implements StandardOssClient {
     }
 
     @Override
-    public void rename(String sourceName, String targetName, Boolean isOverride) {
+    public void rename(String sourceName, String targetName, boolean isOverride) {
         try {
             bucketManager.rename(getBucket(), getKey(sourceName, false), getKey(targetName, false), isOverride);
         } catch (QiniuException e) {
@@ -212,7 +212,7 @@ public class QiNiuOssClient implements StandardOssClient {
 
     @SneakyThrows
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String key = getKey(targetName, false);
 
         OssInfo ossInfo = getBaseInfo(targetName);

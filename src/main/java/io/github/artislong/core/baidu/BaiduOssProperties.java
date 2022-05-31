@@ -1,6 +1,6 @@
 package io.github.artislong.core.baidu;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.baidu.model.BaiduOssConfig;
 import lombok.Data;
@@ -18,7 +18,7 @@ import java.util.Map;
  */
 @Slf4j
 @Data
-@ConfigurationProperties(OssConstant.OSS + CharPool.DOT + OssConstant.OssType.BAIDU)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.BAIDU)
 public class BaiduOssProperties extends BaiduOssConfig implements InitializingBean {
 
     private Boolean enable = false;

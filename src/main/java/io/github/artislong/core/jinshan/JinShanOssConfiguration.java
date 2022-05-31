@@ -1,6 +1,6 @@
 package io.github.artislong.core.jinshan;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.ksyun.ks3.http.Region;
@@ -29,7 +29,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(Ks3.class)
 @EnableConfigurationProperties({JinShanOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JINSHAN + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JINSHAN + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class JinShanOssConfiguration {
 

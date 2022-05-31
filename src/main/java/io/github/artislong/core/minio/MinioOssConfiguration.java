@@ -1,6 +1,6 @@
 package io.github.artislong.core.minio;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import io.github.artislong.constant.OssConstant;
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @SpringBootConfiguration
 @ConditionalOnClass(MinioClient.class)
 @EnableConfigurationProperties({MinioOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.MINIO + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.MINIO + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class MinioOssConfiguration {
 
@@ -76,9 +76,9 @@ public class MinioOssConfiguration {
                 .writeTimeout(clientConfig.getWriteTimeout(), TimeUnit.MILLISECONDS)
                 .readTimeout(clientConfig.getReadTimeout(), TimeUnit.MILLISECONDS)
                 .callTimeout(clientConfig.getCallTimeout(), TimeUnit.MILLISECONDS)
-                .followRedirects(clientConfig.isFollowRedirects())
-                .followSslRedirects(clientConfig.isFollowSslRedirects())
-                .retryOnConnectionFailure(clientConfig.isRetryOnConnectionFailure())
+                .followRedirects(clientConfig.getFollowRedirects())
+                .followSslRedirects(clientConfig.getFollowSslRedirects())
+                .retryOnConnectionFailure(clientConfig.getRetryOnConnectionFailure())
                 .pingInterval(clientConfig.getPingInterval(), TimeUnit.MILLISECONDS)
                 .build();
         return MinioClient.builder()

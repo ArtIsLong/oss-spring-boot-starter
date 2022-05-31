@@ -60,13 +60,13 @@ public class PingAnOssClient implements StandardOssClient {
     RGWAdminServiceFacade rgwAdminServiceFacade;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String bucketName = getBucketName();
         String key = getKey(targetName, false);
 
         if (isOverride || !isExist(targetName)) {
             try {
-                radosgwService.putObject(bucketName, key, is);
+                radosgwService.putObject(bucketName, key, inputStream);
             } catch (AmazonClientException e) {
                 throw new OssException(e);
             }
@@ -82,7 +82,7 @@ public class PingAnOssClient implements StandardOssClient {
      * @return 文件信息
      */
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         try {
             String bucketName = getBucketName();
             String key = getKey(targetName, false);
@@ -106,7 +106,7 @@ public class PingAnOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         String bucketName = getBucketName();
         String key = getKey(targetName, false);
         S3Object s3Object = null;
@@ -115,14 +115,14 @@ public class PingAnOssClient implements StandardOssClient {
         } catch (AmazonClientException e) {
             throw new OssException(e);
         }
-        IoUtil.copy(s3Object.getObjectContent(), os);
+        IoUtil.copy(s3Object.getObjectContent(), outputStream);
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
+    public void downloadcheckpoint(File localFile, String targetName) {
         log.warn("平安云不支持断点续传下载，将使用普通下载");
         try (OutputStream os = new FileOutputStream(localFile)) {
-            downLoad(os, targetName);
+            download(os, targetName);
         } catch (Exception e) {
             log.error("{}下载失败", targetName, e);
             throw new OssException(e);
@@ -139,7 +139,7 @@ public class PingAnOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         String bucketName = getBucketName();
         String targetKey = getKey(targetName, false);
         if (isOverride || !isExist(targetName)) {
@@ -148,7 +148,7 @@ public class PingAnOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String bucketName = getBucketName();
         String key = getKey(targetName, false);
 
@@ -201,7 +201,7 @@ public class PingAnOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         OssInfo info = getInfo(targetName);
         return Convert.toLong(info.getLength()) > 0;
     }

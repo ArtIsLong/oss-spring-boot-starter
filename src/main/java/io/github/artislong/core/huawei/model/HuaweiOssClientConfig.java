@@ -57,12 +57,12 @@ public class HuaweiOssClientConfig {
     /**
      * 指定是否使用HTTPS连接OBS (默认为 “true”)。
      */
-    private boolean httpsOnly = true;
+    private Boolean httpsOnly = true;
     /**
      * 指定是否启用对OBS的路径样式访问。“true” 表示启用了路径样式的访问，而 “false” (默认) 表示启用了虚拟托管样式的访问。
      * 注意: 如果启用了路径样式访问，则不支持OBS 3.0的新bucket功能。
      */
-    private boolean pathStyle = false;
+    private Boolean pathStyle = false;
     /**
      * HTTP代理配置。默认为空。
      */
@@ -74,11 +74,11 @@ public class HuaweiOssClientConfig {
     /**
      * 是否验证服务端证书。默认为false。
      */
-    private boolean validateCertificate = false;
+    private Boolean validateCertificate = false;
     /**
      * 是否验证响应头信息的ContentType。默认为true。
      */
-    private boolean verifyResponseContentType = true;
+    private Boolean verifyResponseContentType = true;
     /**
      * 从Socket流下载对象的缓存大小（单位：字节），-1表示不设置缓存。默认为-1。
      */
@@ -90,7 +90,7 @@ public class HuaweiOssClientConfig {
     /**
      * 是否严格验证服务端主机名。默认为false。
      */
-    private boolean isStrictHostnameVerification = false;
+    private Boolean isStrictHostnameVerification = false;
     /**
      * 设置身份验证类型。
      */
@@ -106,15 +106,15 @@ public class HuaweiOssClientConfig {
     /**
      * 是否使用长连接访问OBS服务。默认为true。
      */
-    private boolean keepAlive = true;
+    private Boolean keepAlive = true;
     /**
      * 指定是否使用协议协商。
      */
-    private boolean authTypeNegotiation = true;
+    private Boolean authTypeNegotiation = true;
     /**
      * 是否通过自定义域名访问OBS服务。默认为false。
      */
-    private boolean cname = false;
+    private Boolean cname = false;
     /**
      * 将文件夹隔离器设置为斜线。
      */
@@ -131,7 +131,7 @@ public class HuaweiOssClientConfig {
     /**
      * 是否开启Okhttp中的连接失败重试，默认关闭
      */
-    private boolean retryOnConnectionFailureInOkhttp = DEFAULT_RETRY_ON_CONNECTION_FAILURE_IN_OKHTTP;
+    private Boolean retryOnConnectionFailureInOkhttp = DEFAULT_RETRY_ON_CONNECTION_FAILURE_IN_OKHTTP;
     /**
      * 发生异常时最大重试次数
      */

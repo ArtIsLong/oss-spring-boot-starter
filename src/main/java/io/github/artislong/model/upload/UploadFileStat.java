@@ -12,7 +12,7 @@ import java.io.Serializable;
  * Created on 2022/2/9
  */
 @Data
-public class UpLoadFileStat implements Serializable {
+public class UploadFileStat implements Serializable {
 
     private static final long serialVersionUID = -1223810339796425415L;
 
@@ -39,8 +39,8 @@ public class UpLoadFileStat implements Serializable {
         return result;
     }
 
-    public static UpLoadFileStat getFileStat(String uploadFile) {
-        UpLoadFileStat fileStat = new UpLoadFileStat();
+    public static UploadFileStat getFileStat(String uploadFile) {
+        UploadFileStat fileStat = new UploadFileStat();
         File file = new File(uploadFile);
         fileStat.setSize(file.length());
         fileStat.setLastModified(file.lastModified());

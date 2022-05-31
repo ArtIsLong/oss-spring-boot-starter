@@ -19,7 +19,7 @@ public class FtpOssClientConfig {
     /**
      * 设置执行完操作是否返回当前目录,默认false
      */
-    private boolean backToPwd = false;
+    private Boolean backToPwd = false;
     /**
      * 连接超时时长，单位毫秒
      */

@@ -53,9 +53,9 @@ public class UpOssClient implements StandardOssClient {
     private UpOssConfig upOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         try {
-            restManager.writeFile(getKey(targetName, true), is, null);
+            restManager.writeFile(getKey(targetName, true), inputStream, null);
         } catch (IOException | UpException e) {
             log.error("{}上传失败", targetName, e);
             throw new OssException(e);
@@ -64,7 +64,7 @@ public class UpOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         try {
             parallelUploader.upload(file.getPath(), getKey(targetName, true), null);
         } catch (Exception e) {
@@ -74,10 +74,10 @@ public class UpOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         try {
             Response response = restManager.readFile(getKey(targetName, true));
-            IoUtil.copy(response.body().byteStream(), os);
+            IoUtil.copy(response.body().byteStream(), outputStream);
         } catch (IOException | UpException e) {
             log.error("{}下载失败", targetName, e);
             throw new OssException(e);
@@ -85,10 +85,10 @@ public class UpOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
+    public void downloadcheckpoint(File localFile, String targetName) {
         log.warn("又拍云不支持断点续传下载，将使用普通下载");
         try (OutputStream os = new FileOutputStream(localFile)) {
-            downLoad(os, targetName);
+            download(os, targetName);
         } catch (Exception e) {
             log.error("{}下载失败", targetName, e);
             throw new OssException(e);
@@ -106,7 +106,7 @@ public class UpOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         try {
             restManager.copyFile(getKey(targetName, true), getKey(sourceName, true), null);
         } catch (IOException | UpException e) {
@@ -115,7 +115,7 @@ public class UpOssClient implements StandardOssClient {
     }
 
     @Override
-    public void move(String sourceName, String targetName, Boolean isOverride) {
+    public void move(String sourceName, String targetName, boolean isOverride) {
         String newSourceName = getKey(sourceName, true);
         String newTargetName = getKey(targetName, true);
         try {
@@ -132,7 +132,7 @@ public class UpOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String key = getKey(targetName, true);
         try {
             OssInfo ossInfo = getBaseInfo(key);
@@ -165,7 +165,7 @@ public class UpOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         String key = getKey(targetName, true);
         try {
             if (isFile(targetName)) {

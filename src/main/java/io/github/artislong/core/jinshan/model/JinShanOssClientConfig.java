@@ -24,25 +24,25 @@ public class JinShanOssClientConfig extends HttpClientConfig {
     /**
      * 是否使用path style access方式访问
      */
-    private boolean pathStyleAccess = false;
+    private Boolean pathStyleAccess = false;
     /**
      * 允许客户端发送匿名请求
      */
-    private boolean allowAnonymous = true;
+    private Boolean allowAnonymous = true;
     /**
      * 当服务端返回307时是否自动跳转，
      * 主要发生在用Region A的endpoint请求Region B的endpoint
      */
-    private boolean flowRedirect = true;
+    private Boolean flowRedirect = true;
     /**
      * 是否使用绑定的域名作为endpoint
      */
-    private boolean domainMode = false;
+    private Boolean domainMode = false;
     /**
      * 签名类
      */
     private String signerClass = "com.ksyun.ks3.signer.DefaultSigner";
-    private boolean useGzip = false;
+    private Boolean useGzip = false;
 
     public Ks3ClientConfig toClientConfig() {
         Ks3ClientConfig clientConfig = new Ks3ClientConfig();

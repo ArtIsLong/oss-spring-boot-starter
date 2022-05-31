@@ -1,6 +1,6 @@
 package io.github.artislong.core.qingyun;
 
-import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.aliyun.oss.OSSClient;
@@ -29,7 +29,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(OSSClient.class)
 @EnableConfigurationProperties({QingYunOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINGYUN + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINGYUN + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class QingYunOssConfiguration {
 
@@ -85,12 +85,12 @@ public class QingYunOssConfiguration {
         if (ObjectUtil.isNotEmpty(endpoint)) {
             env.setEndpoint(endpoint);
         }
-        env.setCnameSupport(clientConfig.isCnameSupport());
+        env.setCnameSupport(clientConfig.getCnameSupport());
         String additionalUserAgent = clientConfig.getAdditionalUserAgent();
         if (ObjectUtil.isNotEmpty(additionalUserAgent)) {
             env.setAdditionalUserAgent(additionalUserAgent);
         }
-        env.setVirtualHostEnabled(clientConfig.isVirtualHostEnabled());
+        env.setVirtualHostEnabled(clientConfig.getVirtualHostEnabled());
         return new QingStor(env);
     }
 }

@@ -31,7 +31,7 @@ public class WangYiOssClientConfig {
     /**
      * 是否使用子域名
      */
-    private boolean isSubDomain = true;
+    private Boolean isSubDomain = true;
     /**
      * 连接OSS所采用的协议（HTTP或HTTPS），默认为HTTP。
      */

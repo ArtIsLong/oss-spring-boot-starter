@@ -62,13 +62,13 @@ public class UCloudOssClient implements StandardOssClient {
     private UCloudOssConfig uCloudOssConfig;
 
     @Override
-    public OssInfo upLoad(InputStream is, String targetName, Boolean isOverride) {
+    public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
         String bucketName = getBucket();
         String key = getKey(targetName, false);
 
         if (isOverride || !isExist(targetName)) {
             try {
-                objectApiBuilder.putObject(is, 0, "")
+                objectApiBuilder.putObject(inputStream, 0, "")
                         .nameAs(key)
                         .toBucket(bucketName)
                         .execute();
@@ -80,14 +80,14 @@ public class UCloudOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo upLoadCheckPoint(File file, String targetName) {
+    public OssInfo uploadCheckPoint(File file, String targetName) {
         uploadFile(file, targetName, uCloudOssConfig.getSliceConfig(), OssConstant.OssType.UCLOUD);
         return getInfo(targetName);
     }
 
     @Override
-    public void completeUpload(UpLoadCheckPoint upLoadCheckPoint, List<UpLoadPartEntityTag> partEntityTags) {
-        List<MultiUploadPartState> partStates = partEntityTags.stream().sorted(Comparator.comparingInt(UpLoadPartEntityTag::getPartNumber))
+    public void completeUpload(UploadCheckpoint uploadcheckpoint, List<UploadPartEntityTag> partEntityTags) {
+        List<MultiUploadPartState> partStates = partEntityTags.stream().sorted(Comparator.comparingInt(UploadPartEntityTag::getPartNumber))
                 .map(partEntityTag -> {
                     MultiUploadPartState multiUploadPartState = new MultiUploadPartState();
                     // TODO
@@ -97,23 +97,23 @@ public class UCloudOssClient implements StandardOssClient {
         MultiUploadInfo multiUploadInfo = new MultiUploadInfo();
         objectApiBuilder.finishMultiUpload(multiUploadInfo, partStates);
 
-        FileUtil.del(upLoadCheckPoint.getCheckpointFile());
+        FileUtil.del(uploadcheckpoint.getCheckpointFile());
     }
 
     @Override
-    public void prepareUpload(UpLoadCheckPoint uploadCheckPoint, File upLoadFile, String targetName, String checkpointFile, SliceConfig slice) {
+    public void prepareUpload(UploadCheckpoint uploadCheckPoint, File uploadfile, String targetName, String checkpointFile, SliceConfig slice) {
         String bucket = getBucket();
         String key = getKey(targetName, false);
 
-        uploadCheckPoint.setMagic(UpLoadCheckPoint.UPLOAD_MAGIC);
-        uploadCheckPoint.setUploadFile(upLoadFile.getPath());
+        uploadCheckPoint.setMagic(UploadCheckpoint.UPLOAD_MAGIC);
+        uploadCheckPoint.setUploadFile(uploadfile.getPath());
         uploadCheckPoint.setKey(key);
         uploadCheckPoint.setBucket(bucket);
         uploadCheckPoint.setCheckpointFile(checkpointFile);
-        uploadCheckPoint.setUploadFileStat(UpLoadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
+        uploadCheckPoint.setUploadFileStat(UploadFileStat.getFileStat(uploadCheckPoint.getUploadFile()));
 
         long partSize = slice.getPartSize();
-        long fileLength = upLoadFile.length();
+        long fileLength = uploadfile.length();
         int parts = (int) (fileLength / partSize);
         if (fileLength % partSize > 0) {
             parts++;
@@ -132,10 +132,10 @@ public class UCloudOssClient implements StandardOssClient {
     }
 
     @Override
-    public UpLoadPartResult uploadPart(UpLoadCheckPoint upLoadCheckPoint, int partNum, InputStream inputStream) {
-        UploadPart uploadPart = upLoadCheckPoint.getUploadParts().get(partNum);
+    public UploadPartResult uploadPart(UploadCheckpoint uploadcheckpoint, int partNum, InputStream inputStream) {
+        UploadPart uploadPart = uploadcheckpoint.getUploadParts().get(partNum);
         long partSize = uploadPart.getSize();
-        UpLoadPartResult partResult = new UpLoadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
+        UploadPartResult partResult = new UploadPartResult(partNum + 1, uploadPart.getOffset(), partSize);
         try {
             inputStream.skip(uploadPart.getOffset());
 
@@ -144,7 +144,7 @@ public class UCloudOssClient implements StandardOssClient {
                     .from(null, Convert.toInt(uploadPart.getOffset()), Convert.toInt(partSize), partNum).execute();
 
             partResult.setNumber(multiUploadPartState.getPartIndex());
-            partResult.setEntityTag(new UpLoadPartEntityTag().setETag(multiUploadPartState.geteTag())
+            partResult.setEntityTag(new UploadPartEntityTag().setETag(multiUploadPartState.geteTag())
                     .setPartNumber(multiUploadPartState.getPartIndex()));
         } catch (Exception e) {
             partResult.setFailed(true);
@@ -157,21 +157,21 @@ public class UCloudOssClient implements StandardOssClient {
     }
 
     @Override
-    public void downLoad(OutputStream os, String targetName) {
+    public void download(OutputStream outputStream, String targetName) {
         ObjectProfile objectProfile = new ObjectProfile();
         objectProfile.setBucket(getBucket());
         objectProfile.setKeyName(getKey(targetName, false));
         try {
             DownloadFileBean downloadFileBean = objectApiBuilder.downloadFile(objectProfile).execute();
-            IoUtil.copy(FileUtil.getInputStream(downloadFileBean.getFile()), os);
+            IoUtil.copy(FileUtil.getInputStream(downloadFileBean.getFile()), outputStream);
         } catch (UfileClientException e) {
             throw new OssException(e);
         }
     }
 
     @Override
-    public void downLoadCheckPoint(File localFile, String targetName) {
-        downLoadFile(localFile, targetName, uCloudOssConfig.getSliceConfig(), OssConstant.OssType.UCLOUD);
+    public void downloadcheckpoint(File localFile, String targetName) {
+        downloadfile(localFile, targetName, uCloudOssConfig.getSliceConfig(), OssConstant.OssType.UCLOUD);
     }
 
     @Override
@@ -231,7 +231,7 @@ public class UCloudOssClient implements StandardOssClient {
     }
 
     @Override
-    public void copy(String sourceName, String targetName, Boolean isOverride) {
+    public void copy(String sourceName, String targetName, boolean isOverride) {
         String bucketName = getBucket();
         String targetKey = getKey(targetName, false);
         if (isOverride || !isExist(targetName)) {
@@ -244,7 +244,7 @@ public class UCloudOssClient implements StandardOssClient {
     }
 
     @Override
-    public OssInfo getInfo(String targetName, Boolean isRecursion) {
+    public OssInfo getInfo(String targetName, boolean isRecursion) {
         String key = getKey(targetName, false);
 
         OssInfo ossInfo = getBaseInfo(key);
@@ -291,7 +291,7 @@ public class UCloudOssClient implements StandardOssClient {
     }
 
     @Override
-    public Boolean isExist(String targetName) {
+    public boolean isExist(String targetName) {
         try {
             ObjectProfile objectProfile = objectApiBuilder.objectProfile(getKey(targetName, false), getBucket()).execute();
             return objectProfile.getContentLength() > 0;

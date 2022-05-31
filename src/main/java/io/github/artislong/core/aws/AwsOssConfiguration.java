@@ -1,7 +1,7 @@
 package io.github.artislong.core.aws;
 
-import cn.hutool.core.text.CharPool;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
@@ -28,7 +28,7 @@ import java.util.Map;
 @Configuration
 @ConditionalOnClass(S3Client.class)
 @EnableConfigurationProperties({AwsOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.AWS + CharPool.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.AWS + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class AwsOssConfiguration {
 
