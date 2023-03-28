@@ -2,7 +2,6 @@ package io.github.artislong.core.local;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import com.aliyun.oss.OSSClient;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.local.model.LocalOssConfig;
@@ -21,7 +20,6 @@ import java.util.Map;
  * Created on 2022/2/11
  */
 @SpringBootConfiguration
-@ConditionalOnClass(OSSClient.class)
 @EnableConfigurationProperties({LocalOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.LOCAL + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE, matchIfMissing = true)

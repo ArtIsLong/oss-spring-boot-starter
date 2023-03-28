@@ -24,6 +24,7 @@ import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -65,6 +66,7 @@ public class FtpOssClient implements StandardOssClient {
         return getInfo(targetName);
     }
 
+    @SneakyThrows
     @Override
     public OssInfo uploadCheckPoint(File file, String targetName) {
         String key = getKey(targetName, true);
@@ -106,6 +108,9 @@ public class FtpOssClient implements StandardOssClient {
         } catch (Exception e) {
             throw new OssException(e);
         } finally {
+            if (ftpClient.isConnected()) {
+                ftpClient.disconnect();
+            }
             IoUtil.close(inputStream);
             IoUtil.close(ftp);
         }

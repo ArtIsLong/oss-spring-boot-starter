@@ -253,12 +253,6 @@
             <version>11.2.0.3</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>dynamic-datasource-spring-boot-starter</artifactId>
-            <version>3.5.1</version>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- 天翼云 -->
         <dependency>
@@ -273,6 +267,14 @@
             <groupId>com.inspurcloud.oss</groupId>
             <artifactId>inspur-cloud-oss-sdk</artifactId>
             <version>1.1.8</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- FDFS -->
+        <dependency>
+            <groupId>com.github.tobato</groupId>
+            <artifactId>fastdfs-client</artifactId>
+            <version>1.27.2</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

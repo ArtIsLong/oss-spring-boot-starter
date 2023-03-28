@@ -1,8 +1,8 @@
-package io.github.artislong.core.baidu;
+package io.github.artislong.core.fdfs;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
-import io.github.artislong.core.baidu.model.BaiduOssConfig;
+import io.github.artislong.core.fdfs.model.FdfsOssConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -14,25 +14,25 @@ import java.util.Map;
 
 /**
  * @author 陈敏
- * @version BaiduProperties.java, v 1.1 2021/11/24 15:26 chenmin Exp $
- * Created on 2021/11/24
+ * @version FdfsOssProperties.java, v 1.0 2022/10/12 21:46 chenmin Exp $
+ * Created on 2022/10/12
  */
 @Data
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.BAIDU)
-public class BaiduOssProperties extends BaiduOssConfig implements InitializingBean {
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.FDFS)
+public class FdfsOssProperties extends FdfsOssConfig implements InitializingBean {
 
     private Boolean enable = false;
 
-    private Map<String, BaiduOssConfig> ossConfig = new HashMap<>();
+    private Map<String, FdfsOssConfig> ossConfig = new HashMap<>();
 
     @Override
     public void afterPropertiesSet() {
         if (ossConfig.isEmpty()) {
             this.init();
         } else {
-            ossConfig.values().forEach(BaiduOssConfig::init);
+            ossConfig.values().forEach(FdfsOssConfig::init);
         }
     }
 }

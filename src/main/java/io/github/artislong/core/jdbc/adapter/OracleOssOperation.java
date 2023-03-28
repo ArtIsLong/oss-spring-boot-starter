@@ -24,7 +24,6 @@ import java.util.List;
  * Created on 2022/5/25
  */
 @Data
-@Component
 public class OracleOssOperation implements JdbcOssOperation {
 
     private JdbcTemplate jdbcTemplate;

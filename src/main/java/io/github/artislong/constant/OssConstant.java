@@ -60,6 +60,7 @@ public class OssConstant {
         String CTYUN = "ctyun";
         String ECLOUD = "cloud";
         String INSPUR = "inspur";
+        String FDFS = "fdfs";
     }
 
 }

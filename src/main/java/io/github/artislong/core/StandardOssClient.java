@@ -1,6 +1,5 @@
 package io.github.artislong.core;
 
-import cn.hutool.core.convert.Convert;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.file.FileNameUtil;
@@ -10,24 +9,21 @@ import io.github.artislong.constant.OssConstant;
 import io.github.artislong.exception.OssException;
 import io.github.artislong.model.OssInfo;
 import io.github.artislong.model.SliceConfig;
-import io.github.artislong.model.download.DownloadCheckPoint;
-import io.github.artislong.model.download.DownloadObjectStat;
-import io.github.artislong.model.download.DownloadPart;
-import io.github.artislong.model.download.DownloadPartResult;
-import io.github.artislong.model.upload.UploadCheckpoint;
-import io.github.artislong.model.upload.UploadPartEntityTag;
-import io.github.artislong.model.upload.UploadPartResult;
-import io.github.artislong.model.upload.UploadPart;
+import io.github.artislong.model.download.*;
+import io.github.artislong.model.upload.*;
 import io.github.artislong.utils.OssPathUtil;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.io.*;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author 陈敏
@@ -190,38 +186,6 @@ public interface StandardOssClient {
     }
 
     /**
-     * 分片上传Task
-     */
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    class UploadPartTask implements Callable<UploadPartResult> {
-        /**
-         * OSS客户端
-         */
-        private StandardOssClient ossClient;
-        /**
-         * 断点续传对象
-         */
-        private UploadCheckpoint upLoadCheckPoint;
-        /**
-         * 分片索引
-         */
-        private int partNum;
-
-        @Override
-        public UploadPartResult call() {
-            InputStream inputStream = FileUtil.getInputStream(upLoadCheckPoint.getUploadFile());
-            UploadPartResult uploadPartResult = ossClient.uploadPart(upLoadCheckPoint, partNum, inputStream);
-            if (!uploadPartResult.isFailed()) {
-                upLoadCheckPoint.update(partNum, uploadPartResult.getEntityTag(), true);
-                upLoadCheckPoint.dump();
-            }
-            return uploadPartResult;
-        }
-    }
-
-    /**
      * 上传分片
      * @param uploadcheckpoint 断点续传对象
      * @param partNum 分片索引
@@ -311,63 +275,6 @@ public interface StandardOssClient {
 
         FileUtil.rename(new File(downloadCheckPoint.getTempDownloadFile()), downloadCheckPoint.getDownloadFile(), true);
         FileUtil.del(downloadCheckPoint.getCheckPointFile());
-    }
-
-    /**
-     * 分片下载Task
-     */
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class DownloadPartTask implements Callable<DownloadPartResult> {
-
-        /**
-         * Oss客户端
-         */
-        StandardOssClient ossClient;
-        /**
-         * 断点续传对象
-         */
-        DownloadCheckPoint downloadCheckPoint;
-        /**
-         * 分片索引
-         */
-        int partNum;
-
-        @Override
-        public DownloadPartResult call() {
-            DownloadPartResult partResult = null;
-            RandomAccessFile output = null;
-            InputStream content = null;
-            try {
-                DownloadPart downloadPart = downloadCheckPoint.getDownloadParts().get(partNum);
-
-                partResult = new DownloadPartResult(partNum + 1, downloadPart.getStart(), downloadPart.getEnd());
-
-                output = new RandomAccessFile(downloadCheckPoint.getTempDownloadFile(), "rw");
-                output.seek(downloadPart.getFileStart());
-
-                content = ossClient.downloadPart(downloadCheckPoint.getKey(), downloadPart.getStart(), downloadPart.getEnd());
-
-                long partSize = downloadPart.getEnd() - downloadPart.getStart();
-                byte[] buffer = new byte[Convert.toInt(partSize)];
-                int bytesRead = 0;
-                while ((bytesRead = content.read(buffer)) != -1) {
-                    output.write(buffer, 0, bytesRead);
-                }
-
-                partResult.setLength(downloadPart.getLength());
-                downloadCheckPoint.update(partNum, true);
-                downloadCheckPoint.dump();
-            } catch (Exception e) {
-                partResult.setException(e);
-                partResult.setFailed(true);
-            } finally {
-                IoUtil.close(output);
-                IoUtil.close(content);
-            }
-            return partResult;
-        }
     }
 
     /**

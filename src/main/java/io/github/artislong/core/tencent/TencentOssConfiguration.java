@@ -1,7 +1,7 @@
 package io.github.artislong.core.tencent;
 
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
@@ -11,12 +11,10 @@ import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.tencent.model.TencentOssClientConfig;
 import io.github.artislong.core.tencent.model.TencentOssConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
 import java.util.Map;
 import java.util.Optional;
@@ -35,14 +33,22 @@ public class TencentOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "tencentOssClient";
 
-    @Autowired
+    public TencentOssConfiguration(TencentOssProperties tencentOssProperties) {
+//        ConfigurationPropertiesBinder.get(SpringUtil.getBeanFactory()).bind(ConfigurationPropertiesBean.get(SpringUtil.getApplicationContext(), new TencentOssProperties(), "tencentOssProperties"));
+        this.tencentOssProperties = tencentOssProperties;
+        tencentOssClient();
+    }
+
+//    @Autowired
     private TencentOssProperties tencentOssProperties;
 
-    @Bean
+//    @Bean
     public StandardOssClient tencentOssClient() {
         Map<String, TencentOssConfig> tencentOssConfigMap = tencentOssProperties.getOssConfig();
         if (tencentOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, tencentOssClient(tencentOssProperties));
+            StandardOssClient standardOssClient = tencentOssClient(tencentOssProperties);
+            SpringUtil.registerBean(DEFAULT_BEAN_NAME, standardOssClient);
+            return standardOssClient;
         } else {
             String secretId = tencentOssProperties.getSecretId();
             String secretKey = tencentOssProperties.getSecretKey();

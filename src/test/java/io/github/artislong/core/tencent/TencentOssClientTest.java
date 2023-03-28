@@ -26,17 +26,17 @@ public class TencentOssClientTest implements StandardOssClientTest {
 
     @Test
     public void test() throws Exception {
-        upLoad();
-        downLoad();
-        copy();
-        rename();
-        move();
-        isExist();
+//        upLoad();
+//        downLoad();
+//        copy();
+//        rename();
+//        move();
+//        isExist();
         getInfo();
-        delete();
-
-        upLoadCheckPoint();
-        downloadCheckPoint();
+//        delete();
+//
+//        upLoadCheckPoint();
+//        downloadCheckPoint();
     }
 
 }

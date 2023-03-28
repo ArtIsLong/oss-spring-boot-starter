@@ -110,7 +110,12 @@ public enum OssType {
     /**
      * 浪潮云
      */
-    INSPUR(OssConstant.OssType.INSPUR);
+    INSPUR(OssConstant.OssType.INSPUR),
+
+    /**
+     * FDFS
+     */
+    FDFS(OssConstant.OssType.FDFS);
 
     private final String value;
 
