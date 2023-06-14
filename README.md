@@ -40,11 +40,11 @@
 jar包已推送至maven中央仓库，可通过如下方式导入oss-spring-boot-starter依赖
 
 ```xml
-<dependencies>
+<dependency>
 	<groupId>io.github.artislong</groupId>
     <artifactId>oss-spring-boot-starter</artifactId>
     <version>{latest.version}</version>
-</dependencies>
+</dependency>
 ```
 
 在需要使用的Spring Bean中注入`StandardOssClient`对象即可。
