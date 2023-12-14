@@ -2,20 +2,20 @@ package io.github.artislong.core.minio;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.extra.spring.SpringUtil;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.minio.model.MinioOssClientConfig;
 import io.github.artislong.core.minio.model.MinioOssConfig;
+import io.github.artislong.function.ThreeConsumer;
 import io.minio.MinioClient;
 import okhttp3.OkHttpClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -29,18 +29,16 @@ import java.util.concurrent.TimeUnit;
 @EnableConfigurationProperties({MinioOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.MINIO + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class MinioOssConfiguration {
+public class MinioOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "minioOssClient";
 
-    @Autowired
-    private MinioOssProperties minioOssProperties;
-
-    @Bean
-    public StandardOssClient minioOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        MinioOssProperties minioOssProperties = getOssProperties(MinioOssProperties.class, OssConstant.OssType.MINIO);
         Map<String, MinioOssConfig> minioOssConfigMap = minioOssProperties.getOssConfig();
         if (minioOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, minioOssClient(minioOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, MinioOssClient.class, buildBeanProMap(minioOssProperties));
         } else {
             String endpoint = minioOssProperties.getEndpoint();
             String accessKey = minioOssProperties.getAccessKey();
@@ -59,14 +57,17 @@ public class MinioOssConfiguration {
                 if (ObjectUtil.isEmpty(minioOssConfig.getClientConfig())) {
                     minioOssConfig.setClientConfig(clientConfig);
                 }
-                SpringUtil.registerBean(name, minioOssClient(minioOssConfig));
+                consumer.accept(name, MinioOssClient.class, buildBeanProMap(minioOssConfig));
             });
         }
-        return null;
     }
 
-    public StandardOssClient minioOssClient(MinioOssConfig minioOssConfig) {
-        return new MinioOssClient(minioClient(minioOssConfig), minioOssConfig);
+    public Map<String, Object> buildBeanProMap(MinioOssConfig minioOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
+        MinioClient minioClient = minioClient(minioOssConfig);
+        beanProMap.put("minioClient", minioClient);
+        beanProMap.put("minioOssConfig", minioOssConfig);
+        return beanProMap;
     }
 
     public MinioClient minioClient(MinioOssConfig minioOssConfig) {

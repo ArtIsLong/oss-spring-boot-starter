@@ -1,16 +1,15 @@
 package io.github.artislong.core.local;
 
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.local.model.LocalOssConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
 import java.util.Map;
 
@@ -23,25 +22,18 @@ import java.util.Map;
 @EnableConfigurationProperties({LocalOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.LOCAL + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE, matchIfMissing = true)
-public class LocalOssConfiguration {
+public class LocalOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "localOssClient";
 
-    @Autowired
-    private LocalOssProperties localProperties;
-
-    @Bean
-    public StandardOssClient localOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        LocalOssProperties localProperties = getOssProperties(LocalOssProperties.class, OssConstant.OssType.LOCAL);
         Map<String, LocalOssConfig> localOssConfigMap = localProperties.getOssConfig();
         if (localOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, localOssClient(localProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, LocalOssClient.class, MapUtil.of("localOssConfig", localProperties));
         } else {
-            localOssConfigMap.forEach((name, localOssConfig) -> SpringUtil.registerBean(name, localOssClient(localOssConfig)));
+            localOssConfigMap.forEach((name, localOssConfig) -> consumer.accept(name, LocalOssClient.class, MapUtil.of("localOssConfig", localOssConfig)));
         }
-        return null;
-    }
-
-    public StandardOssClient localOssClient(LocalOssConfig localOssConfig) {
-        return new LocalOssClient(localOssConfig);
     }
 }

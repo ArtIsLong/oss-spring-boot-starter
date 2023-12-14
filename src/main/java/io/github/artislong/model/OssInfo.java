@@ -30,5 +30,9 @@ public class OssInfo {
      * 最新修改时间
      */
     private String lastUpdateTime;
+    /**
+     * 外网访问URL
+     */
+    private String publicHttpUrl;
 
 }

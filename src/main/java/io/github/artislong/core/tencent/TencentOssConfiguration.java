@@ -2,20 +2,22 @@ package io.github.artislong.core.tencent;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.tencent.model.TencentOssClientConfig;
 import io.github.artislong.core.tencent.model.TencentOssConfig;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,26 +31,16 @@ import java.util.Optional;
 @EnableConfigurationProperties({TencentOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.TENCENT + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class TencentOssConfiguration {
+public class TencentOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "tencentOssClient";
 
-    public TencentOssConfiguration(TencentOssProperties tencentOssProperties) {
-//        ConfigurationPropertiesBinder.get(SpringUtil.getBeanFactory()).bind(ConfigurationPropertiesBean.get(SpringUtil.getApplicationContext(), new TencentOssProperties(), "tencentOssProperties"));
-        this.tencentOssProperties = tencentOssProperties;
-        tencentOssClient();
-    }
-
-//    @Autowired
-    private TencentOssProperties tencentOssProperties;
-
-//    @Bean
-    public StandardOssClient tencentOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        TencentOssProperties tencentOssProperties = getOssProperties(TencentOssProperties.class, OssConstant.OssType.TENCENT);
         Map<String, TencentOssConfig> tencentOssConfigMap = tencentOssProperties.getOssConfig();
         if (tencentOssConfigMap.isEmpty()) {
-            StandardOssClient standardOssClient = tencentOssClient(tencentOssProperties);
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, standardOssClient);
-            return standardOssClient;
+            consumer.accept(DEFAULT_BEAN_NAME, TencentOssClient.class, buildBeanProMap(tencentOssProperties));
         } else {
             String secretId = tencentOssProperties.getSecretId();
             String secretKey = tencentOssProperties.getSecretKey();
@@ -63,21 +55,19 @@ public class TencentOssConfiguration {
                 if (ObjectUtil.isEmpty(tencentOssConfig.getClientConfig())) {
                     tencentOssConfig.setClientConfig(clientConfig);
                 }
-                SpringUtil.registerBean(name, tencentOssClient(tencentOssConfig));
+                consumer.accept(name, TencentOssClient.class, buildBeanProMap(tencentOssConfig));
             });
         }
-        return null;
     }
 
-    private StandardOssClient tencentOssClient(TencentOssConfig tencentOssConfig) {
+    public Map<String, Object> buildBeanProMap(TencentOssConfig tencentOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
         TencentOssClientConfig clientConfig = Optional.ofNullable(tencentOssConfig.getClientConfig()).orElse(new TencentOssClientConfig());
         COSCredentials cosCredentials = cosCredentials(tencentOssConfig);
         COSClient cosClient = cosClient(cosCredentials, clientConfig.toClientConfig());
-        return tencentOssClient(cosClient, tencentOssConfig);
-    }
-
-    public StandardOssClient tencentOssClient(COSClient cosClient, TencentOssConfig tencentOssConfig) {
-        return new TencentOssClient(cosClient, tencentOssConfig);
+        beanProMap.put("cosClient", cosClient);
+        beanProMap.put("tencentOssConfig", tencentOssConfig);
+        return beanProMap;
     }
 
     public COSCredentials cosCredentials(TencentOssConfig tencentOssConfig) {

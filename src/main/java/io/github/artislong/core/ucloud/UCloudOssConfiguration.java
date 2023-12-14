@@ -2,23 +2,23 @@ package io.github.artislong.core.ucloud;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import cn.ucloud.ufile.UfileClient;
 import cn.ucloud.ufile.api.object.ObjectApiBuilder;
 import cn.ucloud.ufile.api.object.ObjectConfig;
 import cn.ucloud.ufile.auth.ObjectAuthorization;
 import cn.ucloud.ufile.auth.UfileObjectLocalAuthorization;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ucloud.model.UCloudOssClientConfig;
 import io.github.artislong.core.ucloud.model.UCloudOssConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -32,18 +32,16 @@ import java.util.Optional;
 @EnableConfigurationProperties({UCloudOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UCLOUD + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class UCloudOssConfiguration {
+public class UCloudOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "uCloudOssClient";
 
-    @Autowired
-    private UCloudOssProperties uCloudOssProperties;
-
-    @Bean
-    public StandardOssClient uCloudOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        UCloudOssProperties uCloudOssProperties = getOssProperties(UCloudOssProperties.class, OssConstant.OssType.UCLOUD);
         Map<String, UCloudOssConfig> ossConfigMap = uCloudOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, uCloudOssClient(uCloudOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, UCloudOssClient.class, buildBeanProMap(uCloudOssProperties));
         } else {
             String publicKey = uCloudOssProperties.getPublicKey();
             String privateKey = uCloudOssProperties.getPrivateKey();
@@ -62,19 +60,22 @@ public class UCloudOssConfiguration {
                 if (ObjectUtil.isEmpty(ossConfig.getClientConfig())) {
                     ossConfig.setClientConfig(clientConfig);
                 }
-                SpringUtil.registerBean(name, uCloudOssClient(ossConfig));
+                consumer.accept(name, UCloudOssClient.class, buildBeanProMap(ossConfig));
             });
         }
-        return null;
     }
 
-    public StandardOssClient uCloudOssClient(UCloudOssConfig uCloudOssConfig) {
+    public Map<String, Object> buildBeanProMap(UCloudOssConfig uCloudOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
         UCloudOssClientConfig clientConfig = Optional.ofNullable(uCloudOssConfig.getClientConfig()).orElse(new UCloudOssClientConfig());
         UfileClient.Config config = new UfileClient.Config(clientConfig.toClientConfig());
         ObjectAuthorization objectAuthorization = new UfileObjectLocalAuthorization(uCloudOssConfig.getPublicKey(), uCloudOssConfig.getPrivateKey());
         ObjectConfig objectConfig = new ObjectConfig(uCloudOssConfig.getCustomHost());
         UfileClient ufileClient = UfileClient.configure(config);
         ObjectApiBuilder objectApiBuilder = new ObjectApiBuilder(ufileClient, objectAuthorization, objectConfig);
-        return new UCloudOssClient(ufileClient, objectApiBuilder, uCloudOssConfig);
+        beanProMap.put("ufileClient", ufileClient);
+        beanProMap.put("objectApiBuilder", objectApiBuilder);
+        beanProMap.put("uCloudOssConfig", uCloudOssConfig);
+        return beanProMap;
     }
 }

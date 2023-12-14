@@ -2,21 +2,21 @@ package io.github.artislong.core.up;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.upyun.ParallelUploader;
 import com.upyun.RestManager;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.up.model.UpOssClientConfig;
 import io.github.artislong.core.up.model.UpOssConfig;
+import io.github.artislong.function.ThreeConsumer;
 import io.github.artislong.model.SliceConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,18 +30,16 @@ import java.util.Optional;
 @EnableConfigurationProperties({UpOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UP + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class UpOssConfiguration {
+public class UpOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "upOssClient";
 
-    @Autowired
-    private UpOssProperties upOssProperties;
-
-    @Bean
-    public StandardOssClient upOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        UpOssProperties upOssProperties = getOssProperties(UpOssProperties.class, OssConstant.OssType.UP);
         Map<String, UpOssConfig> upOssConfigMap = upOssProperties.getOssConfig();
         if (upOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, upOssClient(upOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, UpOssClient.class, buildBeanProMap(upOssProperties));
         } else {
             String userName = upOssProperties.getUserName();
             String password = upOssProperties.getPassword();
@@ -52,20 +50,19 @@ public class UpOssConfiguration {
                 if (ObjectUtil.isEmpty(upOssConfig.getPassword())) {
                     upOssConfig.setPassword(password);
                 }
-                SpringUtil.registerBean(name, upOssClient(upOssConfig));
+                consumer.accept(name, UpOssClient.class, buildBeanProMap(upOssConfig));
             });
         }
-        return null;
     }
 
-    private StandardOssClient upOssClient(UpOssConfig upOssConfig) {
+    public Map<String, Object> buildBeanProMap(UpOssConfig upOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
         RestManager restManager = restManager(upOssConfig);
         ParallelUploader parallelUploader = parallelUploader(upOssConfig);
-        return upOssClient(restManager, parallelUploader, upOssConfig);
-    }
-
-    public StandardOssClient upOssClient(RestManager restManager, ParallelUploader parallelUploader, UpOssConfig upOssConfig) {
-        return new UpOssClient(restManager, parallelUploader, upOssConfig);
+        beanProMap.put("restManager", restManager);
+        beanProMap.put("parallelUploader", parallelUploader);
+        beanProMap.put("upOssConfig", upOssConfig);
+        return beanProMap;
     }
 
     public RestManager restManager(UpOssConfig upOssConfig) {

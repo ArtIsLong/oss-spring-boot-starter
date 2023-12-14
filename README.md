@@ -293,3 +293,32 @@ InputStream downloadPart(String key, long start, long end);
 ## 单元测试
 
 ![](http://assets.processon.com/chart_image/620774561e08530f01793ea6.png)
+
+```
+本地
+阿里云OSS
+华为云OBS
+七牛云Kodo
+腾讯云COS
+百度云 BOS
+又拍云USS
+MinIO
+京东云 OSS
+SFTP
+FTP
+金山云 KS3
+网易数帆 NOS
+
+Ucloud US3
+平安云 OBS
+
+青云 QingStor
+首云 OSS
+
+IBM COS
+AWS S3
+天翼云 OOS
+移动云 EOS
+沃云 OSS
+```
+

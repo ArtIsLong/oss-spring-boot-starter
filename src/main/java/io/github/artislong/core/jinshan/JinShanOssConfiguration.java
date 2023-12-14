@@ -2,22 +2,22 @@ package io.github.artislong.core.jinshan;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.ksyun.ks3.http.Region;
 import com.ksyun.ks3.service.Ks3;
 import com.ksyun.ks3.service.Ks3Client;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jinshan.model.JinShanOssClientConfig;
 import io.github.artislong.core.jinshan.model.JinShanOssConfig;
 import io.github.artislong.core.jinshan.model.Ks3ClientConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -31,18 +31,16 @@ import java.util.Optional;
 @EnableConfigurationProperties({JinShanOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JINSHAN + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class JinShanOssConfiguration {
+public class JinShanOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "jinShanOssClient";
 
-    @Autowired
-    private JinShanOssProperties jinShanOssProperties;
-
-    @Bean
-    public StandardOssClient jinShanOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        JinShanOssProperties jinShanOssProperties = getOssProperties(JinShanOssProperties.class, OssConstant.OssType.JINSHAN);
         Map<String, JinShanOssConfig> ossConfigMap = jinShanOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, jinShanOssClient(jinShanOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, JinShanOssClient.class, buildBeanProMap(jinShanOssProperties));
         } else {
             String accessKeyId = jinShanOssProperties.getAccessKeyId();
             String accessKeySecret = jinShanOssProperties.getAccessKeySecret();
@@ -69,14 +67,17 @@ public class JinShanOssConfiguration {
                 if (ObjectUtil.isEmpty(jinShanOssConfig.getClientConfig())) {
                     jinShanOssConfig.setClientConfig(clientConfig);
                 }
-                SpringUtil.registerBean(name, jinShanOssClient(jinShanOssConfig));
+                consumer.accept(name, JinShanOssClient.class, buildBeanProMap(jinShanOssConfig));
             });
         }
-        return null;
     }
 
-    public StandardOssClient jinShanOssClient(JinShanOssConfig jinShanOssConfig) {
-        return new JinShanOssClient(ks3(jinShanOssConfig), jinShanOssConfig);
+    public Map<String, Object> buildBeanProMap(JinShanOssConfig jinShanOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
+        Ks3 ks3 = ks3(jinShanOssConfig);
+        beanProMap.put("ks3", ks3);
+        beanProMap.put("jinShanOssConfig", jinShanOssConfig);
+        return beanProMap;
     }
 
     public Ks3 ks3(JinShanOssConfig ossConfig) {

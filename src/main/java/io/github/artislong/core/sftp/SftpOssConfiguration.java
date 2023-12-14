@@ -1,19 +1,19 @@
 package io.github.artislong.core.sftp;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.extra.ssh.Sftp;
 import com.jcraft.jsch.ChannelSftp;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.sftp.model.SftpOssConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,26 +26,27 @@ import java.util.Map;
 @EnableConfigurationProperties({SftpOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.SFTP + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class SftpOssConfiguration {
+public class SftpOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "sftpOssClient";
 
-    @Autowired
-    private SftpOssProperties sftpOssProperties;
-
-    @Bean
-    public StandardOssClient sftpOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        SftpOssProperties sftpOssProperties = getOssProperties(SftpOssProperties.class, OssConstant.OssType.SFTP);
         Map<String, SftpOssConfig> sftpOssConfigMap = sftpOssProperties.getOssConfig();
         if (sftpOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, sftpOssClient(sftpOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, SftpOssClient.class, buildBeanProMap(sftpOssProperties));
         } else {
-            sftpOssConfigMap.forEach((name, sftpOssConfig) -> SpringUtil.registerBean(name, sftpOssClient(sftpOssConfig)));
+            sftpOssConfigMap.forEach((name, sftpOssConfig) -> consumer.accept(name, SftpOssClient.class, buildBeanProMap(sftpOssConfig)));
         }
-        return null;
     }
 
-    public StandardOssClient sftpOssClient(SftpOssConfig sftpOssConfig) {
-        return new SftpOssClient(sftp(sftpOssConfig), sftpOssConfig);
+    public Map<String, Object> buildBeanProMap(SftpOssConfig sftpOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
+        Sftp sftp = sftp(sftpOssConfig);
+        beanProMap.put("sftp", sftp);
+        beanProMap.put("sftpOssConfig", sftpOssConfig);
+        return beanProMap;
     }
 
     public Sftp sftp(SftpOssConfig sftpOssConfig) {

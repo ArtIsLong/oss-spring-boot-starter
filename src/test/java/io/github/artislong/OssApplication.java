@@ -14,9 +14,6 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
 public class OssApplication {
 
-    @Autowired
-    private FastFileStorageClient fastFileStorageClient;
-
     public static void main(String[] args) {
         SpringApplication.run(OssApplication.class);
     }

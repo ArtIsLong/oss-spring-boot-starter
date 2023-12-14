@@ -20,7 +20,32 @@
         <java.version>8</java.version>
         <maven.test.skip>true</maven.test.skip>
 
-        <spring-boot.version>2.5.5</spring-boot.version>
+        <spring-boot.version>2.7.17</spring-boot.version>
+        <hutool.version>5.8.22</hutool.version>
+
+        <aliyun.version>3.14.0</aliyun.version>
+        <jsch.version>0.1.55</jsch.version>
+        <commons-net.version>3.8.0</commons-net.version>
+        <qiniu-java-sdk.version>7.9.3</qiniu-java-sdk.version>
+        <happy-dns-java.version>0.1.6</happy-dns-java.version>
+        <minio.version>8.3.5</minio.version>
+        <okhttp.version>4.9.3</okhttp.version>
+        <baidubce.version>0.10.196</baidubce.version>
+        <qcloud.version>5.6.69</qcloud.version>
+        <huaweicloud.version>3.21.11</huaweicloud.version>
+        <aws.version>1.12.167</aws.version>
+        <s3.version>2.17.160</s3.version>
+        <upyun.version>4.2.3</upyun.version>
+        <fastdfs.version>1.27.2</fastdfs.version>
+        <ksyun.version>1.0.2</ksyun.version>
+        <netease.version>1.3.1</netease.version>
+        <ucloud.version>2.6.6</ucloud.version>
+        <pingan.version>3.9.0.1</pingan.version>
+        <qingstor.version>2.5.2</qingstor.version>
+        <mysql.version>8.0.26</mysql.version>
+        <ojdbc6.version>11.2.0.3</ojdbc6.version>
+        <chinatelecom.version>2.0.1</chinatelecom.version>
+        <inspurcloud.version>1.1.8</inspurcloud.version>
     </properties>
 
     <licenses>
@@ -59,6 +84,154 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            <!-- 阿里OSS对象存储依赖 -->
+            <dependency>
+                <groupId>com.aliyun.oss</groupId>
+                <artifactId>aliyun-sdk-oss</artifactId>
+                <version>${aliyun.version}</version>
+            </dependency>
+            <!-- Sftp依赖 -->
+            <dependency>
+                <groupId>com.jcraft</groupId>
+                <artifactId>jsch</artifactId>
+                <version>${jsch.version}</version>
+            </dependency>
+            <!-- Ftp依赖 -->
+            <dependency>
+                <groupId>commons-net</groupId>
+                <artifactId>commons-net</artifactId>
+                <version>${commons-net.version}</version>
+            </dependency>
+            <!-- 七牛云依赖 -->
+            <dependency>
+                <groupId>com.qiniu</groupId>
+                <artifactId>qiniu-java-sdk</artifactId>
+                <version>${qiniu-java-sdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.qiniu</groupId>
+                <artifactId>happy-dns-java</artifactId>
+                <version>${happy-dns-java.version}</version>
+            </dependency>
+            <!-- minio存储 -->
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+            </dependency>
+            <!-- 解决：Unsupported OkHttp library found. Must use okhttp >= 4.8.1 -->
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>${okhttp.version}</version>
+            </dependency>
+            <!-- 百度云对象存储 -->
+            <dependency>
+                <groupId>com.baidubce</groupId>
+                <artifactId>bce-java-sdk</artifactId>
+                <version>${baidubce.version}</version>
+            </dependency>
+            <!-- 腾讯云存储 -->
+            <dependency>
+                <groupId>com.qcloud</groupId>
+                <artifactId>cos_api</artifactId>
+                <version>${qcloud.version}</version>
+            </dependency>
+            <!-- 华为云存储 -->
+            <dependency>
+                <groupId>com.huaweicloud</groupId>
+                <artifactId>esdk-obs-java-bundle</artifactId>
+                <version>${huaweicloud.version}</version>
+            </dependency>
+            <!-- 京东云存储 -->
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-s3</artifactId>
+                <version>${aws.version}</version>
+            </dependency>
+            <!-- 亚马逊 -->
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3</artifactId>
+                <version>${s3.version}</version>
+            </dependency>
+            <!-- 又拍云 -->
+            <dependency>
+                <groupId>com.upyun</groupId>
+                <artifactId>java-sdk</artifactId>
+                <version>${upyun.version}</version>
+            </dependency>
+            <!-- FDFS -->
+            <dependency>
+                <groupId>com.github.tobato</groupId>
+                <artifactId>fastdfs-client</artifactId>
+                <version>${fastdfs.version}</version>
+            </dependency>
+            <!-- 金山云 -->
+            <dependency>
+                <groupId>com.ksyun</groupId>
+                <artifactId>ks3-kss-java-sdk</artifactId>
+                <version>${ksyun.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>commons-logging</artifactId>
+                        <groupId>commons-logging</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <!-- 网易数帆 -->
+            <dependency>
+                <groupId>com.netease.cloud</groupId>
+                <artifactId>nos-sdk-java-publiccloud</artifactId>
+                <version>${netease.version}</version>
+            </dependency>
+            <!-- UCloud -->
+            <dependency>
+                <groupId>cn.ucloud.ufile</groupId>
+                <artifactId>ufile-client-java</artifactId>
+                <version>${ucloud.version}</version>
+            </dependency>
+            <!-- 平安云 -->
+            <dependency>
+                <groupId>com.pingan.obs</groupId>
+                <artifactId>fincloud-pingan-obs-java-sdk</artifactId>
+                <version>${pingan.version}</version>
+            </dependency>
+            <!-- 青云 -->
+            <dependency>
+                <groupId>com.yunify</groupId>
+                <artifactId>qingstor.sdk.java</artifactId>
+                <version>${qingstor.version}</version>
+            </dependency>
+
+            <!-- Jdbc -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oracle</groupId>
+                <artifactId>ojdbc6</artifactId>
+                <version>${ojdbc6.version}</version>
+            </dependency>
+            <!-- 天翼云 -->
+            <dependency>
+                <groupId>cn.chinatelecom</groupId>
+                <artifactId>oss-java-sdk</artifactId>
+                <version>${chinatelecom.version}</version>
+            </dependency>
+            <!-- 浪潮云 -->
+            <dependency>
+                <groupId>com.inspurcloud.oss</groupId>
+                <artifactId>inspur-cloud-oss-sdk</artifactId>
+                <version>${inspurcloud.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -82,28 +255,25 @@
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
-            <version>5.7.20</version>
         </dependency>
 
         <!-- 阿里OSS对象存储依赖 -->
         <dependency>
             <groupId>com.aliyun.oss</groupId>
             <artifactId>aliyun-sdk-oss</artifactId>
-            <version>3.14.0</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- jsch依赖 -->
+        <!-- Sftp依赖 -->
         <dependency>
             <groupId>com.jcraft</groupId>
             <artifactId>jsch</artifactId>
-            <version>0.1.55</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Ftp依赖 -->
         <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
-            <version>3.8.0</version>
             <scope>provided</scope>
         </dependency>
 
@@ -111,13 +281,11 @@
         <dependency>
             <groupId>com.qiniu</groupId>
             <artifactId>qiniu-java-sdk</artifactId>
-            <version>7.9.3</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.qiniu</groupId>
             <artifactId>happy-dns-java</artifactId>
-            <version>0.1.6</version>
             <scope>provided</scope>
         </dependency>
 
@@ -125,14 +293,12 @@
         <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
-            <version>8.3.5</version>
             <scope>provided</scope>
         </dependency>
         <!-- 解决：Unsupported OkHttp library found. Must use okhttp >= 4.8.1 -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>4.9.3</version>
             <scope>provided</scope>
         </dependency>
 
@@ -140,7 +306,6 @@
         <dependency>
             <groupId>com.baidubce</groupId>
             <artifactId>bce-java-sdk</artifactId>
-            <version>0.10.196</version>
             <scope>provided</scope>
         </dependency>
 
@@ -148,7 +313,6 @@
         <dependency>
             <groupId>com.qcloud</groupId>
             <artifactId>cos_api</artifactId>
-            <version>5.6.69</version>
             <scope>provided</scope>
         </dependency>
 
@@ -156,7 +320,6 @@
         <dependency>
             <groupId>com.huaweicloud</groupId>
             <artifactId>esdk-obs-java-bundle</artifactId>
-            <version>3.21.11</version>
             <scope>provided</scope>
         </dependency>
 
@@ -164,7 +327,6 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
-            <version>1.12.167</version>
             <scope>provided</scope>
         </dependency>
 
@@ -172,7 +334,6 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
-            <version>2.17.160</version>
             <scope>provided</scope>
         </dependency>
 
@@ -180,13 +341,12 @@
         <dependency>
             <groupId>com.upyun</groupId>
             <artifactId>java-sdk</artifactId>
-            <version>4.2.3</version>
             <scope>provided</scope>
         </dependency>
+        <!-- fastdfs -->
         <dependency>
             <groupId>com.github.tobato</groupId>
             <artifactId>fastdfs-client</artifactId>
-            <version>1.27.2</version>
             <scope>provided</scope>
         </dependency>
 
@@ -194,7 +354,6 @@
         <dependency>
             <groupId>com.ksyun</groupId>
             <artifactId>ks3-kss-java-sdk</artifactId>
-            <version>1.0.2</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
@@ -208,7 +367,6 @@
         <dependency>
             <groupId>com.netease.cloud</groupId>
             <artifactId>nos-sdk-java-publiccloud</artifactId>
-            <version>1.3.1</version>
             <scope>provided</scope>
         </dependency>
 
@@ -216,7 +374,6 @@
         <dependency>
             <groupId>cn.ucloud.ufile</groupId>
             <artifactId>ufile-client-java</artifactId>
-            <version>2.6.6</version>
             <scope>provided</scope>
         </dependency>
 
@@ -224,7 +381,6 @@
         <dependency>
             <groupId>com.pingan.obs</groupId>
             <artifactId>fincloud-pingan-obs-java-sdk</artifactId>
-            <version>3.9.0.1</version>
             <scope>provided</scope>
         </dependency>
 
@@ -232,7 +388,6 @@
         <dependency>
             <groupId>com.yunify</groupId>
             <artifactId>qingstor.sdk.java</artifactId>
-            <version>2.5.2</version>
             <scope>provided</scope>
         </dependency>
 
@@ -250,7 +405,6 @@
         <dependency>
             <groupId>com.oracle</groupId>
             <artifactId>ojdbc6</artifactId>
-            <version>11.2.0.3</version>
             <scope>provided</scope>
         </dependency>
 
@@ -258,7 +412,6 @@
         <dependency>
             <groupId>cn.chinatelecom</groupId>
             <artifactId>oss-java-sdk</artifactId>
-            <version>2.0.1</version>
             <scope>provided</scope>
         </dependency>
 
@@ -266,17 +419,9 @@
         <dependency>
             <groupId>com.inspurcloud.oss</groupId>
             <artifactId>inspur-cloud-oss-sdk</artifactId>
-            <version>1.1.8</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- FDFS -->
-        <dependency>
-            <groupId>com.github.tobato</groupId>
-            <artifactId>fastdfs-client</artifactId>
-            <version>1.27.2</version>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>

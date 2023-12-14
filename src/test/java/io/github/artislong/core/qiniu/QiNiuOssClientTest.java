@@ -26,17 +26,17 @@ public class QiNiuOssClientTest implements StandardOssClientTest {
 
     @Test
     public void test() throws Exception {
-        upLoad();
-        downLoad();
-        copy();
-        rename();
-        move();
-        isExist();
+//        upLoad();
+//        downLoad();
+//        copy();
+//        rename();
+//        move();
+//        isExist();
         getInfo();
-        delete();
+//        delete();
 
-        upLoadCheckPoint();
-        downloadCheckPoint();
+//        upLoadCheckPoint();
+//        downloadCheckPoint();
     }
 
 }

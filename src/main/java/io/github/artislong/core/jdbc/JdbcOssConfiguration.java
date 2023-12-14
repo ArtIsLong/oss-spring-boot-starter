@@ -4,22 +4,23 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.zaxxer.hikari.HikariDataSource;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jdbc.adapter.JdbcOssOperation;
 import io.github.artislong.core.jdbc.adapter.JdbcOssOperationFactoryBean;
 import io.github.artislong.core.jdbc.model.JdbcOssConfig;
 import io.github.artislong.exception.OssException;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,15 +34,13 @@ import java.util.Set;
 @EnableConfigurationProperties({JdbcOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JDBC + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class JdbcOssConfiguration {
+public class JdbcOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "jdbcOssClient";
 
-    @Autowired
-    private JdbcOssProperties jdbcOssProperties;
-
-    @Bean
-    public StandardOssClient jdbcOssClient() throws Exception {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        JdbcOssProperties jdbcOssProperties = getOssProperties(JdbcOssProperties.class, OssConstant.OssType.JDBC);
         Map<String, JdbcOssConfig> ossConfigMap = jdbcOssProperties.getOssConfig();
         // 开启Jdbc存储的同时，未配置对应的Jdbc存储数据库连接，将采用默认数据源
         if (ossConfigMap.isEmpty() && isEmptyForOssConfig(jdbcOssProperties)) {
@@ -49,17 +48,16 @@ public class JdbcOssConfiguration {
             if (ObjectUtil.isEmpty(dataSource)) {
                 throw new OssException("未配置数据源，请检查！");
             }
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, jdbcOssClient(dataSource, jdbcOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, JdbcOssClient.class, buildBeanProMap(jdbcOssProperties, jdbcOssOperation(dataSource)));
         }
         if (ossConfigMap.isEmpty() && !isEmptyForOssConfig(jdbcOssProperties)) {
-            registerJdbcOssClient(DEFAULT_BEAN_NAME, jdbcOssProperties);
+            registerJdbcOssClient(DEFAULT_BEAN_NAME, jdbcOssProperties, consumer);
         } else {
             Set<Map.Entry<String, JdbcOssConfig>> entrySet = ossConfigMap.entrySet();
             for (Map.Entry<String, JdbcOssConfig> jdbcOssConfigEntry : entrySet) {
-                registerJdbcOssClient(jdbcOssConfigEntry.getKey(), jdbcOssConfigEntry.getValue());
+                registerJdbcOssClient(jdbcOssConfigEntry.getKey(), jdbcOssConfigEntry.getValue(), consumer);
             }
         }
-        return null;
     }
 
     private boolean isEmptyForOssConfig(JdbcOssConfig jdbcOssConfig) {
@@ -68,11 +66,11 @@ public class JdbcOssConfiguration {
                 ObjectUtil.isEmpty(jdbcOssConfig.getPassword()) && ObjectUtil.isEmpty(jdbcOssConfig.getDataSourceName());
     }
 
-    public void registerJdbcOssClient(String jdbcOssClientBeanName, JdbcOssConfig jdbcOssConfig) throws Exception {
+    public void registerJdbcOssClient(String jdbcOssClientBeanName, JdbcOssConfig jdbcOssConfig, ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
         if (ObjectUtil.isNotEmpty(jdbcOssConfig.getDataSourceName())) {
-            SpringUtil.registerBean(jdbcOssClientBeanName, jdbcOssClient(SpringUtil.getBean(jdbcOssConfig.getDataSourceName(), DataSource.class), jdbcOssProperties));
+            consumer.accept(jdbcOssClientBeanName, JdbcOssClient.class, buildBeanProMap(jdbcOssConfig, jdbcOssOperation(SpringUtil.getBean(jdbcOssConfig.getDataSourceName(), DataSource.class))));
         } else {
-            SpringUtil.registerBean(jdbcOssClientBeanName, jdbcOssClient(jdbcOssConfig));
+            consumer.accept(jdbcOssClientBeanName, JdbcOssClient.class, buildBeanProMap(jdbcOssConfig, jdbcOssOperation(dataSource(jdbcOssConfig))));
         }
     }
 
@@ -80,8 +78,15 @@ public class JdbcOssConfiguration {
         return new JdbcOssClient(jdbcOssConfig, jdbcOssOperation(dataSource));
     }
 
-    public StandardOssClient jdbcOssClient(JdbcOssConfig jdbcOssConfig) throws Exception {
+    public StandardOssClient jdbcOssClient(JdbcOssConfig jdbcOssConfig) {
         return new JdbcOssClient(jdbcOssConfig, jdbcOssOperation(dataSource(jdbcOssConfig)));
+    }
+
+    public Map<String, Object> buildBeanProMap(JdbcOssConfig jdbcOssConfig, JdbcOssOperation jdbcOssOperation) {
+        Map<String, Object> beanProMap = new HashMap<>();
+        beanProMap.put("jdbcOssConfig", jdbcOssConfig);
+        beanProMap.put("jdbcOssOperation", jdbcOssOperation);
+        return beanProMap;
     }
 
     public DataSource dataSource(JdbcOssConfig jdbcOssConfig) {
@@ -98,7 +103,7 @@ public class JdbcOssConfiguration {
                 .build();
     }
 
-    public JdbcOssOperation jdbcOssOperation(DataSource dataSource) throws Exception {
+    public JdbcOssOperation jdbcOssOperation(DataSource dataSource) {
         JdbcOssOperationFactoryBean jdbcOssOperationFactory = new JdbcOssOperationFactoryBean();
         jdbcOssOperationFactory.setDataSource(dataSource);
         return jdbcOssOperationFactory.getObject();

@@ -1,5 +1,6 @@
 package io.github.artislong.core.jdbc.adapter;
 
+import io.github.artislong.core.jdbc.constant.DbType;
 import io.github.artislong.core.jdbc.model.JdbcOssInfo;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -39,4 +40,6 @@ public interface JdbcOssOperation {
     JdbcTemplate getJdbcTemplate();
 
     void setJdbcTemplate(JdbcTemplate jdbcTemplate);
+
+    DbType getDbType();
 }

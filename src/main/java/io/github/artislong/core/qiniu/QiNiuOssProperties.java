@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.qiniu.model.QiNiuOssConfig;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -16,6 +17,7 @@ import java.util.Map;
  * Created on 2021/11/16
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.QINIU)
 public class QiNiuOssProperties extends QiNiuOssConfig implements InitializingBean {
 

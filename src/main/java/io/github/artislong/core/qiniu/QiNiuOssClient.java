@@ -1,5 +1,7 @@
 package io.github.artislong.core.qiniu;
 
+import cn.hutool.cache.Cache;
+import cn.hutool.cache.CacheUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
@@ -14,6 +16,7 @@ import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.Configuration;
 import com.qiniu.storage.DownloadUrl;
 import com.qiniu.storage.UploadManager;
+import com.qiniu.storage.model.BucketInfo;
 import com.qiniu.storage.model.FileInfo;
 import com.qiniu.storage.model.FileListing;
 import com.qiniu.storage.persistent.FileRecorder;
@@ -34,10 +37,8 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,6 +66,8 @@ public class QiNiuOssClient implements StandardOssClient {
     private BucketManager bucketManager;
     private QiNiuOssConfig qiNiuOssConfig;
     private Configuration configuration;
+
+    private final Cache<String, BucketInfo> bucketInfoCache = CacheUtil.newFIFOCache(0);
 
     @Override
     public OssInfo upload(InputStream inputStream, String targetName, boolean isOverride) {
@@ -219,7 +222,6 @@ public class QiNiuOssClient implements StandardOssClient {
         if (isRecursion && isDirectory(key)) {
             FileListing listFiles = bucketManager.listFiles(getBucket(), key, "", 1000, StrUtil.SLASH);
 
-            System.out.println(listFiles);
             List<OssInfo> fileOssInfos = new ArrayList<>();
             List<OssInfo> directoryInfos = new ArrayList<>();
             if (ObjectUtil.isNotEmpty(listFiles.items)) {
@@ -282,6 +284,19 @@ public class QiNiuOssClient implements StandardOssClient {
         if (isFile(targetName)) {
             ossInfo = new FileOssInfo();
             try {
+                BucketInfo bucketInfo = getBucketInfo();
+                String domain = qiNiuOssConfig.getDomain();
+                DownloadUrl downloadUrl = new DownloadUrl(domain, HttpUtil.isHttps(domain), key);
+                if (bucketInfo.getPrivate() == 1) {
+                    // 带有效期
+                    long expireInSeconds = 3600;//1小时，可以自定义链接过期时间
+                    long deadline = System.currentTimeMillis()/1000 + expireInSeconds;
+                    String url = downloadUrl.buildURL(auth, deadline);
+                    ossInfo.setPublicHttpUrl(url);
+                } else {
+                    String url = downloadUrl.buildURL();
+                    ossInfo.setPublicHttpUrl(url);
+                }
                 FileInfo fileInfo = bucketManager.stat(getBucket(), key);
                 String putTime = DateUtil.date(fileInfo.putTime / 10000).toString(DatePattern.NORM_DATETIME_PATTERN);
                 ossInfo.setLength(Convert.toStr(fileInfo.fsize));
@@ -300,5 +315,15 @@ public class QiNiuOssClient implements StandardOssClient {
         ossInfo.setPath(OssPathUtil.replaceKey(targetName, ossInfo.getName(), true));
 
         return ossInfo;
+    }
+
+    private BucketInfo getBucketInfo() throws QiniuException {
+        String bucket = getBucket();
+        BucketInfo bucketInfo = bucketInfoCache.get(bucket);
+        if (bucketInfo == null) {
+            bucketInfo = bucketManager.getBucketInfo(bucket);
+            bucketInfoCache.put(bucket, bucketInfo, qiNiuOssConfig.getClientConfig().getReadTimeout());
+        }
+        return bucketInfo;
     }
 }

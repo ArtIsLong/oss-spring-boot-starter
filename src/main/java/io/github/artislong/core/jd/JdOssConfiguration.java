@@ -2,7 +2,6 @@ package io.github.artislong.core.jd;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -13,17 +12,18 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jd.model.JdOssClientConfig;
 import io.github.artislong.core.jd.model.JdOssConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -37,18 +37,16 @@ import java.util.Optional;
 @EnableConfigurationProperties({JdOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JD + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class JdOssConfiguration {
+public class JdOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "jdOssClient";
 
-    @Autowired
-    private JdOssProperties jdOssProperties;
-
-    @Bean
-    public StandardOssClient jdOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        JdOssProperties jdOssProperties = getOssProperties(JdOssProperties.class, OssConstant.OssType.JD);
         Map<String, JdOssConfig> jdOssConfigMap = jdOssProperties.getOssConfig();
         if (jdOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, jdOssClient(jdOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, JdOssClient.class, buildBeanProMap(jdOssProperties));
         } else {
             String endpoint = jdOssProperties.getEndpoint();
             String accessKey = jdOssProperties.getAccessKey();
@@ -71,24 +69,23 @@ public class JdOssConfiguration {
                 if (ObjectUtil.isEmpty(jdOssConfig.getClientConfig())) {
                     jdOssConfig.setClientConfig(clientConfig);
                 }
-                SpringUtil.registerBean(name, jdOssClient(jdOssConfig));
+                consumer.accept(name, JdOssClient.class, buildBeanProMap(jdOssConfig));
             });
         }
-        return null;
     }
 
-    private StandardOssClient jdOssClient(JdOssConfig jdOssConfig) {
+    public Map<String, Object> buildBeanProMap(JdOssConfig jdOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
         JdOssClientConfig clientConfig = Optional.ofNullable(jdOssConfig.getClientConfig()).orElse(new JdOssClientConfig());
         AwsClientBuilder.EndpointConfiguration endpointConfig = endpointConfig(jdOssConfig);
         AWSCredentials awsCredentials = awsCredentials(jdOssConfig);
         AWSCredentialsProvider awsCredentialsProvider = awsCredentialsProvider(awsCredentials);
         AmazonS3 amazonS3 = amazonS3(endpointConfig, clientConfig.toClientConfig(), awsCredentialsProvider);
         TransferManager transferManager = transferManager(amazonS3);
-        return jdOssClient(amazonS3, transferManager, jdOssConfig);
-    }
-
-    public StandardOssClient jdOssClient(AmazonS3 amazonS3, TransferManager transferManager, JdOssConfig jdOssConfig) {
-        return new JdOssClient(amazonS3, transferManager, jdOssConfig);
+        beanProMap.put("amazonS3", amazonS3);
+        beanProMap.put("transferManager", transferManager);
+        beanProMap.put("jdOssConfig", jdOssConfig);
+        return beanProMap;
     }
 
     public AwsClientBuilder.EndpointConfiguration endpointConfig(JdOssConfig jdOssConfig) {

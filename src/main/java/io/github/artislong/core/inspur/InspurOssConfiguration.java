@@ -2,19 +2,19 @@ package io.github.artislong.core.inspur;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.inspurcloud.oss.client.OSSClient;
 import com.inspurcloud.oss.client.impl.OSSClientImpl;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.inspur.model.InspurOssConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -27,18 +27,16 @@ import java.util.Map;
 @EnableConfigurationProperties({InspurOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.INSPUR + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class InspurOssConfiguration {
+public class InspurOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "inspurOssClient";
 
-    @Autowired
-    private InspurOssProperties inspurOssProperties;
-
-    @Bean
-    public StandardOssClient inspurOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        InspurOssProperties inspurOssProperties = getOssProperties(InspurOssProperties.class, OssConstant.OssType.INSPUR);
         Map<String, InspurOssConfig> ossConfigMap = inspurOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, inspurOssClient(inspurOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, InspurOssClient.class, buildBeanProMap(inspurOssProperties));
         } else {
             String endpoint = inspurOssProperties.getEndpoint();
             String accessKey = inspurOssProperties.getAccessKey();
@@ -53,14 +51,17 @@ public class InspurOssConfiguration {
                 if (ObjectUtil.isEmpty(inspurOssConfig.getSecretKey())) {
                     inspurOssConfig.setSecretKey(secretKey);
                 }
-                SpringUtil.registerBean(name, inspurOssConfig);
+                consumer.accept(name, InspurOssClient.class, buildBeanProMap(inspurOssConfig));
             });
         }
-        return null;
     }
 
-    public StandardOssClient inspurOssClient(InspurOssConfig ossConfig) {
-        return new InspurOssClient(ossClient(ossConfig), ossConfig);
+    public Map<String, Object> buildBeanProMap(InspurOssConfig inspurOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
+        OSSClient ossClient = ossClient(inspurOssConfig);
+        beanProMap.put("ossClient", ossClient);
+        beanProMap.put("inspurOssConfig", inspurOssConfig);
+        return beanProMap;
     }
 
     public OSSClient ossClient(InspurOssConfig ossConfig) {

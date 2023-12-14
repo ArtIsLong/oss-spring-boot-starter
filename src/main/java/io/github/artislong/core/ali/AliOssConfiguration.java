@@ -2,21 +2,21 @@ package io.github.artislong.core.ali;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSClientBuilder;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ali.model.AliOssClientConfig;
 import io.github.artislong.core.ali.model.AliOssConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,18 +30,16 @@ import java.util.Optional;
 @EnableConfigurationProperties({AliOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.ALI + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class AliOssConfiguration {
+public class AliOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "aliOssClient";
 
-    @Autowired
-    private AliOssProperties aliOssProperties;
-
-    @Bean
-    public StandardOssClient aliOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        AliOssProperties aliOssProperties = getOssProperties(AliOssProperties.class, OssConstant.OssType.ALI);
         Map<String, AliOssConfig> aliOssConfigMap = aliOssProperties.getOssConfig();
         if (aliOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, aliOssClient(aliOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, AliOssClient.class, buildBeanProMap(aliOssProperties));
         } else {
             String endpoint = aliOssProperties.getEndpoint();
             String accessKeyId = aliOssProperties.getAccessKeyId();
@@ -64,14 +62,17 @@ public class AliOssConfiguration {
                 if (ObjectUtil.isEmpty(aliOssConfig.getClientConfig())) {
                     aliOssConfig.setClientConfig(clientConfig);
                 }
-                SpringUtil.registerBean(name, aliOssClient(aliOssConfig));
+                consumer.accept(name, AliOssClient.class, buildBeanProMap(aliOssConfig));
             });
         }
-        return null;
     }
 
-    public StandardOssClient aliOssClient(AliOssConfig aliOssConfig) {
-        return new AliOssClient(ossClient(aliOssConfig), aliOssConfig);
+    public Map<String, Object> buildBeanProMap(AliOssConfig aliOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
+        OSS oss = ossClient(aliOssConfig);
+        beanProMap.put("aliOssConfig", aliOssConfig);
+        beanProMap.put("oss", oss);
+        return beanProMap;
     }
 
     public OSS ossClient(AliOssConfig aliOssConfig) {

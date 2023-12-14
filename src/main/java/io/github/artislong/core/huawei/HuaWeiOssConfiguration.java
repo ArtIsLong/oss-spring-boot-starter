@@ -2,20 +2,20 @@ package io.github.artislong.core.huawei;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.obs.services.ObsClient;
 import com.obs.services.ObsConfiguration;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.huawei.model.HuaweiOssClientConfig;
 import io.github.artislong.core.huawei.model.HuaweiOssConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,18 +29,16 @@ import java.util.Optional;
 @EnableConfigurationProperties({HuaWeiOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.HUAWEI + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class HuaWeiOssConfiguration {
+public class HuaWeiOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "huaWeiOssClient";
 
-    @Autowired
-    private HuaWeiOssProperties huaWeiOssProperties;
-
-    @Bean
-    public StandardOssClient huaWeiOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        HuaWeiOssProperties huaWeiOssProperties = getOssProperties(HuaWeiOssProperties.class, OssConstant.OssType.HUAWEI);
         Map<String, HuaweiOssConfig> huaweiOssConfigMap = huaWeiOssProperties.getOssConfig();
         if (huaweiOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, huaWeiOssClient(huaWeiOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, HuaWeiOssClient.class, buildBeanProMap(huaWeiOssProperties));
         } else {
             String accessKey = huaWeiOssProperties.getAccessKey();
             String secretKey = huaWeiOssProperties.getSecretKey();
@@ -59,14 +57,17 @@ public class HuaWeiOssConfiguration {
                 if (ObjectUtil.isEmpty(huaweiOssConfig.getEndPoint())) {
                     huaweiOssConfig.setEndPoint(endPoint);
                 }
-                SpringUtil.registerBean(name, huaWeiOssClient(huaweiOssConfig));
+                consumer.accept(name, HuaWeiOssClient.class, buildBeanProMap(huaweiOssConfig));
             });
         }
-        return null;
     }
 
-    public StandardOssClient huaWeiOssClient(HuaweiOssConfig huaweiOssConfig) {
-        return new HuaWeiOssClient(obsClient(huaweiOssConfig), huaweiOssConfig);
+    public Map<String, Object> buildBeanProMap(HuaweiOssConfig huaweiOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
+        ObsClient obsClient = obsClient(huaweiOssConfig);
+        beanProMap.put("huaweiOssConfig", huaweiOssConfig);
+        beanProMap.put("obsClient", obsClient);
+        return beanProMap;
     }
 
     public ObsClient obsClient(HuaweiOssConfig huaweiOssConfig) {

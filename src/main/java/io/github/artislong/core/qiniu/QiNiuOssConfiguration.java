@@ -2,22 +2,22 @@ package io.github.artislong.core.qiniu;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.Configuration;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.qiniu.model.QiNiuOssClientConfig;
 import io.github.artislong.core.qiniu.model.QiNiuOssConfig;
+import io.github.artislong.function.ThreeConsumer;
 import io.github.artislong.model.SliceConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,18 +30,16 @@ import java.util.Optional;
 @EnableConfigurationProperties({QiNiuOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINIU + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class QiNiuOssConfiguration {
+public class QiNiuOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "qiNiuOssClient";
 
-    @Autowired
-    private QiNiuOssProperties qiNiuOssProperties;
-
-    @Bean
-    public StandardOssClient qiNiuOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        QiNiuOssProperties qiNiuOssProperties = getOssProperties(QiNiuOssProperties.class, OssConstant.OssType.QINIU);
         Map<String, QiNiuOssConfig> qiNiuOssConfigMap = qiNiuOssProperties.getOssConfig();
         if (qiNiuOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, qiNiuOssClient(qiNiuOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, QiNiuOssClient.class, buildBeanProMap(qiNiuOssProperties));
         } else {
             String accessKey = qiNiuOssProperties.getAccessKey();
             String secretKey = qiNiuOssProperties.getSecretKey();
@@ -52,23 +50,23 @@ public class QiNiuOssConfiguration {
                 if (ObjectUtil.isEmpty(qiNiuOssConfig.getSecretKey())) {
                     qiNiuOssConfig.setSecretKey(secretKey);
                 }
-                SpringUtil.registerBean(name, qiNiuOssClient(qiNiuOssConfig));
+                consumer.accept(name, QiNiuOssClient.class, buildBeanProMap(qiNiuOssConfig));
             });
         }
-        return null;
     }
 
-    private StandardOssClient qiNiuOssClient(QiNiuOssConfig qiNiuOssConfig) {
+    private Map<String, Object> buildBeanProMap(QiNiuOssConfig qiNiuOssConfig) {
         Auth auth = auth(qiNiuOssConfig);
         Configuration configuration = configuration(qiNiuOssConfig);
         UploadManager uploadManager = uploadManager(configuration);
         BucketManager bucketManager = bucketManager(auth, configuration);
-        return qiNiuOssClient(auth, uploadManager, bucketManager, qiNiuOssConfig, configuration);
-    }
-
-    public StandardOssClient qiNiuOssClient(Auth auth, UploadManager uploadManager, BucketManager bucketManager,
-                                            QiNiuOssConfig qiNiuOssConfig, Configuration configuration) {
-        return new QiNiuOssClient(auth, uploadManager, bucketManager, qiNiuOssConfig, configuration);
+        Map<String, Object> beanProMap = new HashMap<>();
+        beanProMap.put("auth", auth);
+        beanProMap.put("uploadManager", uploadManager);
+        beanProMap.put("bucketManager", bucketManager);
+        beanProMap.put("qiNiuOssConfig", qiNiuOssConfig);
+        beanProMap.put("configuration", configuration);
+        return beanProMap;
     }
 
     public Auth auth(QiNiuOssConfig qiNiuOssConfig) {
@@ -91,6 +89,5 @@ public class QiNiuOssConfiguration {
         configuration.resumableUploadAPIV2BlockSize = sliceConfig.getPartSize().intValue();
         return configuration;
     }
-
 
 }

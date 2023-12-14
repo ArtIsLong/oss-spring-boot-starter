@@ -1,8 +1,11 @@
 package io.github.artislong.core.fdfs;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.github.tobato.fastdfs.FdfsClientConfig;
+import com.github.tobato.fastdfs.domain.conn.ConnectionPoolConfig;
+import com.github.tobato.fastdfs.domain.fdfs.DefaultThumbImageConfig;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
@@ -15,6 +18,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -41,15 +45,15 @@ public class FdfsOssConfiguration {
         if (fdfsOssConfigMap.isEmpty()) {
             SpringUtil.registerBean(DEFAULT_BEAN_NAME, fdfsOssClient(fdfsOssProperties));
         } else {
-//            String accessKeyId = fdfsOssProperties.getAccessKeyId();
-//            String secretAccessKey = fdfsOssProperties.getSecretAccessKey();
+            ConnectionPoolConfig poolConfig = fdfsOssProperties.getPoolConfig();
+            DefaultThumbImageConfig thumbImageConfig = fdfsOssProperties.getThumbImageConfig();
             fdfsOssConfigMap.forEach((name, fdfsOssConfig) -> {
-//                if (ObjectUtil.isEmpty(fdfsOssConfig.getAccessKeyId())) {
-//                    fdfsOssConfig.setAccessKeyId(accessKeyId);
-//                }
-//                if (ObjectUtil.isEmpty(fdfsOssConfig.getSecretAccessKey())) {
-//                    fdfsOssConfig.setSecretAccessKey(secretAccessKey);
-//                }
+                if (ObjectUtil.isEmpty(fdfsOssConfig.getPoolConfig())) {
+                    fdfsOssConfig.setPoolConfig(poolConfig);
+                }
+                if (ObjectUtil.isEmpty(fdfsOssConfig.getThumbImageConfig())) {
+                    fdfsOssConfig.setThumbImageConfig(thumbImageConfig);
+                }
                 SpringUtil.registerBean(name, fdfsOssClient(fdfsOssConfig));
             });
         }

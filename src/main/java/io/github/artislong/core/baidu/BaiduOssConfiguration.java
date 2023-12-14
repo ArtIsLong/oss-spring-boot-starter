@@ -6,17 +6,22 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.baidubce.auth.DefaultBceCredentials;
 import com.baidubce.services.bos.BosClient;
 import com.baidubce.services.bos.BosClientConfiguration;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
+import io.github.artislong.core.aws.model.AwsOssConfig;
 import io.github.artislong.core.baidu.model.BaiduOssClientConfig;
 import io.github.artislong.core.baidu.model.BaiduOssConfig;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import software.amazon.awssdk.services.s3.S3Client;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,18 +35,16 @@ import java.util.Optional;
 @EnableConfigurationProperties(BaiduOssProperties.class)
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.BAIDU + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class BaiduOssConfiguration {
+public class BaiduOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "baiduOssClient";
 
-    @Autowired
-    private BaiduOssProperties baiduOssProperties;
-
-    @Bean
-    public StandardOssClient baiduOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        BaiduOssProperties baiduOssProperties = getOssProperties(BaiduOssProperties.class, OssConstant.OssType.BAIDU);
         Map<String, BaiduOssConfig> baiduOssConfigMap = baiduOssProperties.getOssConfig();
         if (baiduOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, baiduOssClient(baiduOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, BaiduOssClient.class, buildBeanProMap(baiduOssProperties));
         } else {
             String accessKeyId = baiduOssProperties.getAccessKeyId();
             String secretAccessKey = baiduOssProperties.getSecretAccessKey();
@@ -56,14 +59,17 @@ public class BaiduOssConfiguration {
                 if (ObjectUtil.isEmpty(baiduOssConfig.getClientConfig())) {
                     baiduOssConfig.setClientConfig(clientConfig);
                 }
-                SpringUtil.registerBean(name, baiduOssClient(baiduOssConfig));
+                consumer.accept(name, BaiduOssClient.class, buildBeanProMap(baiduOssConfig));
             });
         }
-        return null;
     }
 
-    public StandardOssClient baiduOssClient(BaiduOssConfig baiduOssConfig) {
-        return new BaiduOssClient(bosClient(bosClientConfiguration(baiduOssConfig)), baiduOssConfig);
+    public Map<String, Object> buildBeanProMap(BaiduOssConfig baiduOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
+        BosClient bosClient = bosClient(bosClientConfiguration(baiduOssConfig));
+        beanProMap.put("bosClient", bosClient);
+        beanProMap.put("baiduOssConfig", baiduOssConfig);
+        return beanProMap;
     }
 
     public BosClientConfiguration bosClientConfiguration(BaiduOssConfig baiduOssConfig) {

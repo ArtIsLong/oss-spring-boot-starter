@@ -2,22 +2,22 @@ package io.github.artislong.core.aws;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.aws.constant.AwsRegion;
 import io.github.artislong.core.aws.model.AwsOssClientConfig;
 import io.github.artislong.core.aws.model.AwsOssConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.services.s3.S3Client;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -30,18 +30,16 @@ import java.util.Map;
 @EnableConfigurationProperties({AwsOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.AWS + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class AwsOssConfiguration {
+public class AwsOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "awsOssClient";
 
-    @Autowired
-    private AwsOssProperties awsOssProperties;
-
-    @Bean
-    public StandardOssClient awsOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        AwsOssProperties awsOssProperties = getOssProperties(AwsOssProperties.class, OssConstant.OssType.AWS);
         Map<String, AwsOssConfig> ossConfigMap = awsOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, awsOssClient(awsOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, AwsOssClient.class, buildBeanProMap(awsOssProperties));
         } else {
             String accessKeyId = awsOssProperties.getAccessKeyId();
             String secretAccessKey = awsOssProperties.getSecretAccessKey();
@@ -60,14 +58,17 @@ public class AwsOssConfiguration {
                 if (ObjectUtil.isEmpty(ossConfig.getRegion())) {
                     ossConfig.setRegion(region);
                 }
-                SpringUtil.registerBean(name, ossConfig);
+                consumer.accept(name, AwsOssClient.class, buildBeanProMap(ossConfig));
             });
         }
-        return null;
     }
 
-    public StandardOssClient awsOssClient(AwsOssConfig ossConfig) {
-        return new AwsOssClient(s3Client(ossConfig), ossConfig);
+    public Map<String, Object> buildBeanProMap(AwsOssConfig ossConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
+        S3Client s3Client = s3Client(ossConfig);
+        beanProMap.put("ossConfig", ossConfig);
+        beanProMap.put("s3Client", s3Client);
+        return beanProMap;
     }
 
     public S3Client s3Client(AwsOssConfig ossConfig) {

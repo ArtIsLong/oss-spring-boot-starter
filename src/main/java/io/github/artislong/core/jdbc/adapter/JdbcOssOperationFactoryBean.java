@@ -1,7 +1,10 @@
 package io.github.artislong.core.jdbc.adapter;
 
+import cn.hutool.core.util.ClassUtil;
+import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
+import io.github.artislong.core.jdbc.constant.DbType;
 import io.github.artislong.exception.NotSupportException;
-import io.github.artislong.exception.OssException;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.FactoryBean;
@@ -9,7 +12,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author 陈敏
@@ -18,13 +23,23 @@ import java.sql.Connection;
  */
 public class JdbcOssOperationFactoryBean implements FactoryBean<JdbcOssOperation>, InitializingBean {
 
+    public static final Map<DbType, JdbcOssOperation> JDBC_OSS_OPERATION_MAP = new HashMap<>();
+
+    static {
+        Set<Class<?>> jdbcOssOperationClasses = ClassUtil.scanPackageBySuper(StrUtil.EMPTY, JdbcOssOperation.class);
+        for (Class<?> jdbcOssOperationClass : jdbcOssOperationClasses) {
+            JdbcOssOperation jdbcOssOperation = (JdbcOssOperation) ReflectUtil.newInstance(jdbcOssOperationClass);
+            JDBC_OSS_OPERATION_MAP.put(jdbcOssOperation.getDbType(), jdbcOssOperation);
+        }
+    }
+
     @Setter
     @Getter
     private DataSource dataSource;
     private JdbcOssOperation jdbcOssOperation;
 
     @Override
-    public JdbcOssOperation getObject() throws Exception {
+    public JdbcOssOperation getObject() {
         if (this.jdbcOssOperation == null) {
             afterPropertiesSet();
         }
@@ -38,20 +53,11 @@ public class JdbcOssOperationFactoryBean implements FactoryBean<JdbcOssOperation
 
     @Override
     public void afterPropertiesSet() {
-        String driverName;
-        try (Connection connection = dataSource.getConnection()) {
-            connection.getMetaData().getDatabaseProductName();
-            driverName = connection.getMetaData().getDriverName();
-        } catch (Exception e) {
-            throw new OssException("数据源连接失败，请检查配置!");
+        DbType dbType = DbType.getDbType(dataSource);
+        if (!JDBC_OSS_OPERATION_MAP.containsKey(dbType)) {
+            throw new NotSupportException(String.format("%s数据库暂未实现", dbType.getDb()));
         }
-        if (driverName.contains("Oracle")) {
-            jdbcOssOperation = new OracleOssOperation();
-        } else if (driverName.contains("MySQL")) {
-            jdbcOssOperation = new MySQLOssOperation();
-        } else {
-            throw new NotSupportException("不支持的数据库!");
-        }
-        jdbcOssOperation.setJdbcTemplate(new JdbcTemplate(dataSource));
+        this.jdbcOssOperation = JDBC_OSS_OPERATION_MAP.get(dbType);
+        this.jdbcOssOperation.setJdbcTemplate(new JdbcTemplate(dataSource));
     }
 }

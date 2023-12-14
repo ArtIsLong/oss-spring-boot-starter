@@ -2,22 +2,22 @@ package io.github.artislong.core.qingyun;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.aliyun.oss.OSSClient;
 import com.qingstor.sdk.config.EnvContext;
 import com.qingstor.sdk.service.Bucket;
 import com.qingstor.sdk.service.QingStor;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.qingyun.model.QingYunOssClientConfig;
 import io.github.artislong.core.qingyun.model.QingYunOssConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.artislong.function.ThreeConsumer;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -31,18 +31,16 @@ import java.util.Optional;
 @EnableConfigurationProperties({QingYunOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINGYUN + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class QingYunOssConfiguration {
+public class QingYunOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "qingYunOssClient";
 
-    @Autowired
-    private QingYunOssProperties qingYunOssProperties;
-
-    @Bean
-    public StandardOssClient qingYunOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        QingYunOssProperties qingYunOssProperties = getOssProperties(QingYunOssProperties.class, OssConstant.OssType.QINGYUN);
         Map<String, QingYunOssConfig> ossConfigMap = qingYunOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, qingYunOssClient(qingYunOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, QingYunOssClient.class, buildBeanProMap(qingYunOssProperties));
         } else {
             String endpoint = qingYunOssProperties.getEndpoint();
             String accessKey = qingYunOssProperties.getAccessKey();
@@ -65,16 +63,19 @@ public class QingYunOssConfiguration {
                 if (ObjectUtil.isEmpty(ossConfig.getClientConfig())) {
                     ossConfig.setClientConfig(clientConfig);
                 }
-                SpringUtil.registerBean(name, qingYunOssClient(ossConfig));
+                consumer.accept(name, QingYunOssClient.class, buildBeanProMap(ossConfig));
             });
         }
-        return null;
     }
 
-    public StandardOssClient qingYunOssClient(QingYunOssConfig qingYunOssConfig) {
+    public Map<String, Object> buildBeanProMap(QingYunOssConfig qingYunOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
         QingStor qingStor = qingStor(qingYunOssConfig);
         Bucket bucket = qingStor.getBucket(qingYunOssConfig.getBucketName(), qingYunOssConfig.getZone());
-        return new QingYunOssClient(qingStor, bucket, qingYunOssConfig);
+        beanProMap.put("qingStor", qingStor);
+        beanProMap.put("bucketClient", bucket);
+        beanProMap.put("qingYunOssConfig", qingYunOssConfig);
+        return beanProMap;
     }
 
     public QingStor qingStor(QingYunOssConfig qingYunOssConfig) {

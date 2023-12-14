@@ -6,12 +6,12 @@ import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import io.github.artislong.core.jdbc.constant.DbType;
 import io.github.artislong.core.jdbc.model.JdbcOssInfo;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.sql.Blob;
@@ -132,4 +132,8 @@ public class MySQLOssOperation implements JdbcOssOperation {
         return targetDataId;
     }
 
+    @Override
+    public DbType getDbType() {
+        return DbType.MYSQL;
+    }
 }

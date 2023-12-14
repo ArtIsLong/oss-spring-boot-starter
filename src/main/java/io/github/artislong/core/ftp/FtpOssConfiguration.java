@@ -3,19 +3,19 @@ package io.github.artislong.core.ftp;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.ftp.Ftp;
-import cn.hutool.extra.spring.SpringUtil;
+import io.github.artislong.OssAutoConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ftp.model.FtpOssClientConfig;
 import io.github.artislong.core.ftp.model.FtpOssConfig;
+import io.github.artislong.function.ThreeConsumer;
 import org.apache.commons.net.ftp.FTPClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,32 +29,33 @@ import java.util.Optional;
 @EnableConfigurationProperties({FtpOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.FTP + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class FtpOssConfiguration {
+public class FtpOssConfiguration extends OssAutoConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "ftpOssClient";
 
-    @Autowired
-    private FtpOssProperties ftpOssProperties;
-
-    @Bean
-    public StandardOssClient ftpOssClient() {
+    @Override
+    public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
+        FtpOssProperties ftpOssProperties = getOssProperties(FtpOssProperties.class, OssConstant.OssType.FTP);
         Map<String, FtpOssConfig> ftpOssConfigMap = ftpOssProperties.getOssConfig();
         if (ftpOssConfigMap.isEmpty()) {
-            SpringUtil.registerBean(DEFAULT_BEAN_NAME, ftpOssClient(ftpOssProperties));
+            consumer.accept(DEFAULT_BEAN_NAME, FtpOssClient.class, buildBeanProMap(ftpOssProperties));
         } else {
             FtpOssClientConfig clientConfig = ftpOssProperties.getClientConfig();
             ftpOssConfigMap.forEach((name, ftpOssConfig) -> {
                 if (ObjectUtil.isEmpty(ftpOssConfig.getClientConfig())) {
                     ftpOssConfig.setClientConfig(clientConfig);
                 }
-                SpringUtil.registerBean(name, ftpOssClient(ftpOssConfig));
+                consumer.accept(name, FtpOssClient.class, buildBeanProMap(ftpOssConfig));
             });
         }
-        return null;
     }
 
-    public StandardOssClient ftpOssClient(FtpOssConfig ftpOssConfig) {
-        return new FtpOssClient(ftp(ftpOssConfig), ftpOssConfig);
+    public Map<String, Object> buildBeanProMap(FtpOssConfig ftpOssConfig) {
+        Map<String, Object> beanProMap = new HashMap<>();
+        Ftp ftp = ftp(ftpOssConfig);
+        beanProMap.put("ftp", ftp);
+        beanProMap.put("ftpOssConfig", ftpOssConfig);
+        return beanProMap;
     }
 
     public Ftp ftp(FtpOssConfig ftpOssConfig) {
