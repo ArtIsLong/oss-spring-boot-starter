@@ -2,7 +2,7 @@ package io.github.artislong.core.minio;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
-import io.github.artislong.AbstractOssConfiguration;
+import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.minio.model.MinioOssClientConfig;
@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 @EnableConfigurationProperties({MinioOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.MINIO + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class MinioAbstractOssConfiguration extends AbstractOssConfiguration {
+public class MinioOssConfiguration extends OssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "minioOssClient";
 

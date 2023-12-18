@@ -21,7 +21,7 @@ public class MinioOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(MinioAbstractOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(MinioOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

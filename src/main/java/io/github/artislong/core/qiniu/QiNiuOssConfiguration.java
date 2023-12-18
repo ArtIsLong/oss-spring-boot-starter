@@ -6,7 +6,7 @@ import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.Configuration;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
-import io.github.artislong.AbstractOssConfiguration;
+import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.qiniu.model.QiNiuOssClientConfig;
@@ -30,7 +30,7 @@ import java.util.Optional;
 @EnableConfigurationProperties({QiNiuOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINIU + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class QiNiuAbstractOssConfiguration extends AbstractOssConfiguration {
+public class QiNiuOssConfiguration extends OssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "qiNiuOssClient";
 

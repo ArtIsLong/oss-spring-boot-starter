@@ -4,7 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.obs.services.ObsClient;
 import com.obs.services.ObsConfiguration;
-import io.github.artislong.AbstractOssConfiguration;
+import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.huawei.model.HuaweiOssClientConfig;
@@ -29,7 +29,7 @@ import java.util.Optional;
 @EnableConfigurationProperties({HuaWeiOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.HUAWEI + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class HuaWeiAbstractOssConfiguration extends AbstractOssConfiguration {
+public class HuaWeiOssConfiguration extends OssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "huaWeiOssClient";
 

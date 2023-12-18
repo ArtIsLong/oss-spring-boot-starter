@@ -21,7 +21,7 @@ public class JdOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(JdAbstractOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(JdOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

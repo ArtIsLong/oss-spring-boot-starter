@@ -21,7 +21,7 @@ public class QiNiuOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(QiNiuAbstractOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(QiNiuOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

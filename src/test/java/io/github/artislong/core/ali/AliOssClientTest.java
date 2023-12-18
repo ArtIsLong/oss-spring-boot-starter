@@ -21,7 +21,7 @@ class AliOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(AliAbstractOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(AliOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

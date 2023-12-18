@@ -21,7 +21,7 @@ public class UpOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(UpAbstractOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(UpOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

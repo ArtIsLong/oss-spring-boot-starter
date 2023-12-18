@@ -18,7 +18,7 @@ public class AwsOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(AwsAbstractOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(AwsOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

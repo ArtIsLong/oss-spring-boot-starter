@@ -21,7 +21,7 @@ public class SftpOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(SftpAbstractOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(SftpOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

@@ -4,7 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.zaxxer.hikari.HikariDataSource;
-import io.github.artislong.AbstractOssConfiguration;
+import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jdbc.adapter.JdbcOssOperation;
@@ -34,7 +34,7 @@ import java.util.Set;
 @EnableConfigurationProperties({JdbcOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JDBC + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class JdbcAbstractOssConfiguration extends AbstractOssConfiguration {
+public class JdbcOssConfiguration extends OssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "jdbcOssClient";
 

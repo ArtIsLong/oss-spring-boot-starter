@@ -5,7 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baidubce.auth.DefaultBceCredentials;
 import com.baidubce.services.bos.BosClient;
 import com.baidubce.services.bos.BosClientConfiguration;
-import io.github.artislong.AbstractOssConfiguration;
+import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.baidu.model.BaiduOssClientConfig;
@@ -30,7 +30,7 @@ import java.util.Optional;
 @EnableConfigurationProperties(BaiduOssProperties.class)
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.BAIDU + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class BaiduAbstractOssConfiguration extends AbstractOssConfiguration {
+public class BaiduOssConfiguration extends OssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "baiduOssClient";
 

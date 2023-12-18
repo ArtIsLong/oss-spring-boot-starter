@@ -2,7 +2,7 @@ package io.github.artislong.core.local;
 
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import io.github.artislong.AbstractOssConfiguration;
+import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.local.model.LocalOssConfig;
@@ -22,7 +22,7 @@ import java.util.Map;
 @EnableConfigurationProperties({LocalOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.LOCAL + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE, matchIfMissing = true)
-public class LocalAbstractOssConfiguration extends AbstractOssConfiguration {
+public class LocalOssConfiguration extends OssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "localOssClient";
 

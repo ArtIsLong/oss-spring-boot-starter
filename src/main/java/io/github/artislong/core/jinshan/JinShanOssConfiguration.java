@@ -5,7 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.ksyun.ks3.http.Region;
 import com.ksyun.ks3.service.Ks3;
 import com.ksyun.ks3.service.Ks3Client;
-import io.github.artislong.AbstractOssConfiguration;
+import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jinshan.model.JinShanOssClientConfig;
@@ -31,7 +31,7 @@ import java.util.Optional;
 @EnableConfigurationProperties({JinShanOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JINSHAN + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class JinShanAbstractOssConfiguration extends AbstractOssConfiguration {
+public class JinShanOssConfiguration extends OssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "jinShanOssClient";
 
