@@ -6,7 +6,7 @@ import com.aliyun.oss.OSSClient;
 import com.qingstor.sdk.config.EnvContext;
 import com.qingstor.sdk.service.Bucket;
 import com.qingstor.sdk.service.QingStor;
-import io.github.artislong.OssAutoConfiguration;
+import io.github.artislong.AbstractOssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.qingyun.model.QingYunOssClientConfig;
@@ -31,7 +31,7 @@ import java.util.Optional;
 @EnableConfigurationProperties({QingYunOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINGYUN + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class QingYunOssConfiguration extends OssAutoConfiguration {
+public class QingYunAbstractOssConfiguration extends AbstractOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "qingYunOssClient";
 

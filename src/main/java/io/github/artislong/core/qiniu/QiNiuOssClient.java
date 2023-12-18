@@ -38,7 +38,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -267,15 +266,7 @@ public class QiNiuOssClient implements StandardOssClient {
     }
 
     private String getBucket() {
-        String bucketName = qiNiuOssConfig.getBucketName();
-        try {
-            if (ObjectUtil.isEmpty(bucketManager.getBucketInfo(bucketName))) {
-                bucketManager.createBucket(bucketName, qiNiuOssConfig.getClientConfig().getRegion().getRegion());
-            }
-        } catch (QiniuException e) {
-            log.error("创建Bucket失败", e);
-        }
-        return bucketName;
+        return qiNiuOssConfig.getBucketName();
     }
 
     private OssInfo getBaseInfo(String targetName) {
@@ -289,8 +280,8 @@ public class QiNiuOssClient implements StandardOssClient {
                 DownloadUrl downloadUrl = new DownloadUrl(domain, HttpUtil.isHttps(domain), key);
                 if (bucketInfo.getPrivate() == 1) {
                     // 带有效期
-                    long expireInSeconds = 3600;//1小时，可以自定义链接过期时间
-                    long deadline = System.currentTimeMillis()/1000 + expireInSeconds;
+                    long expireInPrivate = qiNiuOssConfig.getExpireInPrivate();//1小时，可以自定义链接过期时间
+                    long deadline = System.currentTimeMillis()/1000 + expireInPrivate;
                     String url = downloadUrl.buildURL(auth, deadline);
                     ossInfo.setPublicHttpUrl(url);
                 } else {

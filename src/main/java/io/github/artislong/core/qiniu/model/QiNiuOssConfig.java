@@ -1,5 +1,7 @@
 package io.github.artislong.core.qiniu.model;
 
+import cn.hutool.core.util.ObjectUtil;
+import io.github.artislong.exception.OssException;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
@@ -16,8 +18,15 @@ public class QiNiuOssConfig {
     private String accessKey;
     private String secretKey;
     private String bucketName;
+    /**
+     * bucket域名
+     */
     private String domain;
-    private long expireInSeconds = 3600;
+    /**
+     * 私有空间外网链接超时时长
+     * 单位：秒
+     */
+    private long expireInPrivate = 3600;
     private QiNiuOssClientConfig clientConfig;
 
     /**
@@ -28,5 +37,14 @@ public class QiNiuOssConfig {
     public void init() {
         this.sliceConfig.init();
         basePath = OssPathUtil.valid(basePath);
+    }
+
+    public void validate() {
+        if (ObjectUtil.isEmpty(accessKey) ||
+                ObjectUtil.isEmpty(secretKey) ||
+                ObjectUtil.isEmpty(bucketName) ||
+                ObjectUtil.isEmpty(domain)) {
+            throw new OssException("bucketName或domain为空，请检查配置！");
+        }
     }
 }

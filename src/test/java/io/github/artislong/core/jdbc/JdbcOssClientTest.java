@@ -21,7 +21,7 @@ public class JdbcOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(JdbcOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(JdbcAbstractOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

@@ -21,7 +21,7 @@ public class JinShanOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(JinShanOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(JinShanAbstractOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

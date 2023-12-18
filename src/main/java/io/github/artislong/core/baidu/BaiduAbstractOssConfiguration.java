@@ -2,24 +2,19 @@ package io.github.artislong.core.baidu;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.baidubce.auth.DefaultBceCredentials;
 import com.baidubce.services.bos.BosClient;
 import com.baidubce.services.bos.BosClientConfiguration;
-import io.github.artislong.OssAutoConfiguration;
+import io.github.artislong.AbstractOssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
-import io.github.artislong.core.aws.model.AwsOssConfig;
 import io.github.artislong.core.baidu.model.BaiduOssClientConfig;
 import io.github.artislong.core.baidu.model.BaiduOssConfig;
 import io.github.artislong.function.ThreeConsumer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import software.amazon.awssdk.services.s3.S3Client;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +30,7 @@ import java.util.Optional;
 @EnableConfigurationProperties(BaiduOssProperties.class)
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.BAIDU + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class BaiduOssConfiguration extends OssAutoConfiguration {
+public class BaiduAbstractOssConfiguration extends AbstractOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "baiduOssClient";
 

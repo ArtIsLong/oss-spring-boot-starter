@@ -3,7 +3,7 @@ package io.github.artislong.core.sftp;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.ssh.Sftp;
 import com.jcraft.jsch.ChannelSftp;
-import io.github.artislong.OssAutoConfiguration;
+import io.github.artislong.AbstractOssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.sftp.model.SftpOssConfig;
@@ -26,7 +26,7 @@ import java.util.Map;
 @EnableConfigurationProperties({SftpOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.SFTP + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class SftpOssConfiguration extends OssAutoConfiguration {
+public class SftpAbstractOssConfiguration extends AbstractOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "sftpOssClient";
 

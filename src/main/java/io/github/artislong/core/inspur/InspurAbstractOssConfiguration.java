@@ -4,7 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.inspurcloud.oss.client.OSSClient;
 import com.inspurcloud.oss.client.impl.OSSClientImpl;
-import io.github.artislong.OssAutoConfiguration;
+import io.github.artislong.AbstractOssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.inspur.model.InspurOssConfig;
@@ -27,7 +27,7 @@ import java.util.Map;
 @EnableConfigurationProperties({InspurOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.INSPUR + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class InspurOssConfiguration extends OssAutoConfiguration {
+public class InspurAbstractOssConfiguration extends AbstractOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "inspurOssClient";
 

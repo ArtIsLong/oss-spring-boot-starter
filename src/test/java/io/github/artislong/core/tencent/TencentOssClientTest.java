@@ -21,7 +21,7 @@ public class TencentOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(TencentOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(TencentAbstractOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

@@ -12,7 +12,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
-import io.github.artislong.OssAutoConfiguration;
+import io.github.artislong.AbstractOssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jd.model.JdOssClientConfig;
@@ -37,7 +37,7 @@ import java.util.Optional;
 @EnableConfigurationProperties({JdOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JD + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class JdOssConfiguration extends OssAutoConfiguration {
+public class JdAbstractOssConfiguration extends AbstractOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "jdOssClient";
 

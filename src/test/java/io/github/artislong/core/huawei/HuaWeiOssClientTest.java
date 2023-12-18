@@ -21,7 +21,7 @@ public class HuaWeiOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(HuaWeiOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(HuaWeiAbstractOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

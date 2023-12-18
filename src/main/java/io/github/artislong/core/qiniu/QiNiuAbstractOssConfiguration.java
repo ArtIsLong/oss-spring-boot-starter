@@ -6,7 +6,7 @@ import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.Configuration;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
-import io.github.artislong.OssAutoConfiguration;
+import io.github.artislong.AbstractOssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.qiniu.model.QiNiuOssClientConfig;
@@ -30,7 +30,7 @@ import java.util.Optional;
 @EnableConfigurationProperties({QiNiuOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINIU + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class QiNiuOssConfiguration extends OssAutoConfiguration {
+public class QiNiuAbstractOssConfiguration extends AbstractOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "qiNiuOssClient";
 
@@ -39,6 +39,7 @@ public class QiNiuOssConfiguration extends OssAutoConfiguration {
         QiNiuOssProperties qiNiuOssProperties = getOssProperties(QiNiuOssProperties.class, OssConstant.OssType.QINIU);
         Map<String, QiNiuOssConfig> qiNiuOssConfigMap = qiNiuOssProperties.getOssConfig();
         if (qiNiuOssConfigMap.isEmpty()) {
+            qiNiuOssProperties.validate();
             consumer.accept(DEFAULT_BEAN_NAME, QiNiuOssClient.class, buildBeanProMap(qiNiuOssProperties));
         } else {
             String accessKey = qiNiuOssProperties.getAccessKey();
@@ -50,6 +51,7 @@ public class QiNiuOssConfiguration extends OssAutoConfiguration {
                 if (ObjectUtil.isEmpty(qiNiuOssConfig.getSecretKey())) {
                     qiNiuOssConfig.setSecretKey(secretKey);
                 }
+                qiNiuOssConfig.validate();
                 consumer.accept(name, QiNiuOssClient.class, buildBeanProMap(qiNiuOssConfig));
             });
         }

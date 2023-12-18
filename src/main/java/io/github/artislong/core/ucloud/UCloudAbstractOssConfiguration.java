@@ -7,7 +7,7 @@ import cn.ucloud.ufile.api.object.ObjectApiBuilder;
 import cn.ucloud.ufile.api.object.ObjectConfig;
 import cn.ucloud.ufile.auth.ObjectAuthorization;
 import cn.ucloud.ufile.auth.UfileObjectLocalAuthorization;
-import io.github.artislong.OssAutoConfiguration;
+import io.github.artislong.AbstractOssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ucloud.model.UCloudOssClientConfig;
@@ -32,7 +32,7 @@ import java.util.Optional;
 @EnableConfigurationProperties({UCloudOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UCLOUD + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class UCloudOssConfiguration extends OssAutoConfiguration {
+public class UCloudAbstractOssConfiguration extends AbstractOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "uCloudOssClient";
 

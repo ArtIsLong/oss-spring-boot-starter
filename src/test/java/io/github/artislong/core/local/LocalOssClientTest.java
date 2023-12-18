@@ -21,7 +21,7 @@ public class LocalOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(LocalOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(LocalAbstractOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test

@@ -4,7 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.upyun.ParallelUploader;
 import com.upyun.RestManager;
-import io.github.artislong.OssAutoConfiguration;
+import io.github.artislong.AbstractOssConfiguration;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.up.model.UpOssClientConfig;
@@ -30,7 +30,7 @@ import java.util.Optional;
 @EnableConfigurationProperties({UpOssProperties.class})
 @ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UP + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
-public class UpOssConfiguration extends OssAutoConfiguration {
+public class UpAbstractOssConfiguration extends AbstractOssConfiguration {
 
     public static final String DEFAULT_BEAN_NAME = "upOssClient";
 

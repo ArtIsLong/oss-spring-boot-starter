@@ -21,7 +21,7 @@ public class BaiduOssClientTest implements StandardOssClientTest {
 
     @Getter
     @Autowired
-    @Qualifier(BaiduOssConfiguration.DEFAULT_BEAN_NAME)
+    @Qualifier(BaiduAbstractOssConfiguration.DEFAULT_BEAN_NAME)
     private StandardOssClient ossClient;
 
     @Test
