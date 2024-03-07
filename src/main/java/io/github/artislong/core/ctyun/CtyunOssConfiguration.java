@@ -3,6 +3,7 @@ package io.github.artislong.core.ctyun;
 import cn.hutool.core.util.StrUtil;
 import com.baidubce.services.bos.BosClient;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -16,7 +17,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @SpringBootConfiguration
 @ConditionalOnClass(BosClient.class)
 @EnableConfigurationProperties(CtyunOssProperties.class)
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.CTYUN + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.CTYUN + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class CtyunOssConfiguration {
 }

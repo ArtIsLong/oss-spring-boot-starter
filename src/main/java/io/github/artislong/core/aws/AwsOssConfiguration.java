@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.aws.constant.AwsRegion;
 import io.github.artislong.core.aws.model.AwsOssClientConfig;
@@ -28,7 +29,7 @@ import java.util.Map;
 @Configuration
 @ConditionalOnClass(S3Client.class)
 @EnableConfigurationProperties({AwsOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.AWS + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.AWS + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class AwsOssConfiguration extends OssConfiguration {
 
@@ -36,7 +37,7 @@ public class AwsOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        AwsOssProperties awsOssProperties = getOssProperties(AwsOssProperties.class, OssConstant.OssType.AWS);
+        AwsOssProperties awsOssProperties = getOssProperties(AwsOssProperties.class, OssType.AWS);
         Map<String, AwsOssConfig> ossConfigMap = awsOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, AwsOssClient.class, buildBeanProMap(awsOssProperties));

@@ -9,6 +9,7 @@ import cn.ucloud.ufile.auth.ObjectAuthorization;
 import cn.ucloud.ufile.auth.UfileObjectLocalAuthorization;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ucloud.model.UCloudOssClientConfig;
 import io.github.artislong.core.ucloud.model.UCloudOssConfig;
@@ -30,7 +31,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(UfileClient.class)
 @EnableConfigurationProperties({UCloudOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UCLOUD + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.UCLOUD + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class UCloudOssConfiguration extends OssConfiguration {
 
@@ -38,7 +39,7 @@ public class UCloudOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        UCloudOssProperties uCloudOssProperties = getOssProperties(UCloudOssProperties.class, OssConstant.OssType.UCLOUD);
+        UCloudOssProperties uCloudOssProperties = getOssProperties(UCloudOssProperties.class, OssType.UCLOUD);
         Map<String, UCloudOssConfig> ossConfigMap = uCloudOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, UCloudOssClient.class, buildBeanProMap(uCloudOssProperties));

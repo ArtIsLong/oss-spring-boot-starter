@@ -1,5 +1,7 @@
 package io.github.artislong;
 
+import io.github.artislong.model.SliceConfig;
+import io.github.artislong.utils.OssPathUtil;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -11,5 +13,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "oss")
 public class OssProperties {
+
+    /**
+     * 数据存储路径
+     */
+    private String basePath;
+
+    /**
+     * 断点续传参数
+     */
+    private SliceConfig sliceConfig = new SliceConfig();
+
+    public void init() {
+        this.sliceConfig.init();
+        basePath = OssPathUtil.valid(basePath);
+    }
 
 }

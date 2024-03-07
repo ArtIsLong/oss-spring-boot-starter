@@ -25,7 +25,7 @@ public interface JdbcOssOperation {
 
     List<JdbcOssInfo> getOssInfos(String path);
 
-    String copyOssInfo(String sourceId, String targetKey, String targetDataId);
+    void copyOssInfo(String sourceId, String targetKey, String targetDataId);
 
     String saveOssData(InputStream inputStream);
 

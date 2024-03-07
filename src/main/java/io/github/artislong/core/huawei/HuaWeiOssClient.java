@@ -10,7 +10,7 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.obs.services.ObsClient;
 import com.obs.services.model.*;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.huawei.model.HuaweiOssConfig;
 import io.github.artislong.model.DirectoryOssInfo;
@@ -73,7 +73,7 @@ public class HuaWeiOssClient implements StandardOssClient {
         request.setPartSize(slice.getPartSize());
         request.setEnableCheckpoint(true);
 
-        String checkpointFile = upLoadFile + StrUtil.DOT + OssConstant.OssType.HUAWEI;
+        String checkpointFile = upLoadFile + StrUtil.DOT + OssType.HUAWEI;
 
         request.setCheckpointFile(checkpointFile);
         obsClient.uploadFile(request);
@@ -95,7 +95,7 @@ public class HuaWeiOssClient implements StandardOssClient {
         request.setTaskNum(sliceConfig.getTaskNum());
         request.setPartSize(sliceConfig.getPartSize());
 
-        String checkpointFile = downloadFile + StrUtil.DOT + OssConstant.OssType.HUAWEI;
+        String checkpointFile = downloadFile + StrUtil.DOT + OssType.HUAWEI;
         request.setCheckpointFile(checkpointFile);
         request.setDownloadFile(downloadFile);
         obsClient.downloadFile(request);

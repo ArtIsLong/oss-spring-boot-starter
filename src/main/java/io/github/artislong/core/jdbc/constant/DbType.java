@@ -49,7 +49,7 @@ public enum DbType {
     /**
      * POSTGRE
      */
-    POSTGRE_SQL("postgresql", "%s LIKE CONCAT('%%',#{%s},'%%')", "Postgre数据库"),
+    POSTGRESQL("postgresql", "%s LIKE CONCAT('%%',#{%s},'%%')", "Postgre数据库"),
     /**
      * SQLSERVER2005
      */
@@ -122,7 +122,7 @@ public enum DbType {
         } else if (jdbcUrl.startsWith("jdbc:sqlserver2012:")) {
             return DbType.SQL_SERVER;
         } else if (jdbcUrl.startsWith("jdbc:postgresql:") || jdbcUrl.startsWith("jdbc:log4jdbc:postgresql:")) {
-            return DbType.POSTGRE_SQL;
+            return DbType.POSTGRESQL;
         } else if (jdbcUrl.startsWith("jdbc:hsqldb:") || jdbcUrl.startsWith("jdbc:log4jdbc:hsqldb:")) {
             return DbType.HSQL;
         } else if (jdbcUrl.startsWith("jdbc:db2:")) {
@@ -161,7 +161,7 @@ public enum DbType {
             } else if (StrUtil.containsIgnoreCase(databaseProductName, "sqlserver2012")) {
                 return DbType.SQL_SERVER;
             } else if (StrUtil.containsIgnoreCase(databaseProductName, "postgresql")) {
-                return DbType.POSTGRE_SQL;
+                return DbType.POSTGRESQL;
             } else if (StrUtil.containsIgnoreCase(databaseProductName, "hsqldb")) {
                 return DbType.HSQL;
             } else if (StrUtil.containsIgnoreCase(databaseProductName, "db2")) {

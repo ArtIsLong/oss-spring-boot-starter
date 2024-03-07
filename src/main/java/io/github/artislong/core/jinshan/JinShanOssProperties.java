@@ -1,7 +1,9 @@
 package io.github.artislong.core.jinshan;
 
+import cn.hutool.core.text.StrPool;
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.jinshan.model.JinShanOssConfig;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
@@ -16,7 +18,7 @@ import java.util.Map;
  * Created on 2022/3/3
  */
 @Data
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.JINSHAN)
+@ConfigurationProperties(OssConstant.OSS + StrPool.DOT + OssType.JINSHAN)
 public class JinShanOssProperties extends JinShanOssConfig implements InitializingBean {
 
     private Boolean enable = false;

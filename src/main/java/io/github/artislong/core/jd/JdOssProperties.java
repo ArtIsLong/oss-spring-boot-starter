@@ -2,6 +2,7 @@ package io.github.artislong.core.jd;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.jd.model.JdOssConfig;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
@@ -16,7 +17,7 @@ import java.util.Map;
  * Created on 2021/11/25
  */
 @Data
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.JD)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssType.JD)
 public class JdOssProperties extends JdOssConfig implements InitializingBean {
 
     private Boolean enable = false;

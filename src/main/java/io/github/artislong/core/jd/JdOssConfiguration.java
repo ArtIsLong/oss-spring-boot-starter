@@ -14,6 +14,7 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jd.model.JdOssClientConfig;
 import io.github.artislong.core.jd.model.JdOssConfig;
@@ -35,7 +36,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(AmazonS3.class)
 @EnableConfigurationProperties({JdOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JD + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.JD + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class JdOssConfiguration extends OssConfiguration {
 
@@ -43,7 +44,7 @@ public class JdOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        JdOssProperties jdOssProperties = getOssProperties(JdOssProperties.class, OssConstant.OssType.JD);
+        JdOssProperties jdOssProperties = getOssProperties(JdOssProperties.class, OssType.JD);
         Map<String, JdOssConfig> jdOssConfigMap = jdOssProperties.getOssConfig();
         if (jdOssConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, JdOssClient.class, buildBeanProMap(jdOssProperties));

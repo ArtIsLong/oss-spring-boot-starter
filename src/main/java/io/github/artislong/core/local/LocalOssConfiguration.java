@@ -4,6 +4,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.local.model.LocalOssConfig;
 import io.github.artislong.function.ThreeConsumer;
@@ -12,6 +13,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author 陈敏
@@ -20,7 +22,7 @@ import java.util.Map;
  */
 @SpringBootConfiguration
 @EnableConfigurationProperties({LocalOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.LOCAL + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.LOCAL + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE, matchIfMissing = true)
 public class LocalOssConfiguration extends OssConfiguration {
 
@@ -28,7 +30,8 @@ public class LocalOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        LocalOssProperties localProperties = getOssProperties(LocalOssProperties.class, OssConstant.OssType.LOCAL);
+        LocalOssProperties localProperties = Optional.ofNullable(getOssProperties(LocalOssProperties.class, OssType.LOCAL))
+                .orElse(new LocalOssProperties());
         Map<String, LocalOssConfig> localOssConfigMap = localProperties.getOssConfig();
         if (localOssConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, LocalOssClient.class, MapUtil.of("localOssConfig", localProperties));

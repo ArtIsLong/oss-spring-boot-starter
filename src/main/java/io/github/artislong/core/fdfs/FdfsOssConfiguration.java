@@ -8,6 +8,7 @@ import com.github.tobato.fastdfs.domain.conn.ConnectionPoolConfig;
 import com.github.tobato.fastdfs.domain.fdfs.DefaultThumbImageConfig;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.fdfs.model.FdfsOssConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ import java.util.Map;
 @ConditionalOnClass(FastFileStorageClient.class)
 @EnableConfigurationProperties(FdfsOssProperties.class)
 @EnableAutoConfiguration(exclude = FdfsClientConfig.class)
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.FDFS + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.FDFS + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class FdfsOssConfiguration {
 

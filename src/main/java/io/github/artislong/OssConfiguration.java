@@ -1,12 +1,15 @@
 package io.github.artislong;
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.text.StrPool;
 import io.github.artislong.constant.OssConstant;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.function.ThreeConsumer;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -25,15 +28,12 @@ import java.util.Map;
  * @version OssAutoConfiguration.java, v 1.1 2021/11/5 11:05 chenmin Exp $
  * Created on 2021/11/5
  */
+@Getter
+@Setter
+@Slf4j
 public abstract class OssConfiguration implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
 
-    @Getter
     private Environment environment;
-
-    @Override
-    public void setEnvironment(@NotNull Environment environment) {
-        this.environment = environment;
-    }
 
     @Override
     public void postProcessBeanDefinitionRegistry(@NotNull BeanDefinitionRegistry beanDefinitionRegistry) throws BeansException {
@@ -54,8 +54,17 @@ public abstract class OssConfiguration implements BeanDefinitionRegistryPostProc
     public abstract void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer);
 
     protected <T> T getOssProperties(Class<T> clazz, String ossType) {
-        BindResult<T> bindResult = Binder.get(getEnvironment())
-                .bind(OssConstant.OSS + StrUtil.DOT + ossType, clazz);
-        return bindResult.get();
+        try {
+            BindResult<T> bindResult = Binder.get(getEnvironment())
+                    .bind(OssConstant.OSS + StrPool.DOT + ossType, clazz);
+            T ossProperties = bindResult.get();
+            if (ossProperties instanceof InitializingBean) {
+                ((InitializingBean) ossProperties).afterPropertiesSet();
+            }
+            return ossProperties;
+        } catch (Exception e) {
+            log.warn("{}未配置，请检查！", ossType, e);
+            return null;
+        }
     }
 }

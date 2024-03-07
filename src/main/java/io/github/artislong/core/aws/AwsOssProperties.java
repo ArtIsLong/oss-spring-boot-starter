@@ -1,7 +1,9 @@
 package io.github.artislong.core.aws;
 
+import cn.hutool.core.text.StrPool;
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.aws.model.AwsOssConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,7 +20,7 @@ import java.util.Map;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.AWS)
+@ConfigurationProperties(OssConstant.OSS + StrPool.DOT + OssType.AWS)
 public class AwsOssProperties extends AwsOssConfig implements InitializingBean {
 
     private Boolean enable = false;

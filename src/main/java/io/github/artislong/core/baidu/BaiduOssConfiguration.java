@@ -7,6 +7,7 @@ import com.baidubce.services.bos.BosClient;
 import com.baidubce.services.bos.BosClientConfiguration;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.baidu.model.BaiduOssClientConfig;
 import io.github.artislong.core.baidu.model.BaiduOssConfig;
@@ -28,7 +29,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(BosClient.class)
 @EnableConfigurationProperties(BaiduOssProperties.class)
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.BAIDU + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.BAIDU + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class BaiduOssConfiguration extends OssConfiguration {
 
@@ -36,7 +37,7 @@ public class BaiduOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        BaiduOssProperties baiduOssProperties = getOssProperties(BaiduOssProperties.class, OssConstant.OssType.BAIDU);
+        BaiduOssProperties baiduOssProperties = getOssProperties(BaiduOssProperties.class, OssType.BAIDU);
         Map<String, BaiduOssConfig> baiduOssConfigMap = baiduOssProperties.getOssConfig();
         if (baiduOssConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, BaiduOssClient.class, buildBeanProMap(baiduOssProperties));

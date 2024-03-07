@@ -14,7 +14,7 @@ import com.pingan.radosgw.sdk.admin.service.RGWAdminServiceFacade;
 import com.pingan.radosgw.sdk.service.RadosgwService;
 import com.pingan.radosgw.sdk.service.request.ListObjectsRequest;
 import com.pingan.radosgw.sdk.service.request.MutilpartUploadFileRequest;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.pingan.model.PingAnOssConfig;
 import io.github.artislong.exception.OssException;
@@ -87,7 +87,7 @@ public class PingAnOssClient implements StandardOssClient {
             String bucketName = getBucketName();
             String key = getKey(targetName, false);
             String filePath = file.getPath();
-            String checkpointFile = filePath + StrUtil.DOT + OssConstant.OssType.QINGYUN;
+            String checkpointFile = filePath + StrUtil.DOT + OssType.QINGYUN;
             SliceConfig slice = pingAnOssConfig.getSliceConfig();
 
             MutilpartUploadFileRequest uploadFileRequest = new MutilpartUploadFileRequest();

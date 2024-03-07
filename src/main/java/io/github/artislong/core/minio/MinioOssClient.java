@@ -11,7 +11,7 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aliyun.oss.common.utils.HttpHeaders;
 import com.google.common.io.ByteStreams;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.minio.model.MinioOssConfig;
 import io.github.artislong.exception.OssException;
@@ -98,7 +98,7 @@ public class MinioOssClient implements StandardOssClient {
 
     @Override
     public void downloadcheckpoint(File localFile, String targetName) {
-        downloadfile(localFile, targetName, minioOssConfig.getSliceConfig(), OssConstant.OssType.MINIO);
+        downloadfile(localFile, targetName, minioOssConfig.getSliceConfig(), OssType.MINIO);
     }
 
     @Override

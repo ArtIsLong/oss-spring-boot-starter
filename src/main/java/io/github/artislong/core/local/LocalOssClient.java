@@ -9,7 +9,7 @@ import cn.hutool.core.io.file.PathUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.local.model.LocalOssConfig;
 import io.github.artislong.exception.OssException;
@@ -67,7 +67,7 @@ public class LocalOssClient implements StandardOssClient {
 
     @Override
     public OssInfo uploadCheckPoint(File file, String targetName) {
-        uploadFile(file, targetName, localOssConfig.getSliceConfig(), OssConstant.OssType.LOCAL);
+        uploadFile(file, targetName, localOssConfig.getSliceConfig(), OssType.LOCAL);
         return getInfo(targetName);
     }
 
@@ -127,7 +127,7 @@ public class LocalOssClient implements StandardOssClient {
 
     @Override
     public void downloadcheckpoint(File localFile, String targetName) {
-        downloadfile(localFile, targetName, localOssConfig.getSliceConfig(), OssConstant.OssType.LOCAL);
+        downloadfile(localFile, targetName, localOssConfig.getSliceConfig(), OssType.LOCAL);
     }
 
     @Override

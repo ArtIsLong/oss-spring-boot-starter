@@ -2,6 +2,7 @@ package io.github.artislong.core.baidu;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.baidu.model.BaiduOssConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,7 +21,7 @@ import java.util.Map;
 @Data
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.BAIDU)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssType.BAIDU)
 public class BaiduOssProperties extends BaiduOssConfig implements InitializingBean {
 
     private Boolean enable = false;

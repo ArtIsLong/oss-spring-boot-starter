@@ -2,6 +2,7 @@ package io.github.artislong.core.ecloud;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.ecloud.model.EcloudOssConfig;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,7 @@ import java.util.Map;
  */
 @Slf4j
 @Data
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.ECLOUD)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssType.ECLOUD)
 public class EcloudOssProperties extends EcloudOssConfig implements InitializingBean {
 
     private Boolean enable = false;

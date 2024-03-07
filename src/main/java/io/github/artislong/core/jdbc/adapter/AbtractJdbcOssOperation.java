@@ -6,16 +6,14 @@ import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import io.github.artislong.core.jdbc.constant.DbType;
 import io.github.artislong.core.jdbc.model.JdbcOssInfo;
 import io.github.artislong.utils.OssPathUtil;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.io.InputStream;
-import java.sql.Blob;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -24,7 +22,9 @@ import java.util.List;
  * Created on 2022/5/25
  */
 @Data
-public class MySQLOssOperation implements JdbcOssOperation {
+@NoArgsConstructor
+@AllArgsConstructor
+public abstract class AbtractJdbcOssOperation implements JdbcOssOperation {
 
     private JdbcTemplate jdbcTemplate;
 
@@ -87,11 +87,7 @@ public class MySQLOssOperation implements JdbcOssOperation {
         }
     }
 
-    public List<JdbcOssInfo> getOssInfos(String path) {
-        return jdbcTemplate.query("SELECT * FROM OSS_STORE T WHERE T.PATH LIKE concat('', ?, '%')", BeanPropertyRowMapper.newInstance(JdbcOssInfo.class), path);
-    }
-
-    public String copyOssInfo(String sourceId, String targetKey, String targetDataId) {
+    public void copyOssInfo(String sourceId, String targetKey, String targetDataId) {
         String targetId = IdUtil.fastSimpleUUID();
         String name = StrUtil.equals(targetKey, StrUtil.SLASH) ? targetKey : FileNameUtil.getName(targetKey);
         String targetPath = OssPathUtil.replaceKey(targetKey, name, true);
@@ -99,31 +95,10 @@ public class MySQLOssOperation implements JdbcOssOperation {
         jdbcTemplate.update("INSERT INTO OSS_STORE (ID, NAME, PATH, LENGTH, CREATE_TIME, LAST_UPDATE_TIME, PARENT_ID, TYPE, DATA_ID) " +
                         "SELECT ?, ?, ?, SIZE, ?, ?, PARENT_ID, TYPE, ? FROM OSS_STORE T WHERE T.ID = ?",
                 targetId, name, targetPath, now.toSqlDate(), now.toSqlDate(), targetDataId, sourceId);
-        return targetId;
-    }
-
-    public String saveOssData(InputStream inputStream) {
-        String dataId = IdUtil.fastSimpleUUID();
-        jdbcTemplate.update("INSERT INTO OSS_DATA(ID, DATA) VALUES(?, ?)", ps -> {
-            ps.setString(1, dataId);
-            ps.setBlob(2, inputStream);
-        });
-        return dataId;
     }
 
     public void deleteOssData(String id) {
         jdbcTemplate.update("DELETE FROM OSS_DATA T WHERE T.ID = ?", id);
-    }
-
-    public void updateOssData(String id, InputStream inputStream) {
-        jdbcTemplate.update("UPDATE OSS_DATA T SET T.DATA = ? WHERE T.ID = ?", ps -> {
-            ps.setBlob(1, inputStream);
-            ps.setString(2, id);
-        });
-    }
-
-    public InputStream getOssData(String id) throws SQLException {
-        return jdbcTemplate.queryForObject("SELECT DATA FROM OSS_DATA T WHERE T.ID = ?", Blob.class, id).getBinaryStream();
     }
 
     public String copyOssData(String sourceDataId) {
@@ -132,8 +107,4 @@ public class MySQLOssOperation implements JdbcOssOperation {
         return targetDataId;
     }
 
-    @Override
-    public DbType getDbType() {
-        return DbType.MYSQL;
-    }
 }

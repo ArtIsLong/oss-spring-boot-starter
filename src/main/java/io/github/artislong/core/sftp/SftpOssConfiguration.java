@@ -5,6 +5,7 @@ import cn.hutool.extra.ssh.Sftp;
 import com.jcraft.jsch.ChannelSftp;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.sftp.model.SftpOssConfig;
 import io.github.artislong.function.ThreeConsumer;
@@ -24,7 +25,7 @@ import java.util.Map;
 @SpringBootConfiguration
 @ConditionalOnClass(ChannelSftp.class)
 @EnableConfigurationProperties({SftpOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.SFTP + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.SFTP + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class SftpOssConfiguration extends OssConfiguration {
 
@@ -32,7 +33,7 @@ public class SftpOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        SftpOssProperties sftpOssProperties = getOssProperties(SftpOssProperties.class, OssConstant.OssType.SFTP);
+        SftpOssProperties sftpOssProperties = getOssProperties(SftpOssProperties.class, OssType.SFTP);
         Map<String, SftpOssConfig> sftpOssConfigMap = sftpOssProperties.getOssConfig();
         if (sftpOssConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, SftpOssClient.class, buildBeanProMap(sftpOssProperties));

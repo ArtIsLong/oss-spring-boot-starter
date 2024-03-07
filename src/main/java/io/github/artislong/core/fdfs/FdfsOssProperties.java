@@ -2,6 +2,7 @@ package io.github.artislong.core.fdfs;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.fdfs.model.FdfsOssConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,7 +21,7 @@ import java.util.Map;
 @Data
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.FDFS)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssType.FDFS)
 public class FdfsOssProperties extends FdfsOssConfig implements InitializingBean {
 
     private Boolean enable = false;

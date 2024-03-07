@@ -12,7 +12,7 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.*;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.tencent.model.TencentOssConfig;
 import io.github.artislong.model.DirectoryOssInfo;
@@ -21,8 +21,8 @@ import io.github.artislong.model.OssInfo;
 import io.github.artislong.model.SliceConfig;
 import io.github.artislong.model.download.DownloadCheckPoint;
 import io.github.artislong.model.download.DownloadObjectStat;
-import io.github.artislong.model.upload.*;
 import io.github.artislong.model.upload.UploadPartResult;
+import io.github.artislong.model.upload.*;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -65,7 +65,7 @@ public class TencentOssClient implements StandardOssClient {
 
     @Override
     public OssInfo uploadCheckPoint(File file, String targetName) {
-        uploadFile(file, targetName, tencentOssConfig.getSliceConfig(), OssConstant.OssType.TENCENT);
+        uploadFile(file, targetName, tencentOssConfig.getSliceConfig(), OssType.TENCENT);
         return getInfo(targetName);
     }
 
@@ -150,7 +150,7 @@ public class TencentOssClient implements StandardOssClient {
 
     @Override
     public void downloadcheckpoint(File localFile, String targetName) {
-        downloadfile(localFile, targetName, tencentOssConfig.getSliceConfig(), OssConstant.OssType.TENCENT);
+        downloadfile(localFile, targetName, tencentOssConfig.getSliceConfig(), OssType.TENCENT);
     }
 
     @Override

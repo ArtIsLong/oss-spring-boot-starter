@@ -8,6 +8,7 @@ import com.qingstor.sdk.service.Bucket;
 import com.qingstor.sdk.service.QingStor;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.qingyun.model.QingYunOssClientConfig;
 import io.github.artislong.core.qingyun.model.QingYunOssConfig;
@@ -29,7 +30,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(OSSClient.class)
 @EnableConfigurationProperties({QingYunOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINGYUN + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.QINGYUN + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class QingYunOssConfiguration extends OssConfiguration {
 
@@ -37,7 +38,7 @@ public class QingYunOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        QingYunOssProperties qingYunOssProperties = getOssProperties(QingYunOssProperties.class, OssConstant.OssType.QINGYUN);
+        QingYunOssProperties qingYunOssProperties = getOssProperties(QingYunOssProperties.class, OssType.QINGYUN);
         Map<String, QingYunOssConfig> ossConfigMap = qingYunOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, QingYunOssClient.class, buildBeanProMap(qingYunOssProperties));

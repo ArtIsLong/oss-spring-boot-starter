@@ -16,7 +16,7 @@ import com.ksyun.ks3.service.request.CompleteMultipartUploadRequest;
 import com.ksyun.ks3.service.request.GetObjectRequest;
 import com.ksyun.ks3.service.request.InitiateMultipartUploadRequest;
 import com.ksyun.ks3.service.request.UploadPartRequest;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jinshan.model.JinShanOssConfig;
 import io.github.artislong.model.DirectoryOssInfo;
@@ -67,7 +67,7 @@ public class JinShanOssClient implements StandardOssClient {
 
     @Override
     public OssInfo uploadCheckPoint(File file, String targetName) {
-        return uploadFile(file, targetName, jinShanOssConfig.getSliceConfig(), OssConstant.OssType.JINSHAN);
+        return uploadFile(file, targetName, jinShanOssConfig.getSliceConfig(), OssType.JINSHAN);
     }
 
     @Override
@@ -151,7 +151,7 @@ public class JinShanOssClient implements StandardOssClient {
 
     @Override
     public void downloadcheckpoint(File localFile, String targetName) {
-        downloadfile(localFile, targetName, jinShanOssConfig.getSliceConfig(), OssConstant.OssType.JINSHAN);
+        downloadfile(localFile, targetName, jinShanOssConfig.getSliceConfig(), OssType.JINSHAN);
     }
 
     @Override

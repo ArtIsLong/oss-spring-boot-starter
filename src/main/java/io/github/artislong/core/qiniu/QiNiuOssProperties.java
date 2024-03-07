@@ -2,6 +2,7 @@ package io.github.artislong.core.qiniu;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.qiniu.model.QiNiuOssConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,7 +19,7 @@ import java.util.Map;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.QINIU)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssType.QINIU)
 public class QiNiuOssProperties extends QiNiuOssConfig implements InitializingBean {
 
     private Boolean enable = false;

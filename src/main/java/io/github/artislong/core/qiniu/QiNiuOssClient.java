@@ -21,7 +21,7 @@ import com.qiniu.storage.model.FileInfo;
 import com.qiniu.storage.model.FileListing;
 import com.qiniu.storage.persistent.FileRecorder;
 import com.qiniu.util.Auth;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.qiniu.model.QiNiuOssConfig;
 import io.github.artislong.exception.OssException;
@@ -37,7 +37,10 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -112,7 +115,7 @@ public class QiNiuOssClient implements StandardOssClient {
 
     @Override
     public void downloadcheckpoint(File localFile, String targetName) {
-        downloadfile(localFile, targetName, qiNiuOssConfig.getSliceConfig(), OssConstant.OssType.QINIU);
+        downloadfile(localFile, targetName, qiNiuOssConfig.getSliceConfig(), OssType.QINIU);
     }
 
     @Override

@@ -11,7 +11,7 @@ import cn.hutool.core.util.StrUtil;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.common.utils.HttpHeaders;
 import com.aliyun.oss.model.*;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ali.model.AliOssConfig;
 import io.github.artislong.exception.OssException;
@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -83,7 +84,7 @@ public class AliOssClient implements StandardOssClient {
 
             uploadFileRequest.setEnableCheckpoint(true);
 
-            String checkpointFile = filePath + StrUtil.DOT + OssConstant.OssType.ALI;
+            String checkpointFile = filePath + StrUtil.DOT + OssType.ALI;
             uploadFileRequest.setCheckpointFile(checkpointFile);
 
             oss.uploadFile(uploadFileRequest);
@@ -117,7 +118,7 @@ public class AliOssClient implements StandardOssClient {
         downloadFileRequest.setTaskNum(sliceConfig.getTaskNum());
         downloadFileRequest.setEnableCheckpoint(true);
 
-        String checkpointFile = filePath + StrUtil.DOT + OssConstant.OssType.ALI;
+        String checkpointFile = filePath + StrUtil.DOT + OssType.ALI;
         downloadFileRequest.setCheckpointFile(checkpointFile);
 
         oss.downloadFile(downloadFileRequest);
@@ -204,11 +205,7 @@ public class AliOssClient implements StandardOssClient {
     }
 
     public String getBucketName() {
-        String bucketName = aliOssConfig.getBucketName();
-        if (!oss.doesBucketExist(bucketName)) {
-            oss.createBucket(bucketName);
-        }
-        return bucketName;
+        return aliOssConfig.getBucketName();
     }
 
     public OssInfo getBaseInfo(String bucketName, String key) {
@@ -217,10 +214,13 @@ public class AliOssClient implements StandardOssClient {
         if (isFile(key)) {
             ossInfo = new FileOssInfo();
             try {
-                ObjectMetadata objectMetadata = oss.getObjectMetadata(bucketName, OssPathUtil.replaceKey(key, "", false));
+                key = OssPathUtil.replaceKey(key, "", false);
+                ObjectMetadata objectMetadata = oss.getObjectMetadata(bucketName, key);
                 ossInfo.setLastUpdateTime(DateUtil.date((Date) objectMetadata.getRawMetadata().get(HttpHeaders.LAST_MODIFIED)).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setCreateTime(DateUtil.date((Date) objectMetadata.getRawMetadata().get(HttpHeaders.DATE)).toString(DatePattern.NORM_DATETIME_PATTERN));
                 ossInfo.setLength(Convert.toStr(objectMetadata.getContentLength()));
+                URL url = oss.generatePresignedUrl(bucketName, key, DateUtil.offsetSecond(DateUtil.date(), aliOssConfig.getExpiredTime()));
+                ossInfo.setPublicHttpUrl(url.toString());
             } catch (Exception e) {
                 log.error("获取{}文件属性失败", key, e);
             }

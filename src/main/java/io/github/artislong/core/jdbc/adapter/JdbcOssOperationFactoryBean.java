@@ -2,7 +2,7 @@ package io.github.artislong.core.jdbc.adapter;
 
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.ServiceLoaderUtil;
 import io.github.artislong.core.jdbc.constant.DbType;
 import io.github.artislong.exception.NotSupportException;
 import lombok.Getter;
@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,11 +27,14 @@ public class JdbcOssOperationFactoryBean implements FactoryBean<JdbcOssOperation
     public static final Map<DbType, JdbcOssOperation> JDBC_OSS_OPERATION_MAP = new HashMap<>();
 
     static {
-        Set<Class<?>> jdbcOssOperationClasses = ClassUtil.scanPackageBySuper(StrUtil.EMPTY, JdbcOssOperation.class);
+        Set<Class<?>> jdbcOssOperationClasses = ClassUtil.scanPackageBySuper("io.github.artislong.core.jdbc.adapter", JdbcOssOperation.class);
         for (Class<?> jdbcOssOperationClass : jdbcOssOperationClasses) {
             JdbcOssOperation jdbcOssOperation = (JdbcOssOperation) ReflectUtil.newInstance(jdbcOssOperationClass);
             JDBC_OSS_OPERATION_MAP.put(jdbcOssOperation.getDbType(), jdbcOssOperation);
         }
+
+        List<JdbcOssOperation> jdbcOssOperations = ServiceLoaderUtil.loadList(JdbcOssOperation.class);
+        jdbcOssOperations.forEach(jdbcOssOperation -> JDBC_OSS_OPERATION_MAP.put(jdbcOssOperation.getDbType(), jdbcOssOperation));
     }
 
     @Setter

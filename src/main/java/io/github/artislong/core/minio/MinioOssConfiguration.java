@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ObjectUtil;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.minio.model.MinioOssClientConfig;
 import io.github.artislong.core.minio.model.MinioOssConfig;
@@ -27,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @SpringBootConfiguration
 @ConditionalOnClass(MinioClient.class)
 @EnableConfigurationProperties({MinioOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.MINIO + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.MINIO + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class MinioOssConfiguration extends OssConfiguration {
 
@@ -35,7 +36,7 @@ public class MinioOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        MinioOssProperties minioOssProperties = getOssProperties(MinioOssProperties.class, OssConstant.OssType.MINIO);
+        MinioOssProperties minioOssProperties = getOssProperties(MinioOssProperties.class, OssType.MINIO);
         Map<String, MinioOssConfig> minioOssConfigMap = minioOssProperties.getOssConfig();
         if (minioOssConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, MinioOssClient.class, buildBeanProMap(minioOssProperties));

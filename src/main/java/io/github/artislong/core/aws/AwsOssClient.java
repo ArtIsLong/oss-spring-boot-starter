@@ -10,7 +10,7 @@ import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.aws.model.AwsOssConfig;
 import io.github.artislong.exception.OssException;
@@ -76,7 +76,7 @@ public class AwsOssClient implements StandardOssClient {
 
     @Override
     public OssInfo uploadCheckPoint(File file, String targetName) {
-        return uploadFile(file, targetName, ossConfig.getSliceConfig(), OssConstant.OssType.AWS);
+        return uploadFile(file, targetName, ossConfig.getSliceConfig(), OssType.AWS);
     }
 
     @Override
@@ -154,7 +154,7 @@ public class AwsOssClient implements StandardOssClient {
 
     @Override
     public void downloadcheckpoint(File localFile, String targetName) {
-        downloadfile(localFile, targetName, ossConfig.getSliceConfig(), OssConstant.OssType.AWS);
+        downloadfile(localFile, targetName, ossConfig.getSliceConfig(), OssType.AWS);
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.obs.services.ObsClient;
 import com.obs.services.ObsConfiguration;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.huawei.model.HuaweiOssClientConfig;
 import io.github.artislong.core.huawei.model.HuaweiOssConfig;
@@ -27,7 +28,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(ObsClient.class)
 @EnableConfigurationProperties({HuaWeiOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.HUAWEI + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.HUAWEI + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class HuaWeiOssConfiguration extends OssConfiguration {
 
@@ -35,7 +36,7 @@ public class HuaWeiOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        HuaWeiOssProperties huaWeiOssProperties = getOssProperties(HuaWeiOssProperties.class, OssConstant.OssType.HUAWEI);
+        HuaWeiOssProperties huaWeiOssProperties = getOssProperties(HuaWeiOssProperties.class, OssType.HUAWEI);
         Map<String, HuaweiOssConfig> huaweiOssConfigMap = huaWeiOssProperties.getOssConfig();
         if (huaweiOssConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, HuaWeiOssClient.class, buildBeanProMap(huaWeiOssProperties));

@@ -6,7 +6,7 @@ CREATE TABLE OSS_STORE
     ID               VARCHAR(50) PRIMARY KEY COMMENT '主键',
     NAME             VARCHAR(100) NOT NULL COMMENT '文件/目录名',
     PATH             VARCHAR(500) NOT NULL COMMENT '路径',
-    LENGTH             LONG COMMENT '文件大小',
+    LENGTH           LONG COMMENT '文件大小',
     CREATE_TIME      DATETIME COMMENT '创建时间',
     LAST_UPDATE_TIME DATETIME COMMENT '最新修改时间',
     PARENT_ID        VARCHAR(50) DEFAULT 0 COMMENT '父级目录ID',

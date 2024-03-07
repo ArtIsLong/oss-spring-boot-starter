@@ -7,6 +7,7 @@ import com.ksyun.ks3.service.Ks3;
 import com.ksyun.ks3.service.Ks3Client;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jinshan.model.JinShanOssClientConfig;
 import io.github.artislong.core.jinshan.model.JinShanOssConfig;
@@ -29,7 +30,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(Ks3.class)
 @EnableConfigurationProperties({JinShanOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JINSHAN + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.JINSHAN + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class JinShanOssConfiguration extends OssConfiguration {
 
@@ -37,7 +38,7 @@ public class JinShanOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        JinShanOssProperties jinShanOssProperties = getOssProperties(JinShanOssProperties.class, OssConstant.OssType.JINSHAN);
+        JinShanOssProperties jinShanOssProperties = getOssProperties(JinShanOssProperties.class, OssType.JINSHAN);
         Map<String, JinShanOssConfig> ossConfigMap = jinShanOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, JinShanOssClient.class, buildBeanProMap(jinShanOssProperties));

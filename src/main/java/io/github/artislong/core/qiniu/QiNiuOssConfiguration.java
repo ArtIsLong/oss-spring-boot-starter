@@ -8,6 +8,7 @@ import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.qiniu.model.QiNiuOssClientConfig;
 import io.github.artislong.core.qiniu.model.QiNiuOssConfig;
@@ -28,7 +29,7 @@ import java.util.Optional;
  */
 @SpringBootConfiguration
 @EnableConfigurationProperties({QiNiuOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.QINIU + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.QINIU + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class QiNiuOssConfiguration extends OssConfiguration {
 
@@ -36,7 +37,7 @@ public class QiNiuOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        QiNiuOssProperties qiNiuOssProperties = getOssProperties(QiNiuOssProperties.class, OssConstant.OssType.QINIU);
+        QiNiuOssProperties qiNiuOssProperties = getOssProperties(QiNiuOssProperties.class, OssType.QINIU);
         Map<String, QiNiuOssConfig> qiNiuOssConfigMap = qiNiuOssProperties.getOssConfig();
         if (qiNiuOssConfigMap.isEmpty()) {
             qiNiuOssProperties.validate();

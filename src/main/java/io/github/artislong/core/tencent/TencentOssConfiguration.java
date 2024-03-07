@@ -8,6 +8,7 @@ import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.tencent.model.TencentOssClientConfig;
 import io.github.artislong.core.tencent.model.TencentOssConfig;
@@ -29,7 +30,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(COSClient.class)
 @EnableConfigurationProperties({TencentOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.TENCENT + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.TENCENT + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class TencentOssConfiguration extends OssConfiguration {
 
@@ -37,7 +38,7 @@ public class TencentOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        TencentOssProperties tencentOssProperties = getOssProperties(TencentOssProperties.class, OssConstant.OssType.TENCENT);
+        TencentOssProperties tencentOssProperties = getOssProperties(TencentOssProperties.class, OssType.TENCENT);
         Map<String, TencentOssConfig> tencentOssConfigMap = tencentOssProperties.getOssConfig();
         if (tencentOssConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, TencentOssClient.class, buildBeanProMap(tencentOssProperties));

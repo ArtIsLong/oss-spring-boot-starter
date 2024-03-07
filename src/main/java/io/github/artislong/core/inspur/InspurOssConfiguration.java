@@ -6,6 +6,7 @@ import com.inspurcloud.oss.client.OSSClient;
 import com.inspurcloud.oss.client.impl.OSSClientImpl;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.inspur.model.InspurOssConfig;
 import io.github.artislong.function.ThreeConsumer;
@@ -25,7 +26,7 @@ import java.util.Map;
 @SpringBootConfiguration
 @ConditionalOnClass(OSSClient.class)
 @EnableConfigurationProperties({InspurOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.INSPUR + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.INSPUR + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class InspurOssConfiguration extends OssConfiguration {
 
@@ -33,7 +34,7 @@ public class InspurOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        InspurOssProperties inspurOssProperties = getOssProperties(InspurOssProperties.class, OssConstant.OssType.INSPUR);
+        InspurOssProperties inspurOssProperties = getOssProperties(InspurOssProperties.class, OssType.INSPUR);
         Map<String, InspurOssConfig> ossConfigMap = inspurOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, InspurOssClient.class, buildBeanProMap(inspurOssProperties));

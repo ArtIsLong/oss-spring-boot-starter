@@ -2,6 +2,7 @@ package io.github.artislong.core.sftp;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.sftp.model.SftpOssConfig;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
@@ -16,7 +17,7 @@ import java.util.Map;
  * Created on 2021/11/16
  */
 @Data
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.SFTP)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssType.SFTP)
 public class SftpOssProperties extends SftpOssConfig implements InitializingBean {
 
     private Boolean enable = false;

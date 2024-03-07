@@ -6,6 +6,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jdbc.adapter.JdbcOssOperation;
 import io.github.artislong.core.jdbc.adapter.JdbcOssOperationFactoryBean;
@@ -32,7 +33,7 @@ import java.util.Set;
 @SpringBootConfiguration
 @ConditionalOnClass(JdbcTemplate.class)
 @EnableConfigurationProperties({JdbcOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.JDBC + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.JDBC + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class JdbcOssConfiguration extends OssConfiguration {
 
@@ -40,7 +41,7 @@ public class JdbcOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        JdbcOssProperties jdbcOssProperties = getOssProperties(JdbcOssProperties.class, OssConstant.OssType.JDBC);
+        JdbcOssProperties jdbcOssProperties = getOssProperties(JdbcOssProperties.class, OssType.JDBC);
         Map<String, JdbcOssConfig> ossConfigMap = jdbcOssProperties.getOssConfig();
         // 开启Jdbc存储的同时，未配置对应的Jdbc存储数据库连接，将采用默认数据源
         if (ossConfigMap.isEmpty() && isEmptyForOssConfig(jdbcOssProperties)) {

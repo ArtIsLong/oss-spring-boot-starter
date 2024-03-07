@@ -36,6 +36,8 @@ public class AliOssConfig {
 
     private String securityToken;
 
+    private int expiredTime = 3600;
+
     private AliOssClientConfig clientConfig;
 
     /**

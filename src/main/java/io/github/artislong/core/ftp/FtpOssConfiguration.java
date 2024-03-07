@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.ftp.Ftp;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ftp.model.FtpOssClientConfig;
 import io.github.artislong.core.ftp.model.FtpOssConfig;
@@ -27,7 +28,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(FTPClient.class)
 @EnableConfigurationProperties({FtpOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.FTP + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.FTP + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class FtpOssConfiguration extends OssConfiguration {
 
@@ -35,7 +36,7 @@ public class FtpOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        FtpOssProperties ftpOssProperties = getOssProperties(FtpOssProperties.class, OssConstant.OssType.FTP);
+        FtpOssProperties ftpOssProperties = getOssProperties(FtpOssProperties.class, OssType.FTP);
         Map<String, FtpOssConfig> ftpOssConfigMap = ftpOssProperties.getOssConfig();
         if (ftpOssConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, FtpOssClient.class, buildBeanProMap(ftpOssProperties));

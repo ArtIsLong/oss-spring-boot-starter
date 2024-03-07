@@ -14,7 +14,7 @@ import com.qingstor.sdk.exception.QSException;
 import com.qingstor.sdk.service.Bucket;
 import com.qingstor.sdk.service.QingStor;
 import com.qingstor.sdk.service.Types;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.qingyun.model.QingYunOssConfig;
 import io.github.artislong.exception.OssException;
@@ -71,7 +71,7 @@ public class QingYunOssClient implements StandardOssClient {
 
     @Override
     public OssInfo uploadCheckPoint(File file, String targetName) {
-        return uploadFile(file, targetName, qingYunOssConfig.getSliceConfig(), OssConstant.OssType.QINGYUN);
+        return uploadFile(file, targetName, qingYunOssConfig.getSliceConfig(), OssType.QINGYUN);
     }
 
     @Override
@@ -170,7 +170,7 @@ public class QingYunOssClient implements StandardOssClient {
 
     @Override
     public void downloadcheckpoint(File localFile, String targetName) {
-        downloadfile(localFile, targetName, qingYunOssConfig.getSliceConfig(), OssConstant.OssType.QINGYUN);
+        downloadfile(localFile, targetName, qingYunOssConfig.getSliceConfig(), OssType.QINGYUN);
     }
 
     @Override

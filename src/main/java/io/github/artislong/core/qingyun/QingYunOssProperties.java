@@ -2,6 +2,7 @@ package io.github.artislong.core.qingyun;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.qingyun.model.QingYunOssConfig;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
@@ -16,7 +17,7 @@ import java.util.Map;
  * Created on 2022/3/10
  */
 @Data
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.QINGYUN)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssType.QINGYUN)
 public class QingYunOssProperties extends QingYunOssConfig implements InitializingBean {
 
     private Boolean enable = false;

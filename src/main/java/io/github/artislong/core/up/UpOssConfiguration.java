@@ -6,6 +6,7 @@ import com.upyun.ParallelUploader;
 import com.upyun.RestManager;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.up.model.UpOssClientConfig;
 import io.github.artislong.core.up.model.UpOssConfig;
@@ -28,7 +29,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(RestManager.class)
 @EnableConfigurationProperties({UpOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.UP + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.UP + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class UpOssConfiguration extends OssConfiguration {
 
@@ -36,7 +37,7 @@ public class UpOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        UpOssProperties upOssProperties = getOssProperties(UpOssProperties.class, OssConstant.OssType.UP);
+        UpOssProperties upOssProperties = getOssProperties(UpOssProperties.class, OssType.UP);
         Map<String, UpOssConfig> upOssConfigMap = upOssProperties.getOssConfig();
         if (upOssConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, UpOssClient.class, buildBeanProMap(upOssProperties));

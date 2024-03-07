@@ -2,6 +2,7 @@ package io.github.artislong.core.ctyun;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.ctyun.model.CtyunOssConfig;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ import java.util.Map;
  */
 @Slf4j
 @Data
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.CTYUN)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssType.CTYUN)
 public class CtyunOssProperties extends CtyunOssConfig implements InitializingBean {
 
     private Boolean enable = false;

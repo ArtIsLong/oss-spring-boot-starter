@@ -1,129 +1,155 @@
 package io.github.artislong.constant;
 
 /**
+ * OSS存储类型
  * @author 陈敏
  * @version OssType.java, v 1.1 2021/11/16 21:54 chenmin Exp $
  * Created on 2021/11/16
  */
-public enum OssType {
+public class OssType {
 
-    /**
-     * 本地磁盘存储
-     */
-    LOCAL(OssConstant.OssType.LOCAL),
+    public static final String LOCAL = "local";
+    public static final String FTP = "ftp";
+    public static final String SFTP = "sftp";
+    public static final String ALI = "ali";
+    public static final String QINIU = "qiniu";
+    public static final String MINIO = "minio";
+    public static final String BAIDU = "baidu";
+    public static final String TENCENT = "tencent";
+    public static final String HUAWEI = "huawei";
+    public static final String JD = "jd";
+    public static final String UP = "up";
+    public static final String JINSHAN = "jinshan";
+    public static final String WANGYI = "wangyi";
+    public static final String UCLOUD = "ucloud";
+    public static final String PINGAN = "pingan";
+    public static final String QINGYUN = "qingyun";
+    public static final String JDBC = "jdbc";
+    public static final String AWS = "aws";
+    public static final String CTYUN = "ctyun";
+    public static final String ECLOUD = "cloud";
+    public static final String INSPUR = "inspur";
+    public static final String FDFS = "fdfs";
 
-    /**
-     * FTP协议存储
-     */
-    FTP(OssConstant.OssType.FTP),
+    public enum Enums {
+        /**
+         * 本地磁盘存储
+         */
+        LOCAL(OssType.LOCAL),
 
-    /**
-     * SFTP存储
-     */
-    SFTP(OssConstant.OssType.SFTP),
+        /**
+         * FTP协议存储
+         */
+        FTP(OssType.FTP),
 
-    /**
-     * 阿里OSS存储
-     */
-    ALI(OssConstant.OssType.ALI),
+        /**
+         * SFTP存储
+         */
+        SFTP(OssType.SFTP),
 
-    /**
-     * 七牛云存储
-     */
-    QINIU(OssConstant.OssType.QINIU),
+        /**
+         * 阿里OSS存储
+         */
+        ALI(OssType.ALI),
 
-    /**
-     * MinIO存储
-     */
-    MINIO(OssConstant.OssType.MINIO),
+        /**
+         * 七牛云存储
+         */
+        QINIU(OssType.QINIU),
 
-    /**
-     * 百度云存储
-     */
-    BAIDU(OssConstant.OssType.BAIDU),
+        /**
+         * MinIO存储
+         */
+        MINIO(OssType.MINIO),
 
-    /**
-     * 腾讯云存储
-     */
-    TENCENT(OssConstant.OssType.TENCENT),
+        /**
+         * 百度云存储
+         */
+        BAIDU(OssType.BAIDU),
 
-    /**
-     * 华为云存储
-     */
-    HUAWEI(OssConstant.OssType.HUAWEI),
+        /**
+         * 腾讯云存储
+         */
+        TENCENT(OssType.TENCENT),
 
-    /**
-     * 京东云存储
-     */
-    JD(OssConstant.OssType.JD),
+        /**
+         * 华为云存储
+         */
+        HUAWEI(OssType.HUAWEI),
 
-    /**
-     * 又拍云存储
-     */
-    UP(OssConstant.OssType.UP),
+        /**
+         * 京东云存储
+         */
+        JD(OssType.JD),
 
-    /**
-     * 金山云
-     */
-    JINSHAN(OssConstant.OssType.JINSHAN),
+        /**
+         * 又拍云存储
+         */
+        UP(OssType.UP),
 
-    /**
-     * 网易数帆
-     */
-    WANGYI(OssConstant.OssType.WANGYI),
+        /**
+         * 金山云
+         */
+        JINSHAN(OssType.JINSHAN),
 
-    /**
-     * UCloud
-     */
-    UCLOUD(OssConstant.OssType.UCLOUD),
+        /**
+         * 网易数帆
+         */
+        WANGYI(OssType.WANGYI),
 
-    /**
-     * 平安云
-     */
-    PINGAN(OssConstant.OssType.PINGAN),
+        /**
+         * UCloud
+         */
+        UCLOUD(OssType.UCLOUD),
 
-    /**
-     * 青云
-     */
-    QINGYUN(OssConstant.OssType.QINGYUN),
+        /**
+         * 平安云
+         */
+        PINGAN(OssType.PINGAN),
 
-    /**
-     * JDBC
-     */
-    JDBC(OssConstant.OssType.JDBC),
+        /**
+         * 青云
+         */
+        QINGYUN(OssType.QINGYUN),
 
-    /**
-     * 亚马逊
-     */
-    AWS(OssConstant.OssType.AWS),
+        /**
+         * JDBC
+         */
+        JDBC(OssType.JDBC),
 
-    /**
-     * 天翼云
-     */
-    CTYUN(OssConstant.OssType.CTYUN),
+        /**
+         * 亚马逊
+         */
+        AWS(OssType.AWS),
 
-    /**
-     * 移动云
-     */
-    ECLOUD(OssConstant.OssType.ECLOUD),
+        /**
+         * 天翼云
+         */
+        CTYUN(OssType.CTYUN),
 
-    /**
-     * 浪潮云
-     */
-    INSPUR(OssConstant.OssType.INSPUR),
+        /**
+         * 移动云
+         */
+        ECLOUD(OssType.ECLOUD),
 
-    /**
-     * FDFS
-     */
-    FDFS(OssConstant.OssType.FDFS);
+        /**
+         * 浪潮云
+         */
+        INSPUR(OssType.INSPUR),
 
-    private final String value;
+        /**
+         * FDFS
+         */
+        FDFS(OssType.FDFS);
 
-    OssType(String value) {
-        this.value = value;
-    }
+        private final String value;
 
-    public String getValue() {
-        return value;
+        Enums(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 }

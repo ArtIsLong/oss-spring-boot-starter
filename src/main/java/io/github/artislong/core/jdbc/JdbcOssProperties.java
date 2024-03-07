@@ -2,6 +2,7 @@ package io.github.artislong.core.jdbc;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.jdbc.model.JdbcOssConfig;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
@@ -16,7 +17,7 @@ import java.util.Map;
  * Created on 2022/3/11
  */
 @Data
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.JDBC)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssType.JDBC)
 public class JdbcOssProperties extends JdbcOssConfig implements InitializingBean {
     private Boolean enable = false;
 

@@ -10,6 +10,7 @@ import com.pingan.radosgw.sdk.service.RadosgwService;
 import com.pingan.radosgw.sdk.service.RadosgwServiceFactory;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.pingan.model.PingAnOssConfig;
 import io.github.artislong.exception.OssException;
@@ -31,7 +32,7 @@ import java.util.Map;
 @SpringBootConfiguration
 @ConditionalOnClass(RadosgwService.class)
 @EnableConfigurationProperties({PingAnOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.PINGAN + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.PINGAN + StrUtil.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class PingAnOssConfiguration extends OssConfiguration {
 
@@ -39,7 +40,7 @@ public class PingAnOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        PingAnOssProperties pingAnOssProperties = getOssProperties(PingAnOssProperties.class, OssConstant.OssType.PINGAN);
+        PingAnOssProperties pingAnOssProperties = getOssProperties(PingAnOssProperties.class, OssType.PINGAN);
         Map<String, PingAnOssConfig> ossConfigMap = pingAnOssProperties.getOssConfig();
         if (ossConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, PingAnOssClient.class, buildBeanProMap(pingAnOssProperties));

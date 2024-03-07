@@ -13,7 +13,7 @@ import cn.hutool.core.util.StrUtil;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.amazonaws.services.s3.transfer.TransferManager;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.jd.model.JdOssConfig;
 import io.github.artislong.model.DirectoryOssInfo;
@@ -22,9 +22,9 @@ import io.github.artislong.model.OssInfo;
 import io.github.artislong.model.download.DownloadCheckPoint;
 import io.github.artislong.model.download.DownloadObjectStat;
 import io.github.artislong.model.upload.UploadCheckpoint;
+import io.github.artislong.model.upload.UploadPart;
 import io.github.artislong.model.upload.UploadPartEntityTag;
 import io.github.artislong.model.upload.UploadPartResult;
-import io.github.artislong.model.upload.UploadPart;
 import io.github.artislong.utils.OssPathUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -70,7 +70,7 @@ public class JdOssClient implements StandardOssClient {
 
     @Override
     public OssInfo uploadCheckPoint(File file, String targetName) {
-        return uploadFile(file, targetName, jdOssConfig.getSliceConfig(), OssConstant.OssType.JD);
+        return uploadFile(file, targetName, jdOssConfig.getSliceConfig(), OssType.JD);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class JdOssClient implements StandardOssClient {
 
     @Override
     public void downloadcheckpoint(File localFile, String targetName) {
-        downloadfile(localFile, targetName, jdOssConfig.getSliceConfig(), OssConstant.OssType.BAIDU);
+        downloadfile(localFile, targetName, jdOssConfig.getSliceConfig(), OssType.BAIDU);
     }
 
     @Override

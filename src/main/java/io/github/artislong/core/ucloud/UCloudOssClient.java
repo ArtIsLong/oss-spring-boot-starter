@@ -20,7 +20,7 @@ import cn.ucloud.ufile.bean.ObjectListBean;
 import cn.ucloud.ufile.bean.ObjectProfile;
 import cn.ucloud.ufile.exception.UfileClientException;
 import cn.ucloud.ufile.util.StorageType;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ucloud.model.UCloudOssConfig;
 import io.github.artislong.exception.OssException;
@@ -81,7 +81,7 @@ public class UCloudOssClient implements StandardOssClient {
 
     @Override
     public OssInfo uploadCheckPoint(File file, String targetName) {
-        uploadFile(file, targetName, uCloudOssConfig.getSliceConfig(), OssConstant.OssType.UCLOUD);
+        uploadFile(file, targetName, uCloudOssConfig.getSliceConfig(), OssType.UCLOUD);
         return getInfo(targetName);
     }
 
@@ -171,7 +171,7 @@ public class UCloudOssClient implements StandardOssClient {
 
     @Override
     public void downloadcheckpoint(File localFile, String targetName) {
-        downloadfile(localFile, targetName, uCloudOssConfig.getSliceConfig(), OssConstant.OssType.UCLOUD);
+        downloadfile(localFile, targetName, uCloudOssConfig.getSliceConfig(), OssType.UCLOUD);
     }
 
     @Override

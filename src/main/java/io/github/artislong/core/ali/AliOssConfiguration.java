@@ -1,12 +1,13 @@
 package io.github.artislong.core.ali;
 
+import cn.hutool.core.text.StrPool;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSClientBuilder;
 import io.github.artislong.OssConfiguration;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.ali.model.AliOssClientConfig;
 import io.github.artislong.core.ali.model.AliOssConfig;
@@ -28,7 +29,7 @@ import java.util.Optional;
 @SpringBootConfiguration
 @ConditionalOnClass(OSSClient.class)
 @EnableConfigurationProperties({AliOssProperties.class})
-@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssConstant.OssType.ALI + StrUtil.DOT + OssConstant.ENABLE,
+@ConditionalOnProperty(prefix = OssConstant.OSS, name = OssType.ALI + StrPool.DOT + OssConstant.ENABLE,
         havingValue = OssConstant.DEFAULT_ENABLE_VALUE)
 public class AliOssConfiguration extends OssConfiguration {
 
@@ -36,7 +37,7 @@ public class AliOssConfiguration extends OssConfiguration {
 
     @Override
     public void registerBean(ThreeConsumer<String, Class<? extends StandardOssClient>, Map<String, Object>> consumer) {
-        AliOssProperties aliOssProperties = getOssProperties(AliOssProperties.class, OssConstant.OssType.ALI);
+        AliOssProperties aliOssProperties = getOssProperties(AliOssProperties.class, OssType.ALI);
         Map<String, AliOssConfig> aliOssConfigMap = aliOssProperties.getOssConfig();
         if (aliOssConfigMap.isEmpty()) {
             consumer.accept(DEFAULT_BEAN_NAME, AliOssClient.class, buildBeanProMap(aliOssProperties));

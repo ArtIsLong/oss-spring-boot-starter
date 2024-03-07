@@ -12,7 +12,7 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baidubce.services.bos.BosClient;
 import com.baidubce.services.bos.model.*;
-import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.StandardOssClient;
 import io.github.artislong.core.baidu.model.BaiduOssConfig;
 import io.github.artislong.model.DirectoryOssInfo;
@@ -64,7 +64,7 @@ public class BaiduOssClient implements StandardOssClient {
 
     @Override
     public OssInfo uploadCheckPoint(File file, String targetName) {
-        return uploadFile(file, targetName, baiduOssConfig.getSliceConfig(), OssConstant.OssType.BAIDU);
+        return uploadFile(file, targetName, baiduOssConfig.getSliceConfig(), OssType.BAIDU);
     }
 
     @Override
@@ -151,7 +151,7 @@ public class BaiduOssClient implements StandardOssClient {
 
     @Override
     public void downloadcheckpoint(File localFile, String targetName) {
-        downloadfile(localFile, targetName, baiduOssConfig.getSliceConfig(), OssConstant.OssType.BAIDU);
+        downloadfile(localFile, targetName, baiduOssConfig.getSliceConfig(), OssType.BAIDU);
     }
 
     @Override

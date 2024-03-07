@@ -2,6 +2,7 @@ package io.github.artislong.core.minio;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.minio.model.MinioOssConfig;
 import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
@@ -16,7 +17,7 @@ import java.util.Map;
  * Created on 2021/11/24
  */
 @Data
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.MINIO)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssType.MINIO)
 public class MinioOssProperties extends MinioOssConfig implements InitializingBean {
 
     private Boolean enable = false;

@@ -35,32 +35,4 @@ public class OssConstant {
 
     public static final Long DEFAULT_CONNECTION_TIMEOUT = TimeUnit.MINUTES.toMillis(5);
 
-    /**
-     * OSS存储类型
-     */
-    public interface OssType {
-        String LOCAL = "local";
-        String FTP = "ftp";
-        String SFTP = "sftp";
-        String ALI = "ali";
-        String QINIU = "qiniu";
-        String MINIO = "minio";
-        String BAIDU = "baidu";
-        String TENCENT = "tencent";
-        String HUAWEI = "huawei";
-        String JD = "jd";
-        String UP = "up";
-        String JINSHAN = "jinshan";
-        String WANGYI = "wangyi";
-        String UCLOUD = "ucloud";
-        String PINGAN = "pingan";
-        String QINGYUN = "qingyun";
-        String JDBC = "jdbc";
-        String AWS = "aws";
-        String CTYUN = "ctyun";
-        String ECLOUD = "cloud";
-        String INSPUR = "inspur";
-        String FDFS = "fdfs";
-    }
-
 }

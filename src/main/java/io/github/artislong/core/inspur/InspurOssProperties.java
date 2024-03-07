@@ -2,6 +2,7 @@ package io.github.artislong.core.inspur;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.artislong.constant.OssConstant;
+import io.github.artislong.constant.OssType;
 import io.github.artislong.core.inspur.model.InspurOssConfig;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ import java.util.Map;
  */
 @Slf4j
 @Data
-@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssConstant.OssType.INSPUR)
+@ConfigurationProperties(OssConstant.OSS + StrUtil.DOT + OssType.INSPUR)
 public class InspurOssProperties extends InspurOssConfig implements InitializingBean {
 
     private Boolean enable = false;
