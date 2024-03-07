@@ -509,4 +509,11 @@
         </repository>
     </distributionManagement>
 
+    <repositories>
+        <repository>
+            <id>artislong_maven_repository</id>
+            <url>https://gitee.com/artislong/maven_repository/raw/master</url>
+        </repository>
+    </repositories>
+
 </project>
